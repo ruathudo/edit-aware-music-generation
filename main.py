@@ -59,7 +59,7 @@ def train_command(args):
     
     # Create dataloaders
     print("Creating dataloaders...")
-    val_dataloader, test_dataloader = create_dataloaders(batch_size=args.batch_size)
+    train_dataloader, test_dataloader = create_dataloaders(batch_size=args.batch_size)
     
     # Create model and optimizer
     print(f"Creating model with parameters: d_model={args.d_model}, n_heads={args.n_heads}, n_layers={args.n_layers}")
@@ -76,7 +76,7 @@ def train_command(args):
         print(f"Training baseline model for {args.epochs} epochs with patience={args.patience}")
         loss_dict = train_baseline(
             model,
-            val_dataloader,
+            train_dataloader,
             test_dataloader,
             optimizer,
             device_arg=device,
@@ -90,7 +90,7 @@ def train_command(args):
         print(f"Training edit-aware model for {args.epochs} epochs with alpha={args.alpha}, patience={args.patience}")
         loss_dict = train_edit_aware(
             model,
-            val_dataloader,
+            train_dataloader,
             test_dataloader,
             optimizer,
             device_arg=device,
@@ -124,11 +124,11 @@ def evaluate_command(args):
     
     # Create dataloaders
     print("Creating dataloaders...")
-    val_dataloader, test_dataloader = create_dataloaders(batch_size=args.batch_size)
+    train_dataloader, test_dataloader = create_dataloaders(batch_size=args.batch_size)
     
     # Determine which dataloader to use
     if args.dataset == "validation":
-        dataloader = val_dataloader
+        dataloader = train_dataloader
         print("Evaluating on validation dataset...")
     elif args.dataset == "test":
         dataloader = test_dataloader
@@ -223,8 +223,8 @@ Examples:
     train_parser.add_argument(
         "--epochs",
         type=int,
-        default=50,
-        help="Number of training epochs (default: 50)"
+        default=100,
+        help="Number of training epochs (default: 100)"
     )
     train_parser.add_argument(
         "--batch-size",

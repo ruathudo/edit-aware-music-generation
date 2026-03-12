@@ -10,3 +10,5 @@ wheels/
 .venv
 data
 .ipynb_checkpoints
+logs/
+models/

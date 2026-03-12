@@ -3,7 +3,6 @@ Training module for the Music Edit Learning project.
 Refactored from training.ipynb with minimized global variables.
 """
 
-import os
 import tensorflow as tf
 import torch
 import torch.nn as nn
@@ -91,20 +90,18 @@ def melody_is_valid(notes):
     return all(d in DURATIONS for _, d in notes)
 
 
-def notes_to_tokens(notes, edited_note_indices=None):
+def notes_to_tokens(notes):
     """Convert notes to token sequence with edit mask."""
     tokens = [BOS_ID]
-    mask = [0]
-    
+    # mask = [0]
     for i, (pitch, dur) in enumerate(notes):
         tokens.append(token_to_id[f"P{pitch}"])
         tokens.append(token_to_id[f"D{dur}"])
-        is_edited = edited_note_indices and i in edited_note_indices
-        mask.extend([1 if is_edited else 0, 1 if is_edited else 0])
-    
+        # is_edited = edited_note_indices and i in edited_note_indices
+        # mask.extend([1 if is_edited else 0, 1 if is_edited else 0])
     tokens.append(EOS_ID)
-    mask.append(0)
-    return tokens, mask
+    # mask.append(0)
+    return tokens #mask
 
 
 def tokens_to_notes(tokens, id_to_token_dict):
@@ -199,14 +196,83 @@ def simulate_edits(melody, max_edits=5):
     return melody_corrupt, edit_script
 
 
+def build_edit_mask(
+    corrupted_tokens,
+    edit_script,
+    pad_id,
+):
+    """
+    Build a binary edit mask aligned with corrupted_tokens.
+
+    Args:
+        corrupted_tokens: List[int] (already padded)
+        edit_script: list of edit operations
+        pad_id: PAD token id
+
+    Returns:
+        mask: List[int] same length as corrupted_tokens
+    """
+    L = len(corrupted_tokens)
+    mask = [0] * L
+
+    for edit in edit_script:
+        etype = edit[0]
+
+        if etype == "replace_pitch":
+            t = edit[1]
+            pitch_idx = 1 + 2 * t
+            if pitch_idx < L:
+                mask[pitch_idx] = 1
+
+        elif etype == "change_duration":
+            t = edit[1]
+            dur_idx = 1 + 2 * t + 1
+            if dur_idx < L:
+                mask[dur_idx] = 1
+
+        elif etype == "delete_note":
+            t = edit[1]
+            pitch_idx = 1 + 2 * t
+            dur_idx = pitch_idx + 1
+            if pitch_idx < L:
+                mask[pitch_idx] = 1
+            if dur_idx < L:
+                mask[dur_idx] = 1
+
+        elif etype == "insert_note":
+            t = edit[1]
+            # insertion affects *neighboring context*
+            # mark next note as editable (simple & stable)
+            pitch_idx = 1 + 2 * t
+            if pitch_idx < L:
+                mask[pitch_idx] = 1
+                if pitch_idx + 1 < L:
+                    mask[pitch_idx + 1] = 1
+
+    # Never penalize PAD tokens
+    for i in range(L):
+        if corrupted_tokens[i] == pad_id:
+            mask[i] = 0
+
+    return mask
+
+
 # ============ Dataset ============
 def collate_fn(batch):
     """Collate function for DataLoader."""
-    corrupted, clean, masks, edit_scripts = zip(*batch)
+    corrupted, clean, edit_scripts = zip(*batch)
+
     corrupted = pad_sequence(corrupted, batch_first=True, padding_value=PAD_ID)
     clean = pad_sequence(clean, batch_first=True, padding_value=PAD_ID)
-    masks = pad_sequence(masks, batch_first=True, padding_value=0)
-    return corrupted, clean, masks, edit_scripts
+
+    edit_masks = []
+    for tokens, script in zip(corrupted, edit_scripts):
+        mask = build_edit_mask(tokens.tolist(), script, PAD_ID)
+        edit_masks.append(mask)
+
+    edit_masks = torch.tensor(edit_masks, dtype=torch.float)
+
+    return corrupted, clean, edit_masks, edit_scripts
 
 
 class MelodyDataset(Dataset):
@@ -227,15 +293,13 @@ class MelodyDataset(Dataset):
     def __getitem__(self, idx):
         original_notes = self.samples[idx]
         corrupted_notes, edit_script = simulate_edits(original_notes)
-        edited_positions = {e[1] for e in edit_script if len(e) > 1}
-        
-        corrupted_tokens, edit_mask = notes_to_tokens(corrupted_notes, edited_positions)
-        original_tokens, _ = notes_to_tokens(original_notes)
-        
+
+        corrupted_tokens = notes_to_tokens(corrupted_notes)
+        original_tokens = notes_to_tokens(original_notes)
+
         return (
             torch.tensor(corrupted_tokens, dtype=torch.long),
             torch.tensor(original_tokens, dtype=torch.long),
-            torch.tensor(edit_mask, dtype=torch.long),
             edit_script
         )
 
@@ -365,7 +429,7 @@ def evaluate_model(model, dataloader, device_arg=None):
             inputs = inputs[:, :T]
             targets = targets[:, :T]
             
-            logits = model(inputs)
+            logits, _ = model(inputs)
             pred_tokens = torch.argmax(logits, dim=-1).cpu().numpy()
             ref_tokens = targets.cpu().numpy()
             
@@ -393,35 +457,63 @@ def causal_mask(size, device_arg):
 
 class MelodyTransformer(nn.Module):
     """Transformer model for melody sequence correction."""
-    def __init__(self, vocab_size, d_model=256, n_heads=4, n_layers=4, pad_id=None):
+    def __init__(
+        self,
+        vocab_size,
+        d_model=256,
+        n_heads=4,
+        n_layers=4,
+        use_edit_head=False
+    ):
         super().__init__()
-        if pad_id is None:
-            pad_id = PAD_ID
-        self.embed = nn.Embedding(vocab_size, d_model, padding_idx=pad_id)
+
+        self.use_edit_head = use_edit_head
+
+        self.embed = nn.Embedding(vocab_size, d_model, padding_idx=PAD_ID)
         self.pos_embed = nn.Embedding(512, d_model)
-        
+
         decoder_layer = nn.TransformerDecoderLayer(
             d_model=d_model,
             nhead=n_heads,
             batch_first=True
         )
+
         self.decoder = nn.TransformerDecoder(decoder_layer, n_layers)
+
+        # token prediction head (baseline)
         self.fc = nn.Linear(d_model, vocab_size)
-    
+
+        # optional edit head
+        if self.use_edit_head:
+            self.edit_head = nn.Linear(d_model, 1)
+
     def forward(self, x):
+
         B, T = x.shape
+
         pos = torch.arange(T, device=x.device).unsqueeze(0).expand(B, T)
+
         mask = causal_mask(T, x.device)
+
         x = self.embed(x) + self.pos_embed(pos)
-        x = self.decoder(x, x, tgt_mask=mask)
-        return self.fc(x)
+
+        h = self.decoder(x, x, tgt_mask=mask)
+
+        token_logits = self.fc(h)
+
+        if not self.use_edit_head:
+            return token_logits, None
+
+        edit_logits = self.edit_head(h).squeeze(-1)
+
+        return token_logits, edit_logits
 
 
 # ============ Training Functions ============
 def train_baseline(
     model,
     train_dataloader,
-    val_dataloader,
+    test_dataloader,
     optimizer,
     device_arg=None,
     epochs=10,
@@ -454,7 +546,7 @@ def train_baseline(
             inputs = inputs[:, :T].to(device_arg)
             targets = targets[:, :T].to(device_arg)
             
-            logits = model(inputs)
+            logits, _ = model(inputs)
             loss = criterion(
                 logits.reshape(-1, logits.size(-1)),
                 targets.reshape(-1)
@@ -474,7 +566,7 @@ def train_baseline(
         val_edit_cost = 0.0
         
         with torch.no_grad():
-            for corrupted, clean, _, _ in val_dataloader:
+            for corrupted, clean, _, _ in test_dataloader:
                 corrupted = corrupted.to(device_arg)
                 clean = clean.to(device_arg)
                 
@@ -484,7 +576,7 @@ def train_baseline(
                 inputs = inputs[:, :T]
                 targets = targets[:, :T]
                 
-                logits = model(inputs)
+                logits, _ = model(inputs)
                 loss = criterion(
                     logits.reshape(-1, logits.size(-1)),
                     targets.reshape(-1)
@@ -496,18 +588,18 @@ def train_baseline(
                 val_loss += loss.item()
                 val_edit_cost += calculate_edit_cost(pred_tokens, ref_tokens)
         
-        avg_val_loss = val_loss / len(val_dataloader)
-        avg_val_edit_cost = val_edit_cost / len(val_dataloader)
+        avg_val_loss = val_loss / len(test_dataloader)
+        avg_val_edit_cost = val_edit_cost / len(test_dataloader)
         print(f"[Validation] Epoch {epoch+1}: loss = {avg_val_loss:.4f}, edit_cost = {avg_val_edit_cost:.4f}")
         
         baseline_loss['train'].append(avg_loss)
         baseline_loss['val'].append(avg_val_loss)
         
-        if best_val_loss - avg_val_edit_cost > min_improvement:
-            best_val_loss = avg_val_edit_cost
+        if best_val_loss - avg_val_loss > min_improvement:
+            best_val_loss = avg_val_loss
             patience_counter = 0
             best_model_state = model.state_dict().copy()
-            print(f"Validation edit cost improved to {avg_val_edit_cost:.4f}")
+            print(f"Validation loss improved to {avg_val_loss:.4f}")
         else:
             patience_counter += 1
             print(f"No improvement. Patience: {patience_counter}/{patience}")
@@ -539,70 +631,94 @@ def visualize_loss(loss_dict):
 
 def create_dataloaders(batch_size=32):
     """Create train, validation, and test dataloaders."""
-    val_dataset = MelodyDataset(val_path)
+    train_dataset = MelodyDataset(val_path)
     test_dataset = MelodyDataset(test_path)
     
-    print(f"Val Dataset size: {len(val_dataset)}")
+    print(f"Val Dataset size: {len(train_dataset)}")
     print(f"Test Dataset size: {len(test_dataset)}")
     
-    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
     
-    return val_dataloader, test_dataloader
+    return train_dataloader, test_dataloader
 
 
 def create_model_and_optimizer(model_name="baseline", d_model=256, n_heads=4, n_layers=4, lr=0.0001):
     """Create a model and optimizer."""
-    model = MelodyTransformer(vocab_size=len(vocab), d_model=d_model, n_heads=n_heads, n_layers=n_layers).to(device)
+    if model_name == "baseline":
+        use_edit_head = False
+    else:  # "edit-aware"
+        use_edit_head = True
+
+    model = MelodyTransformer(vocab_size=len(vocab), d_model=d_model, n_heads=n_heads, n_layers=n_layers, use_edit_head=use_edit_head).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     return model, optimizer
 
 
 # ============ Edit-Aware Training ============
 def edit_weighted_loss(
-    logits,
-    targets,
-    edit_mask,
-    pad_id,
+    token_logits,      # (B, T, V)
+    target_tokens,     # (B, T)
+    edit_logits,       # (B, T)
+    edit_masks,        # (B, T)
+    corrupted_tokens,  # (B, T)
+    pad_id = PAD_ID,
     alpha=1.0
 ):
     """
-    Calculate weighted loss giving more weight to edited positions.
-    
-    Args:
-        logits: (B, T, V) - model output logits
-        targets: (B, T) - target token indices
-        edit_mask: (B, T) - binary mask indicating edited positions (0 or 1)
-        pad_id: padding token index
-        alpha: weighting factor for edited positions
-    
+    Multi-task edit-aware loss.
+
+    token_logits: model token predictions
+    target_tokens: original tokens as target
+    edit_logits: model edit predictions
+    edit_masks: ground truth edit mask (0/1)
+    corrupted_tokens: input tokens
+
     Returns:
-        weighted loss
+        scalar loss
     """
-    B, T, V = logits.shape
 
-    # Token-level CE
-    ce = F.cross_entropy(
-        logits.reshape(-1, V),
-        targets.reshape(-1),
-        ignore_index=pad_id,
-        reduction="none"
-    ).view(B, T)
+    B, T, V = token_logits.shape
 
-    # Weight edited positions higher
-    weights = 1.0 + alpha * edit_mask.float()
+    # --------------------------------------------------
+    # Token prediction loss
+    # --------------------------------------------------
 
-    # Mask out PAD positions explicitly
-    valid = (targets != pad_id).float()
+    token_loss = F.cross_entropy(
+        token_logits.reshape(B * T, V),
+        target_tokens.reshape(B * T),
+        ignore_index=pad_id
+    )
 
-    loss = (ce * weights * valid).sum() / valid.sum()
+    # --------------------------------------------------
+    # Edit prediction loss
+    # --------------------------------------------------
+
+    # valid tokens (exclude padding)
+    valid_mask = corrupted_tokens != pad_id   # (B, T)
+
+    # select valid positions
+    edit_logits_valid = edit_logits[valid_mask]
+    edit_targets_valid = edit_masks.float()[valid_mask]
+
+    edit_loss = F.binary_cross_entropy_with_logits(
+        edit_logits_valid,
+        edit_targets_valid
+    )
+
+    # --------------------------------------------------
+    # Combined loss
+    # --------------------------------------------------
+
+    loss = token_loss + alpha * edit_loss
+
     return loss
 
 
 def train_edit_aware(
     model,
     train_dataloader,
-    val_dataloader,
+    test_dataloader,
     optimizer,
     device_arg=None,
     alpha=1.0,
@@ -641,14 +757,16 @@ def train_edit_aware(
             targets = targets[:, :T]
             mask = mask[:, :T]
 
-            logits = model(inputs)
+            logits, edit_logits = model(inputs)
 
             loss = edit_weighted_loss(
                 logits,
                 targets,
+                edit_logits,
                 mask,
+                inputs,
                 pad_id=PAD_ID,
-                alpha=alpha
+                alpha=alpha,
             )
 
             optimizer.zero_grad()
@@ -666,7 +784,7 @@ def train_edit_aware(
         val_edit_cost = 0.0
         
         with torch.no_grad():
-            for corrupted, clean, edit_mask, _ in val_dataloader:
+            for corrupted, clean, edit_mask, _ in test_dataloader:
                 corrupted = corrupted.to(device_arg)
                 clean = clean.to(device_arg)
                 edit_mask = edit_mask.to(device_arg)
@@ -681,14 +799,16 @@ def train_edit_aware(
                 targets = targets[:, :T]
                 mask = mask[:, :T]
 
-                logits = model(inputs)
+                logits, edit_logits = model(inputs)
 
                 loss = edit_weighted_loss(
                     logits,
                     targets,
+                    edit_logits,
                     mask,
+                    inputs,
                     pad_id=PAD_ID,
-                    alpha=alpha
+                    alpha=alpha,
                 )
 
                 pred_tokens = torch.argmax(logits, dim=-1).cpu().numpy()
@@ -697,20 +817,20 @@ def train_edit_aware(
                 val_loss += loss.item()
                 val_edit_cost += calculate_edit_cost(pred_tokens, ref_tokens)
 
-        avg_val_loss = val_loss / len(val_dataloader)
-        avg_val_edit_cost = val_edit_cost / len(val_dataloader)
+        avg_val_loss = val_loss / len(test_dataloader)
+        avg_val_edit_cost = val_edit_cost / len(test_dataloader)
         print(f"[Validation] Epoch {epoch+1}: loss = {avg_val_loss:.4f}, edit_cost = {avg_val_edit_cost:.2f}")
 
         edit_aware_loss['train'].append(avg_loss)
         edit_aware_loss['val'].append(avg_val_loss)
 
         # Early stopping logic
-        if best_val_loss - avg_val_edit_cost > min_improvement:
+        if best_val_loss - avg_val_loss > min_improvement:
             # Significant improvement detected
-            best_val_loss = avg_val_edit_cost
+            best_val_loss = avg_val_loss
             patience_counter = 0
             best_model_state = model.state_dict().copy()
-            print(f"Validation edit cost improved to {avg_val_edit_cost:.2f}")
+            print(f"Validation loss improved to {avg_val_loss:.4f}")
         else:
             # No significant improvement
             patience_counter += 1
