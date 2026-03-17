@@ -59,7 +59,8 @@ def train_command(args):
     
     # Create dataloaders
     print("Creating dataloaders...")
-    train_dataloader, test_dataloader = create_dataloaders(batch_size=args.batch_size)
+    train_dataloader = create_dataloaders(data_name='train', batch_size=args.batch_size)
+    val_dataloader = create_dataloaders(data_name='val', batch_size=args.batch_size)
     
     # Create model and optimizer
     print(f"Creating model with parameters: d_model={args.d_model}, n_heads={args.n_heads}, n_layers={args.n_layers}")
@@ -73,11 +74,11 @@ def train_command(args):
     
     # Train based on model type
     if args.model == "baseline":
-        print(f"Training baseline model for {args.epochs} epochs with patience={args.patience}")
+        print(f"Training baseline model for {args.epochs} epochs with min_improvement={args.min_improvement}")
         loss_dict = train_baseline(
             model,
             train_dataloader,
-            test_dataloader,
+            val_dataloader,
             optimizer,
             device_arg=device,
             epochs=args.epochs,
@@ -87,11 +88,11 @@ def train_command(args):
         model_save_name = "baseline"
     
     elif args.model == "edit_aware":
-        print(f"Training edit-aware model for {args.epochs} epochs with alpha={args.alpha}, patience={args.patience}")
+        print(f"Training edit-aware model for {args.epochs} epochs with alpha={args.alpha}, min_improvement={args.min_improvement}")
         loss_dict = train_edit_aware(
             model,
             train_dataloader,
-            test_dataloader,
+            val_dataloader,
             optimizer,
             device_arg=device,
             alpha=args.alpha,
@@ -124,14 +125,15 @@ def evaluate_command(args):
     
     # Create dataloaders
     print("Creating dataloaders...")
-    train_dataloader, test_dataloader = create_dataloaders(batch_size=args.batch_size)
+    
+    
     
     # Determine which dataloader to use
     if args.dataset == "validation":
-        dataloader = train_dataloader
+        dataloader = create_dataloaders(data_name='val', batch_size=args.batch_size)
         print("Evaluating on validation dataset...")
     elif args.dataset == "test":
-        dataloader = test_dataloader
+        dataloader = create_dataloaders(data_name='test', batch_size=args.batch_size)
         print("Evaluating on test dataset...")
     else:
         print(f"Unknown dataset: {args.dataset}")
@@ -323,8 +325,8 @@ Examples:
     eval_parser.add_argument(
         "--lr",
         type=float,
-        default=0.0001,
-        help="Learning rate (default: 0.0001)"
+        default=1e-4,
+        help="Learning rate (default: 1e-4)"
     )
     eval_parser.set_defaults(func=evaluate_command)
     

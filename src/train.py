@@ -3,7 +3,7 @@ Training module for the Music Edit Learning project.
 Refactored from training.ipynb with minimized global variables.
 """
 
-import tensorflow as tf
+# import tensorflow as tf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -29,9 +29,9 @@ DELETE_COST = 1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Data paths
-test_path = "data/test/*.tfrecord"
-train_path = "data/train/*.tfrecord"
-val_path = "data/validation/*.tfrecord"
+test_path = "data/test_data.npy"
+train_path = "data/train_data.npy"
+val_path = "data/val_data.npy"
 
 # Build vocabulary
 pitch_tokens = [f"P{p}" for p in range(PITCH_MIN, PITCH_MAX + 1)]
@@ -45,20 +45,20 @@ EOS_ID = token_to_id["<EOS>"]
 
 
 # ============ Parsing and Data Processing ============
-def parse_seq_example(example_proto):
-    """Parse TFRecord example into pitch sequence."""
-    context_features = {}
-    sequence_features = {
-        "pitch_seq": tf.io.VarLenFeature(dtype=tf.int64),
-    }
-    _, sequence = tf.io.parse_single_sequence_example(
-        example_proto,
-        context_features=context_features,
-        sequence_features=sequence_features
-    )
-    pitch_seq = tf.sparse.to_dense(sequence["pitch_seq"])
-    pitch_seq = tf.reshape(pitch_seq, [-1])
-    return pitch_seq
+# def parse_seq_example(example_proto):
+#     """Parse TFRecord example into pitch sequence."""
+#     context_features = {}
+#     sequence_features = {
+#         "pitch_seq": tf.io.VarLenFeature(dtype=tf.int64),
+#     }
+#     _, sequence = tf.io.parse_single_sequence_example(
+#         example_proto,
+#         context_features=context_features,
+#         sequence_features=sequence_features
+#     )
+#     pitch_seq = tf.sparse.to_dense(sequence["pitch_seq"])
+#     pitch_seq = tf.reshape(pitch_seq, [-1])
+#     return pitch_seq
 
 
 def pitch_seq_to_notes(pitch_seq):
@@ -91,17 +91,16 @@ def melody_is_valid(notes):
 
 
 def notes_to_tokens(notes):
-    """Convert notes to token sequence with edit mask."""
+    """Convert notes to token sequence."""
     tokens = [BOS_ID]
-    # mask = [0]
-    for i, (pitch, dur) in enumerate(notes):
+
+    for pitch, dur in notes:
         tokens.append(token_to_id[f"P{pitch}"])
         tokens.append(token_to_id[f"D{dur}"])
-        # is_edited = edited_note_indices and i in edited_note_indices
-        # mask.extend([1 if is_edited else 0, 1 if is_edited else 0])
+
     tokens.append(EOS_ID)
-    # mask.append(0)
-    return tokens #mask
+
+    return tokens
 
 
 def tokens_to_notes(tokens, id_to_token_dict):
@@ -139,7 +138,7 @@ def sample_edit_type():
 def sample_position(melody, edit_type):
     """Sample a valid position for a given edit type."""
     if edit_type == "insert_note":
-        return random.randint(0, len(melody))
+        return random.randint(1, len(melody)) # allow insertion at end
     return random.randint(0, len(melody) - 1)
 
 
@@ -203,7 +202,8 @@ def build_edit_mask(
 ):
     """
     Build a binary edit mask aligned with corrupted_tokens.
-
+    The first token is BOS and the last token is EOS, 
+    so note t starts at index 1 + 2*t for pitch and 1 + 2*t + 1 for duration.
     Args:
         corrupted_tokens: List[int] (already padded)
         edit_script: list of edit operations
@@ -265,6 +265,15 @@ def collate_fn(batch):
     corrupted = pad_sequence(corrupted, batch_first=True, padding_value=PAD_ID)
     clean = pad_sequence(clean, batch_first=True, padding_value=PAD_ID)
 
+    max_len = max(corrupted.size(1), clean.size(1))
+    # pad to max_len if necessary
+    if corrupted.size(1) < max_len:
+        pad_size = max_len - corrupted.size(1)
+        corrupted = F.pad(corrupted, (0, pad_size), value=PAD_ID)
+    if clean.size(1) < max_len:
+        pad_size = max_len - clean.size(1)
+        clean = F.pad(clean, (0, pad_size), value=PAD_ID)
+
     edit_masks = []
     for tokens, script in zip(corrupted, edit_scripts):
         mask = build_edit_mask(tokens.tolist(), script, PAD_ID)
@@ -277,14 +286,15 @@ def collate_fn(batch):
 
 class MelodyDataset(Dataset):
     """Dataset for melody sequences from TFRecord files."""
-    def __init__(self, tfrecord_path):
-        self.dataset = tf.data.TFRecordDataset(tf.io.gfile.glob(tfrecord_path))
-        self.dataset = self.dataset.map(parse_seq_example)
+    def __init__(self, data_path):
+        loaded_data = np.load(data_path)
+        # self.dataset = tf.data.TFRecordDataset(tf.io.gfile.glob(tfrecord_path))
+        self.dataset = torch.from_numpy(loaded_data)
         self.samples = []
         
         for pitch_seq in self.dataset:
             notes = pitch_seq_to_notes(pitch_seq.numpy())
-            if len(notes) > 0 and melody_is_valid(notes):
+            if len(notes) > 4 and melody_is_valid(notes):
                 self.samples.append(notes)
     
     def __len__(self):
@@ -513,7 +523,7 @@ class MelodyTransformer(nn.Module):
 def train_baseline(
     model,
     train_dataloader,
-    test_dataloader,
+    val_dataloader,
     optimizer,
     device_arg=None,
     epochs=10,
@@ -566,7 +576,7 @@ def train_baseline(
         val_edit_cost = 0.0
         
         with torch.no_grad():
-            for corrupted, clean, _, _ in test_dataloader:
+            for corrupted, clean, _, _ in val_dataloader:
                 corrupted = corrupted.to(device_arg)
                 clean = clean.to(device_arg)
                 
@@ -588,8 +598,8 @@ def train_baseline(
                 val_loss += loss.item()
                 val_edit_cost += calculate_edit_cost(pred_tokens, ref_tokens)
         
-        avg_val_loss = val_loss / len(test_dataloader)
-        avg_val_edit_cost = val_edit_cost / len(test_dataloader)
+        avg_val_loss = val_loss / len(val_dataloader)
+        avg_val_edit_cost = val_edit_cost / len(val_dataloader)
         print(f"[Validation] Epoch {epoch+1}: loss = {avg_val_loss:.4f}, edit_cost = {avg_val_edit_cost:.4f}")
         
         baseline_loss['train'].append(avg_loss)
@@ -629,18 +639,25 @@ def visualize_loss(loss_dict):
     plt.show()
 
 
-def create_dataloaders(batch_size=32):
+def create_dataloaders(data_name, batch_size=32):
     """Create train, validation, and test dataloaders."""
-    train_dataset = MelodyDataset(val_path)
-    test_dataset = MelodyDataset(test_path)
-    
-    print(f"Val Dataset size: {len(train_dataset)}")
-    print(f"Test Dataset size: {len(test_dataset)}")
-    
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
-    
-    return train_dataloader, test_dataloader
+    if data_name == "train":
+        train_dataset = MelodyDataset(train_path)
+        print(f"Train Dataset size: {len(train_dataset)}")
+        dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    elif data_name == "val":
+        val_dataset = MelodyDataset(val_path)
+        print(f"Validation Dataset size: {len(val_dataset)}")
+        dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+
+    elif data_name == "test":
+        test_dataset = MelodyDataset(test_path)
+        print(f"Test Dataset size: {len(test_dataset)}")
+        dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+    else:
+        raise ValueError(f"Unknown data_name: {data_name}")
+
+    return dataloader
 
 
 def create_model_and_optimizer(model_name="baseline", d_model=256, n_heads=4, n_layers=4, lr=0.0001):
@@ -718,7 +735,7 @@ def edit_weighted_loss(
 def train_edit_aware(
     model,
     train_dataloader,
-    test_dataloader,
+    val_dataloader,
     optimizer,
     device_arg=None,
     alpha=1.0,
@@ -751,11 +768,11 @@ def train_edit_aware(
             targets = clean[:, 1:]
             mask = edit_mask[:, 1:]
 
-            T = min(inputs.size(1), targets.size(1), mask.size(1))
+            # T = min(inputs.size(1), targets.size(1), mask.size(1))
 
-            inputs = inputs[:, :T]
-            targets = targets[:, :T]
-            mask = mask[:, :T]
+            # inputs = inputs[:, :T]
+            # targets = targets[:, :T]
+            # mask = mask[:, :T]
 
             logits, edit_logits = model(inputs)
 
@@ -784,7 +801,7 @@ def train_edit_aware(
         val_edit_cost = 0.0
         
         with torch.no_grad():
-            for corrupted, clean, edit_mask, _ in test_dataloader:
+            for corrupted, clean, edit_mask, _ in val_dataloader:
                 corrupted = corrupted.to(device_arg)
                 clean = clean.to(device_arg)
                 edit_mask = edit_mask.to(device_arg)
@@ -793,11 +810,11 @@ def train_edit_aware(
                 targets = clean[:, 1:]
                 mask = edit_mask[:, 1:]
 
-                T = min(inputs.size(1), targets.size(1), mask.size(1))
+                # T = min(inputs.size(1), targets.size(1), mask.size(1))
 
-                inputs = inputs[:, :T]
-                targets = targets[:, :T]
-                mask = mask[:, :T]
+                # inputs = inputs[:, :T]
+                # targets = targets[:, :T]
+                # mask = mask[:, :T]
 
                 logits, edit_logits = model(inputs)
 
@@ -817,8 +834,8 @@ def train_edit_aware(
                 val_loss += loss.item()
                 val_edit_cost += calculate_edit_cost(pred_tokens, ref_tokens)
 
-        avg_val_loss = val_loss / len(test_dataloader)
-        avg_val_edit_cost = val_edit_cost / len(test_dataloader)
+        avg_val_loss = val_loss / len(val_dataloader)
+        avg_val_edit_cost = val_edit_cost / len(val_dataloader)
         print(f"[Validation] Epoch {epoch+1}: loss = {avg_val_loss:.4f}, edit_cost = {avg_val_edit_cost:.2f}")
 
         edit_aware_loss['train'].append(avg_loss)
