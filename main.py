@@ -10,6 +10,7 @@ from src.train import (
     train_baseline,
     train_edit_aware,
     evaluate_model,
+    generate_edit_scripts,
     device
 )
 
@@ -127,7 +128,6 @@ def evaluate_command(args):
     print("Creating dataloaders...")
     
     
-    
     # Determine which dataloader to use
     if args.dataset == "validation":
         dataloader = create_dataloaders(data_name='val', batch_size=args.batch_size)
@@ -197,6 +197,44 @@ def evaluate_command(args):
         json.dump(results, f, indent=2)
     
     print(f"\nResults saved to: {results_file}")
+
+
+def sample_command(args):
+    """Execute the sample command to generate edit scripts."""
+    print(f"Starting edit script generation for dataset: {args.dataset}")
+    
+    # Create directories
+    create_directories()
+    
+    # Determine data path and output path
+    if args.dataset == "train":
+        data_path = "data/train_data.npy"
+        output_path = "data/train_edit_scripts.json"
+    elif args.dataset == "val":
+        data_path = "data/val_data.npy"
+        output_path = "data/val_edit_scripts.json"
+    elif args.dataset == "test":
+        data_path = "data/test_data.npy"
+        output_path = "data/test_edit_scripts.json"
+    else:
+        print(f"Unknown dataset: {args.dataset}")
+        return
+    
+    # Check if data file exists
+    if not os.path.exists(data_path):
+        print(f"Error: Data file {data_path} not found")
+        return
+    
+    # Generate edit scripts
+    print(f"Generating edit scripts with max_edits={args.max_edits}")
+    generate_edit_scripts(
+        data_path=data_path,
+        output_path=output_path,
+        max_edits=args.max_edits
+    )
+    
+    print(f"\nEdit script generation completed!")
+    print(f"Edit scripts saved to: {output_path}")
 
 
 def main():
@@ -329,6 +367,23 @@ Examples:
         help="Learning rate (default: 1e-4)"
     )
     eval_parser.set_defaults(func=evaluate_command)
+    
+    # Sample command
+    sample_parser = subparsers.add_parser("sample", help="Generate edit scripts for a dataset")
+    sample_parser.add_argument(
+        "--dataset",
+        type=str,
+        choices=["train", "val", "test"],
+        required=True,
+        help="Dataset to generate edit scripts for"
+    )
+    sample_parser.add_argument(
+        "--max-edits",
+        type=int,
+        default=5,
+        help="Maximum number of edits per sample (default: 5)"
+    )
+    sample_parser.set_defaults(func=sample_command)
     
     # Parse arguments
     args = parser.parse_args()
