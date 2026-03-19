@@ -18,7 +18,7 @@ D_MODEL=256
 N_HEADS=4
 N_LAYERS=4
 PATIENCE=5
-MIN_IMPROVEMENT=0.0001
+MIN_IMPROVEMENT=0.001
 
 echo "Training parameters:"
 echo "  Epochs: $EPOCHS"

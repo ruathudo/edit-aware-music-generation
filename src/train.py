@@ -520,7 +520,7 @@ def evaluate_model(model, dataloader, device_arg=None):
             inputs = corrupted[:, :-1]
             targets = clean[:, 1:]
             
-            logits, _ = model(inputs)
+            logits = model(inputs)
             pred_tokens = torch.argmax(logits, dim=-1).cpu().numpy()
             ref_tokens = targets.cpu().numpy()
             
@@ -575,8 +575,8 @@ class MelodyTransformer(nn.Module):
         self.fc = nn.Linear(d_model, vocab_size)
 
         # optional edit head
-        if self.use_edit_head:
-            self.edit_head = nn.Linear(d_model, 1)
+        # if self.use_edit_head:
+        #     self.edit_head = nn.Linear(d_model, 1)
 
     def forward(self, x):
 
@@ -592,12 +592,7 @@ class MelodyTransformer(nn.Module):
 
         token_logits = self.fc(h)
 
-        if not self.use_edit_head:
-            return token_logits, None
-
-        edit_logits = self.edit_head(h).squeeze(-1)
-
-        return token_logits, edit_logits
+        return token_logits
 
 
 # ============ Training Functions ============
@@ -636,11 +631,8 @@ def train_baseline(
             
             inputs = corrupted[:, :-1]
             targets = clean[:, 1:]
-            T = min(inputs.size(1), targets.size(1))
-            inputs = inputs[:, :T].to(device_arg)
-            targets = targets[:, :T].to(device_arg)
             
-            logits, _ = model(inputs)
+            logits = model(inputs)
             loss = criterion(
                 logits.reshape(-1, logits.size(-1)),
                 targets.reshape(-1)
@@ -666,11 +658,8 @@ def train_baseline(
                 
                 inputs = corrupted[:, :-1]
                 targets = clean[:, 1:]
-                T = min(inputs.size(1), targets.size(1))
-                inputs = inputs[:, :T]
-                targets = targets[:, :T]
                 
-                logits, _ = model(inputs)
+                logits = model(inputs)
                 loss = criterion(
                     logits.reshape(-1, logits.size(-1)),
                     targets.reshape(-1)
@@ -907,22 +896,15 @@ def train_edit_aware(
             targets = clean[:, 1:]
             mask = edit_mask[:, 1:]
 
-            # T = min(inputs.size(1), targets.size(1), mask.size(1))
 
-            # inputs = inputs[:, :T]
-            # targets = targets[:, :T]
-            # mask = mask[:, :T]
+            logits = model(inputs)
 
-            logits, edit_logits = model(inputs)
-
-            loss = edit_weighted_loss(
+            loss = weighted_edit_ce_loss(
                 logits,
                 targets,
-                edit_logits,
                 mask,
-                inputs,
                 pad_id=PAD_ID,
-                alpha=alpha,
+                alpha=alpha
             )
 
             optimizer.zero_grad()
@@ -949,20 +931,12 @@ def train_edit_aware(
                 targets = clean[:, 1:]
                 mask = edit_mask[:, 1:]
 
-                # T = min(inputs.size(1), targets.size(1), mask.size(1))
+                logits = model(inputs)
 
-                # inputs = inputs[:, :T]
-                # targets = targets[:, :T]
-                # mask = mask[:, :T]
-
-                logits, edit_logits = model(inputs)
-
-                loss = edit_weighted_loss(
+                loss = weighted_edit_ce_loss(
                     logits,
                     targets,
-                    edit_logits,
                     mask,
-                    inputs,
                     pad_id=PAD_ID,
                     alpha=alpha,
                 )
