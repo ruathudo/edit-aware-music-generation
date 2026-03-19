@@ -2,8 +2,6 @@
 Training module for the Music Edit Learning project.
 Refactored from training.ipynb with minimized global variables.
 """
-
-# import tensorflow as tf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,9 +14,10 @@ import matplotlib.pyplot as plt
 import random
 import copy
 import json
-import os
+
 
 # ============ Constants at top of file ============
+BASE_SEED = 42
 PITCH_MIN = 21
 PITCH_MAX = 108
 DURATIONS = [1, 2, 3, 4, 6, 8]
@@ -26,6 +25,11 @@ SPECIAL_TOKENS = ["<PAD>", "<BOS>", "<EOS>"]
 EDIT_TYPES = ["replace_pitch", "change_duration", "delete_note", "insert_note"]
 INSERT_COST = 1
 DELETE_COST = 1
+
+# Set random seeds for reproducibility
+torch.manual_seed(BASE_SEED)
+random.seed(BASE_SEED)
+np.random.seed(BASE_SEED)
 
 # Device initialization
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -137,24 +141,24 @@ def sample_edit_type():
     return np.random.choice(EDIT_TYPES, p=[0.4, 0.3, 0.15, 0.15])
 
 
-def sample_position(melody, edit_type, used_positions=None):
+def sample_position( melody, edit_type, used_positions=None, rng = None):
     """Sample a valid position for a given edit type, avoiding used positions."""
     if used_positions is None:
         used_positions = set()
     
     if edit_type == "insert_note":
         # Can insert at the end or between existing notes
-        valid_positions = [i for i in range(len(melody)) if i not in used_positions]
+        valid_positions = [i for i in range(1, len(melody)) if i not in used_positions]
         if not valid_positions:
             # If all positions are used, allow inserting at end
             return len(melody)
-        return random.choice(valid_positions)
+        return rng.choice(valid_positions)
     
     # For other edit types, can only edit existing notes
     valid_positions = [i for i in range(len(melody)) if i not in used_positions]
     if not valid_positions:
         return None  # No valid positions available
-    return random.choice(valid_positions)
+    return rng.choice(valid_positions)
 
 
 def sample_duration(exclude_duration):
@@ -218,35 +222,54 @@ def sample_edit_script(origin_notes, max_edits=5):
     return edit_script
 
 
-def simulate_edits(origin_notes, edit_script):
-    """Apply edit operations from edit_script to create corrupted notes."""
-    corrupted_notes = copy.deepcopy(origin_notes)
-    
-    for edit in edit_script:
-        etype = edit[0]
-        
-        if etype == "insert_note":
-            t = edit[1]
-            note = edit[2]
-            corrupted_notes.insert(t, note)
-        elif etype == "delete_note":
-            t = edit[1]
-            if t < len(corrupted_notes):
-                corrupted_notes.pop(t)
-        elif etype == "replace_pitch":
-            t = edit[1]
-            if t < len(corrupted_notes):
-                p, d = corrupted_notes[t]
-                new_p = edit[2]
-                corrupted_notes[t] = (new_p, d)
-        elif etype == "change_duration":
-            t = edit[1]
-            if t < len(corrupted_notes):
-                p, old_d = corrupted_notes[t]
-                new_d = edit[2]
-                corrupted_notes[t] = (p, new_d)
-    
-    return corrupted_notes
+def simulate_edits(melody, max_edits=5, seed=None):
+    rng = random.Random(seed)   # LOCAL RNG
+
+    melody_corrupt = copy.deepcopy(melody)
+    edit_script = []
+
+    used_positions = set()
+    n_edits = rng.randint(1, max_edits)
+
+    for _ in range(n_edits):
+        edit_type = rng.choice(EDIT_TYPES)
+
+        if edit_type == "insert_note":
+            t = sample_position(melody_corrupt, edit_type, used_positions, rng)
+            pitch = rng.randint(PITCH_MIN, PITCH_MAX)
+            duration = rng.choice(DURATIONS)
+            note = (pitch, duration)
+
+            melody_corrupt.insert(t, note)
+            edit_script.append(("delete_note", t))
+
+        elif len(melody_corrupt) == 0:
+            continue
+
+        else:
+            t = sample_position(melody_corrupt, edit_type, used_positions, rng)
+
+            if edit_type == "replace_pitch":
+                old_p, d = melody_corrupt[t]
+                new_p = old_p
+                while new_p == old_p:
+                    new_p = old_p + rng.choice([-2, -1, 1, 2])
+                    new_p = max(PITCH_MIN, min(PITCH_MAX, new_p))
+
+                melody_corrupt[t] = (new_p, d)
+                edit_script.append(("replace_pitch", t, old_p))
+
+            elif edit_type == "change_duration":
+                p, old_d = melody_corrupt[t]
+                new_d = rng.choice([d for d in DURATIONS if d != old_d])
+                melody_corrupt[t] = (p, new_d)
+                edit_script.append(("change_duration", t, old_d))
+
+            elif edit_type == "delete_note":
+                note = melody_corrupt.pop(t)
+                edit_script.append(("insert_note", t, note))
+
+    return melody_corrupt, edit_script
 
 
 def build_edit_mask(
@@ -340,7 +363,7 @@ def collate_fn(batch):
 
 class MelodyDataset(Dataset):
     """Dataset for melody sequences from TFRecord files."""
-    def __init__(self, data_path, edit_script_path=None):
+    def __init__(self, data_path):
         loaded_data = np.load(data_path)
         # self.dataset = tf.data.TFRecordDataset(tf.io.gfile.glob(tfrecord_path))
         self.dataset = torch.from_numpy(loaded_data)
@@ -350,31 +373,20 @@ class MelodyDataset(Dataset):
             notes = pitch_seq_to_notes(pitch_seq.numpy())
             if len(notes) > 4 and melody_is_valid(notes):
                 self.samples.append(notes)
+
+        self.epoch = 0  # For deterministic edit simulation
         
-        # Load edit scripts if provided
-        self.edit_scripts = None
-        if edit_script_path and os.path.exists(edit_script_path):
-            with open(edit_script_path, 'r') as f:
-                self.edit_scripts = json.load(f)
-            print(f"Loaded {len(self.edit_scripts)} edit scripts from {edit_script_path}")
-        else:
-            raise ValueError(f"No edit scripts found at {edit_script_path}")
-    
+    def set_epoch(self, epoch):
+        """Set epoch number for deterministic edit simulation."""
+        self.epoch = epoch
+
     def __len__(self):
         return len(self.samples)
     
     def __getitem__(self, idx):
+        seed = BASE_SEED + idx + self.epoch * 100000
         original_notes = self.samples[idx]
-        
-        if self.edit_scripts is not None:
-            # Use pre-generated edit script
-            edit_script = self.edit_scripts[idx]
-            corrupted_notes = simulate_edits(original_notes, edit_script)
-       
-        # else:
-        #     # Generate edit script on-the-fly (fallback)
-        #     edit_script = sample_edit_script(original_notes)
-        #     corrupted_notes = simulate_edits(original_notes, edit_script)
+        corrupted_notes, edit_script = simulate_edits(original_notes, seed=seed)
 
         corrupted_tokens = notes_to_tokens(corrupted_notes)
         original_tokens = notes_to_tokens(original_notes)
@@ -507,9 +519,6 @@ def evaluate_model(model, dataloader, device_arg=None):
         with torch.no_grad():
             inputs = corrupted[:, :-1]
             targets = clean[:, 1:]
-            T = min(inputs.size(1), targets.size(1))
-            inputs = inputs[:, :T]
-            targets = targets[:, :T]
             
             logits, _ = model(inputs)
             pred_tokens = torch.argmax(logits, dim=-1).cpu().numpy()
@@ -615,6 +624,9 @@ def train_baseline(
     baseline_loss = defaultdict(list)
     
     for epoch in range(epochs):
+        train_dataloader.dataset.set_epoch(epoch)  # For deterministic edit simulation
+        val_dataloader.dataset.set_epoch(epoch)
+
         model.train()
         total_loss = 0.0
         
@@ -678,18 +690,18 @@ def train_baseline(
         baseline_loss['val'].append(avg_val_loss)
         baseline_loss['edit_cost'].append(avg_val_edit_cost)
         
-        if best_val_loss - avg_val_edit_cost > min_improvement:
-            best_val_loss = avg_val_edit_cost
+        if best_val_loss - avg_val_loss > min_improvement:
+            best_val_loss = avg_val_loss
             patience_counter = 0
             best_model_state = model.state_dict().copy()
-            print(f"Validation edit cost improved to {avg_val_edit_cost:.2f}")
+            print(f"Validation loss improved to {avg_val_loss:.4f}")
         else:
             patience_counter += 1
             print(f"No improvement. Patience: {patience_counter}/{patience}")
             
             if patience_counter >= patience:
-                print(f"\nEarly stopping triggered! Validation edit cost did not improve for {patience} epochs.")
-                print(f"Best validation edit cost: {best_val_loss:.2f}")
+                print(f"\nEarly stopping triggered! Validation loss did not improve for {patience} epochs.")
+                print(f"Best validation loss: {best_val_loss:.4f}")
                 
                 if best_model_state is not None:
                     model.load_state_dict(best_model_state)
@@ -741,26 +753,20 @@ def generate_edit_scripts(data_path, output_path, max_edits=5):
     return edit_scripts
 
 
-def create_dataloaders(data_name, batch_size=32, edit_script_path=None):
+def create_dataloaders(data_name, batch_size=32):
     """Create train, validation, and test dataloaders."""
     if data_name == "train":
         data_path = train_path
-        if edit_script_path is None:
-            edit_script_path = "data/train_edit_scripts.json"
     elif data_name == "val":
         data_path = val_path
-        if edit_script_path is None:
-            edit_script_path = "data/val_edit_scripts.json"
     elif data_name == "test":
         data_path = test_path
-        if edit_script_path is None:
-            edit_script_path = "data/test_edit_scripts.json"
     else:
         raise ValueError(f"Unknown data_name: {data_name}")
 
-    dataset = MelodyDataset(data_path, edit_script_path)
+    dataset = MelodyDataset(data_path)
     print(f"{data_name.capitalize()} Dataset size: {len(dataset)}")
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=(data_name == "train"), collate_fn=collate_fn)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=(data_name == "train"), collate_fn=collate_fn, num_workers=0)
     
     return dataloader
 
@@ -836,6 +842,31 @@ def edit_weighted_loss(
 
     return loss
 
+def weighted_edit_ce_loss(
+    logits,        # (B, T, V)
+    targets,       # (B, T)
+    edit_mask,     # (B, T)
+    pad_id,
+    alpha=0.7
+):
+    B, T, V = logits.shape
+
+    ce = F.cross_entropy(
+        logits.reshape(B * T, V),
+        targets.reshape(B * T),
+        ignore_index=pad_id,
+        reduction="none"
+    ).reshape(B, T)
+
+    # weights: emphasize edited regions
+    weights = 1.0 + alpha * edit_mask.float()
+
+    # valid tokens only
+    valid = (targets != pad_id).float()
+
+    loss = (ce * weights * valid).sum() / valid.sum()
+
+    return loss
 
 def train_edit_aware(
     model,
@@ -861,6 +892,9 @@ def train_edit_aware(
     edit_aware_loss = defaultdict(list)
 
     for epoch in range(epochs):
+        train_dataloader.dataset.set_epoch(epoch)  # For deterministic edit simulation
+        val_dataloader.dataset.set_epoch(epoch)
+
         total_loss = 0.0
         model.train()
 
@@ -948,20 +982,20 @@ def train_edit_aware(
         edit_aware_loss['edit_cost'].append(avg_val_edit_cost)
 
         # Early stopping logic
-        if best_val_loss - avg_val_edit_cost > min_improvement:
+        if best_val_loss - avg_val_loss > min_improvement:
             # Significant improvement detected
-            best_val_loss = avg_val_edit_cost
+            best_val_loss = avg_val_loss
             patience_counter = 0
             best_model_state = model.state_dict().copy()
-            print(f"Validation edit cost improved to {avg_val_edit_cost:.2f}")
+            print(f"Validation loss improved to {avg_val_loss:.4f}")
         else:
             # No significant improvement
             patience_counter += 1
             print(f"No improvement. Patience: {patience_counter}/{patience}")
             
             if patience_counter >= patience:
-                print(f"\nEarly stopping triggered! Validation edit cost did not improve for {patience} epochs.")
-                print(f"Best validation edit cost: {best_val_loss:.2f}")
+                print(f"\nEarly stopping triggered! Validation loss did not improve for {patience} epochs.")
+                print(f"Best validation loss: {best_val_loss:.4f}")
                 
                 # Restore best model
                 if best_model_state is not None:
