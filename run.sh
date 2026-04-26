@@ -18,7 +18,7 @@ D_MODEL=256
 N_HEADS=4
 N_LAYERS=4
 PATIENCE=5
-MIN_IMPROVEMENT=0.0001
+MIN_IMPROVEMENT=0.00001
 
 echo "Training parameters:"
 echo "  Epochs: $EPOCHS"
@@ -36,7 +36,7 @@ echo "Training baseline model..."
 python main.py train --model baseline --epochs $EPOCHS --batch-size $BATCH_SIZE --lr $LR --d-model $D_MODEL --n-heads $N_HEADS --n-layers $N_LAYERS --patience $PATIENCE --min-improvement $MIN_IMPROVEMENT
 
 # Train edit-aware models with different alpha values
-ALPHA_VALUES=(0.1 0.3 0.5 0.7 1.0)
+ALPHA_VALUES=(0.1 0.5 1.0 2.0 3.0)
 
 for alpha in "${ALPHA_VALUES[@]}"; do
     echo ""

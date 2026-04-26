@@ -275,7 +275,7 @@ Examples:
     train_parser.add_argument(
         "--lr",
         type=float,
-        default=0.0001,
+        default=1e-4,
         help="Learning rate (default: 0.0001)"
     )
     train_parser.add_argument(
@@ -305,8 +305,8 @@ Examples:
     train_parser.add_argument(
         "--min-improvement",
         type=float,
-        default=1e-3,
-        help="Minimum improvement threshold (default: 1e-3)"
+        default=1e-4,
+        help="Minimum improvement threshold (default: 1e-4)"
     )
     train_parser.add_argument(
         "--alpha",

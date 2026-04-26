@@ -636,9 +636,6 @@ def train_baseline(
             
             inputs = corrupted[:, :-1]
             targets = clean[:, 1:]
-            T = min(inputs.size(1), targets.size(1))
-            inputs = inputs[:, :T].to(device_arg)
-            targets = targets[:, :T].to(device_arg)
             
             logits, _ = model(inputs)
             loss = criterion(
@@ -666,9 +663,6 @@ def train_baseline(
                 
                 inputs = corrupted[:, :-1]
                 targets = clean[:, 1:]
-                T = min(inputs.size(1), targets.size(1))
-                inputs = inputs[:, :T]
-                targets = targets[:, :T]
                 
                 logits, _ = model(inputs)
                 loss = criterion(
@@ -907,12 +901,6 @@ def train_edit_aware(
             targets = clean[:, 1:]
             mask = edit_mask[:, 1:]
 
-            # T = min(inputs.size(1), targets.size(1), mask.size(1))
-
-            # inputs = inputs[:, :T]
-            # targets = targets[:, :T]
-            # mask = mask[:, :T]
-
             logits, edit_logits = model(inputs)
 
             loss = edit_weighted_loss(
@@ -948,12 +936,6 @@ def train_edit_aware(
                 inputs = corrupted[:, :-1]
                 targets = clean[:, 1:]
                 mask = edit_mask[:, 1:]
-
-                # T = min(inputs.size(1), targets.size(1), mask.size(1))
-
-                # inputs = inputs[:, :T]
-                # targets = targets[:, :T]
-                # mask = mask[:, :T]
 
                 logits, edit_logits = model(inputs)
 
