@@ -371,7 +371,7 @@ class MelodyDataset(Dataset):
         
         for pitch_seq in self.dataset:
             notes = pitch_seq_to_notes(pitch_seq.numpy())
-            if len(notes) > 4 and melody_is_valid(notes):
+            if len(notes) > 8 and melody_is_valid(notes):
                 self.samples.append(notes)
 
         self.epoch = 0  # For deterministic edit simulation
@@ -825,7 +825,7 @@ def create_dataloaders(data_name, batch_size=32):
 
     dataset = MelodyDataset(data_path)
     print(f"{data_name.capitalize()} Dataset size: {len(dataset)}")
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=(data_name == "train"), collate_fn=collate_fn, num_workers=0)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=(data_name == "test"), collate_fn=collate_fn, num_workers=0)
     
     return dataloader
 

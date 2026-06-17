@@ -4,6 +4,7 @@ import json
 import pickle
 import torch
 from pathlib import Path
+from src.audit import analyze, visual_result
 from src.train import (
     create_dataloaders,
     create_model_and_optimizer,
@@ -384,7 +385,63 @@ Examples:
         help="Maximum number of edits per sample (default: 5)"
     )
     sample_parser.set_defaults(func=sample_command)
-    
+
+    # Analyze command
+    analyze_parser = subparsers.add_parser("analyze", help="Run inference with baseline and edit-aware models on a random test batch")
+    analyze_parser.add_argument(
+        "--alpha",
+        type=float,
+        default=2.0,
+        help="Alpha value of the edit-aware model to load (default: 2)"
+    )
+    analyze_parser.add_argument(
+        "--d-model",
+        type=int,
+        default=256,
+        help="Model dimension (default: 256)"
+    )
+    analyze_parser.add_argument(
+        "--n-heads",
+        type=int,
+        default=4,
+        help="Number of attention heads (default: 4)"
+    )
+    analyze_parser.add_argument(
+        "--n-layers",
+        type=int,
+        default=4,
+        help="Number of transformer layers (default: 4)"
+    )
+    analyze_parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed for batch selection (default: 42)"
+    )
+    analyze_parser.set_defaults(func=lambda a: analyze(
+        alpha=a.alpha,
+        d_model=a.d_model,
+        n_heads=a.n_heads,
+        n_layers=a.n_layers,
+        seed=a.seed,
+    ))
+
+    # Visualize command
+    vis_parser = subparsers.add_parser("visualize", help="Render piano-roll score images for a sample in an analyzed JSON file")
+    vis_parser.add_argument(
+        "--file",
+        type=str,
+        required=True,
+        help="Path to the analyzed JSON file (e.g. results/samples/analyze_alpha_2.0.json)"
+    )
+    vis_parser.add_argument(
+        "--sample",
+        type=int,
+        default=0,
+        help="0-based sample index to visualize (default: 0)"
+    )
+    vis_parser.set_defaults(func=lambda a: visual_result(a.file, a.sample))
+
     # Parse arguments
     args = parser.parse_args()
     
