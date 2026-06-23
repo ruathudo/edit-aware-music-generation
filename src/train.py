@@ -371,7 +371,7 @@ class MelodyDataset(Dataset):
         
         for pitch_seq in self.dataset:
             notes = pitch_seq_to_notes(pitch_seq.numpy())
-            if len(notes) > 4 and melody_is_valid(notes):
+            if len(notes) > 8 and melody_is_valid(notes):
                 self.samples.append(notes)
 
         self.epoch = 0  # For deterministic edit simulation
@@ -409,28 +409,33 @@ def note_replace_cost(n1, n2):
     return cost
 
 
-def minimal_edit_distance(pred_notes, ref_notes):
+def minimal_edit_distance(pred_notes, ref_notes, DELETE_COST=1, INSERT_COST=1):
     """Calculate minimal edit distance between predicted and reference notes."""
     N = len(pred_notes)
     M = len(ref_notes)
     
+    # 1. Forward DP Pass
     dp = [[0] * (M + 1) for _ in range(N + 1)]
     
     for i in range(1, N + 1):
         dp[i][0] = i * DELETE_COST
     for j in range(1, M + 1):
         dp[0][j] = j * INSERT_COST
+        
+    def note_replace_cost(n1, n2):
+        # We assume cost is additive: 1 for pitch change + 1 for duration change
+        p1, d1 = n1
+        p2, d2 = n2
+        return (p1 != p2) + (d1 != d2)
     
     for i in range(1, N + 1):
         for j in range(1, M + 1):
             delete = dp[i - 1][j] + DELETE_COST
             insert = dp[i][j - 1] + INSERT_COST
-            replace = dp[i - 1][j - 1] + note_replace_cost(
-                pred_notes[i - 1],
-                ref_notes[j - 1]
-            )
+            replace = dp[i - 1][j - 1] + note_replace_cost(pred_notes[i - 1], ref_notes[j - 1])
             dp[i][j] = min(delete, insert, replace)
     
+    # 2. Backtracking (Traceback)
     i, j = N, M
     edits = {
         "insert": 0,
@@ -442,23 +447,83 @@ def minimal_edit_distance(pred_notes, ref_notes):
     while i > 0 or j > 0:
         current = dp[i][j]
         
-        if i > 0 and current == dp[i - 1][j] + DELETE_COST:
-            edits["delete"] += 1
-            i -= 1
-        elif j > 0 and current == dp[i][j - 1] + INSERT_COST:
-            edits["insert"] += 1
-            j -= 1
-        else:
+        # We must explicitly calculate the cost of the diagonal path
+        if i > 0 and j > 0:
             p, d = pred_notes[i - 1]
             rp, rd = ref_notes[j - 1]
+            diag_cost = dp[i - 1][j - 1] + note_replace_cost(pred_notes[i - 1], ref_notes[j - 1])
+        else:
+            diag_cost = float('inf') # Impossible if we hit a wall
+
+        # PRIORITIZE DIAGONAL (Match / Substitution) if it yields the minimum path
+        if i > 0 and j > 0 and current == diag_cost:
             if p != rp:
                 edits["replace_pitch"] += 1
             if d != rd:
                 edits["replace_duration"] += 1
             i -= 1
             j -= 1
-    
+        # Then check Deletion
+        elif i > 0 and current == dp[i - 1][j] + DELETE_COST:
+            edits["delete"] += 1
+            i -= 1
+        # Then check Insertion
+        elif j > 0 and current == dp[i][j - 1] + INSERT_COST:
+            edits["insert"] += 1
+            j -= 1
+            
     return dp[N][M], edits
+
+# def minimal_edit_distance(pred_notes, ref_notes):
+#     """Calculate minimal edit distance between predicted and reference notes."""
+#     N = len(pred_notes)
+#     M = len(ref_notes)
+    
+#     dp = [[0] * (M + 1) for _ in range(N + 1)]
+    
+#     for i in range(1, N + 1):
+#         dp[i][0] = i * DELETE_COST
+#     for j in range(1, M + 1):
+#         dp[0][j] = j * INSERT_COST
+    
+#     for i in range(1, N + 1):
+#         for j in range(1, M + 1):
+#             delete = dp[i - 1][j] + DELETE_COST
+#             insert = dp[i][j - 1] + INSERT_COST
+#             replace = dp[i - 1][j - 1] + note_replace_cost(
+#                 pred_notes[i - 1],
+#                 ref_notes[j - 1]
+#             )
+#             dp[i][j] = min(delete, insert, replace)
+    
+#     i, j = N, M
+#     edits = {
+#         "insert": 0,
+#         "delete": 0,
+#         "replace_pitch": 0,
+#         "replace_duration": 0
+#     }
+    
+#     while i > 0 or j > 0:
+#         current = dp[i][j]
+        
+#         if i > 0 and current == dp[i - 1][j] + DELETE_COST:
+#             edits["delete"] += 1
+#             i -= 1
+#         elif j > 0 and current == dp[i][j - 1] + INSERT_COST:
+#             edits["insert"] += 1
+#             j -= 1
+#         else:
+#             p, d = pred_notes[i - 1]
+#             rp, rd = ref_notes[j - 1]
+#             if p != rp:
+#                 edits["replace_pitch"] += 1
+#             if d != rd:
+#                 edits["replace_duration"] += 1
+#             i -= 1
+#             j -= 1
+    
+#     return dp[N][M], edits
 
 
 def calculate_edit_cost(pred_tokens, ref_tokens):
@@ -755,7 +820,7 @@ def create_dataloaders(data_name, batch_size=32):
 
     dataset = MelodyDataset(data_path)
     print(f"{data_name.capitalize()} Dataset size: {len(dataset)}")
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=(data_name == "train"), collate_fn=collate_fn, num_workers=0)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=(data_name == "test"), collate_fn=collate_fn, num_workers=0)
     
     return dataloader
 
@@ -896,9 +961,6 @@ def train_edit_aware(
             targets = clean[:, 1:]
             mask = edit_mask[:, 1:]
 
-
-            logits = model(inputs)
-
             loss = weighted_edit_ce_loss(
                 logits,
                 targets,
@@ -931,7 +993,7 @@ def train_edit_aware(
                 targets = clean[:, 1:]
                 mask = edit_mask[:, 1:]
 
-                logits = model(inputs)
+                logits, edit_logits = model(inputs)
 
                 loss = weighted_edit_ce_loss(
                     logits,

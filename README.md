@@ -14,3 +14,7 @@ To generate edit scripts for all datasets
 `python main.py sample --dataset train --max-edits 5`
 `python main.py sample --dataset val --max-edits 5` 
 `python main.py sample --dataset test --max-edits 5`
+
+
+Test 1-4 with min-improvement 1e-4
+Test 5-6 with min-improvement 1e-3
