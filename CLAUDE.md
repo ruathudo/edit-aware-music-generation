@@ -16,7 +16,29 @@ Two corpus/layout decisions already settled, which the spec does not record:
 - **Corpus moved to Meertens Tune Collections (primary) + Essen Folksong Collection (cross-corpus).** MTC's *tune family* annotations supply the spec's D4 human-variant set in-corpus, so D4 stopped being an external dependency.
 - **Code lives under `src/`, artifacts stay at root.** The spec's proposed `data/` and `models/` (for loaders and model code) collide with the existing gitignored artifact directories of the same names.
 
-Done so far: `src/align.py`, `src/tokenizer.py`, `src/corpus.py`, and their tests (68, stdlib `unittest`). Nothing in `src/train.py` or `main.py` has been migrated onto them yet — see "Migration status" below.
+Done so far: `src/align.py`, `src/tokenizer.py`, `src/corpus.py`, `src/model.py`, `src/data.py`, `src/judge.py`, `src/drafts.py`, and their tests (122, stdlib `unittest`). Nothing in `src/train.py` or `main.py` has been migrated onto them yet — see "Migration status" below.
+
+### The validator result, and what it changes
+
+**The spec's expected motivating finding did not replicate, and a stronger one took its place.** Spec §2 predicted that a large fraction of uniformly random perturbations would prove not to be degradations. They are: only 4.6% of D1 drafts score `ΔNLL ≤ 0`. Reported by `scripts/validator_report.py`:
+
+| source | surface change | ΔNLL | ΔNLL per unit change | %ΔNLL≤0 | retention |
+|---|---|---|---|---|---|
+| D4 human variants | 0.923 | +0.054 | **+0.038** | 45.0% | 4.4% |
+| D1 random | 0.067 | +0.303 | **+3.940** | 4.6% | 12.6% |
+| D1 random (uniform prior) | 0.068 | +0.468 | +6.393 | 2.6% | 32.6% |
+| D3 musical | 0.093 | +0.267 | **+2.968** | 3.8% | 8.3% |
+
+The finding is that **Correction Cost and musical plausibility are close to orthogonal**. Human-authored variants of one tune sit ~92% normalized edit distance apart yet are statistically indistinguishable in plausibility (45% of pairs score *negative*). Synthetic corruption sits ~7% away and is ~100× more implausible per unit changed. Synthetic corruption moves a melody a short distance *off* the data manifold; genuine musical variation moves it a long distance *along* it.
+
+This is a problem for the paper's own headline metric, not only for its corruption protocol, and it substantiates P5's thin-evaluation objection with evidence rather than assertion.
+
+Consequences for the plan:
+- **D2 is promoted from optional to scientifically central.** A generator's output is on-manifold by construction, so D2 is the only draft source that can produce a plausible-but-worse melody. D1 and D3 both sit off-manifold (3.94 and 2.97 per unit), so D3 is only marginally more human-like than random.
+- **CC alone cannot carry the evaluation.** The musical-quality metrics in spec §6.1 are now load-bearing rather than due diligence.
+- **D4 is a calibration control, not a refinement target.** Family members differ in metre and length (one pair: 3/4 versus 6/8, 64 versus 30 events; within-family normalized CC 0.833 against 1.268 across families). They are variants of a tune, not a draft and its revision, so they must not be framed as a draft-refinement evaluation set.
+
+Caveats to state in the paper: `ΔNLL` is statistical implausibility under a small LM, not a judgement that a musician would call something an error; and `J` is trained on Essen but scores MTC, so it may be more sensitive to any deviation than a same-corpus judge would be. The paired design means the corpus offset cancels, but the sensitivity does not.
 
 ### Getting the data
 
@@ -25,6 +47,9 @@ Corpora are **not committed** — `data/` is gitignored and neither collection p
 ```bash
 python -m src.corpus fetch          # MTC-ANN + ESSEN from Zenodo, MD5-checked
 python -m src.corpus                # print the dataset table
+
+python scripts/train_judge.py       # train J + run its calibration controls
+python scripts/validator_report.py  # the D1/D3/D4 degradation table
 ```
 
 Licensing, which matters for the paper: the MTCFeatures data is **CC BY-NC-SA 3.0** (attribution, non-commercial, share-alike) and should be cited to both the MTC and the Zenodo record. Essen feature values there derive from CCARH's **kern, whose own terms are "licensed (not sold)" with notable restrictions — so use the Zenodo feature sequences rather than redistributing kern.
