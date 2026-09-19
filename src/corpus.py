@@ -138,6 +138,51 @@ def bar_ticks(timesignature: str | None) -> int | None:
     return numerator * per_beat if per_beat is not None else None
 
 
+def infer_bar_starts(
+    notes: list[tuple[int, int]],
+    timesignature: str | None,
+    start_offset: int = 0,
+) -> frozenset[int]:
+    """Bar starts computed from cumulative duration, for melodies with no annotation.
+
+    Drafts have no `beat` column, so their barlines cannot be read off the corpus.
+    Scoring a draft against its reference therefore has to infer bars for *both*
+    by this same function -- mixing annotated bars on one side with inferred bars
+    on the other would make the comparison measure the inference method as much
+    as the draft.
+
+    `start_offset` is how far into a bar the melody begins, which is what encodes
+    a pickup; see `pickup_offset`.
+    """
+    width = bar_ticks(timesignature)
+    if not width:
+        return frozenset()
+
+    starts: set[int] = set()
+    position = start_offset
+    current = position // width
+
+    for index, (_, duration) in enumerate(notes):
+        bar = position // width
+        if bar > current:
+            starts.add(index)
+            current = bar
+        position += duration
+
+    return frozenset(starts)
+
+
+def pickup_offset(melody: Melody) -> int:
+    """How far into its first bar a melody begins, in ticks."""
+    for event in melody.events:
+        if event.beat is not None:
+            per_beat = beat_ticks(event.timesignature or melody.timesignature)
+            if per_beat is None:
+                return 0
+            return int(round((event.beat - 1) * per_beat))
+    return 0
+
+
 def _first(values):
     for v in values or []:
         if v is not None:
