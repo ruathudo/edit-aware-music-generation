@@ -52,6 +52,9 @@ _BASE_PITCH_CLASS = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 MAJOR_SCALE = (0, 2, 4, 5, 7, 9, 11)
 MINOR_SCALE = (0, 2, 3, 5, 7, 8, 10, 11)
 
+# Wider than a major ninth counts as an unsingable leap; these are vocal lines.
+MAX_SINGABLE_LEAP = 14
+
 
 def tonic_pitch_class(tonic: str | None) -> int | None:
     """Parse a tonic name to a pitch class. '-' is flat, '#' is sharp."""
@@ -306,7 +309,15 @@ class Judge:
         require_musical_criterion: bool = True,
     ) -> bool:
         """The admission filter (spec 4): clear the NLL threshold, and degrade on
-        at least one musical criterion."""
+        at least one musical criterion.
+
+        Only *directional* criteria count. Pitch-class and interval distances are
+        deliberately excluded: they are unsigned measures of difference, so they
+        exceed zero for essentially any edit, and including them would make the
+        conjunction vacuous -- the filter would collapse to the NLL threshold
+        alone while appearing to corroborate it. They stay in `DraftScore` as
+        reported descriptives, not as gates.
+        """
         if score.delta_nll <= tau:
             return False
         if not require_musical_criterion:
@@ -315,9 +326,7 @@ class Judge:
             [
                 (score.delta_scale_conformance or 0) < 0,
                 (score.delta_metric_alignment or 0) < 0,
-                score.pitch_class_distance > 0,
-                score.interval_distance > 0,
-                score.max_interval_draft > score.max_interval_reference,
+                score.max_interval_draft > max(score.max_interval_reference, MAX_SINGABLE_LEAP),
             ]
         )
 

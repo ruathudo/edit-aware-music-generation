@@ -26,12 +26,9 @@ from dataclasses import dataclass, field
 
 from src.align import EditOp, REST, edit_script
 from src.corpus import Melody, bar_ticks, beat_ticks
+from src.judge import MAX_SINGABLE_LEAP
 
 Notes = list[tuple[int, int]]
-
-# A leap wider than a major ninth is the threshold for "unsingable" -- these are
-# vocal lines, so the bound is a singer's, not an instrument's.
-MAX_SINGABLE_LEAP = 14
 
 
 @dataclass
