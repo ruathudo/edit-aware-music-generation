@@ -36,7 +36,7 @@ import torch
 
 from src.align import REST
 from src.corpus import Melody, bar_ticks, beat_ticks, infer_bar_starts, pickup_offset
-from src.data import MelodyTokenDataset, build_tokenizer, make_collate
+from src.data import make_collate
 from src.model import LMConfig, MelodyLM, token_nll
 from src.tokenizer import MelodyTokenizer, TokenizerConfig
 
@@ -338,88 +338,20 @@ def train_judge(
     val_melodies: list[Melody],
     tokenizer: MelodyTokenizer,
     config: LMConfig | None = None,
-    epochs: int = 60,
-    batch_size: int = 64,
-    lr: float = 3e-4,
-    patience: int = 6,
-    seed: int = 1234,
-    device=None,
-    log_every: int = 1,
+    **kwargs,
 ) -> tuple[Judge, dict]:
-    """Train `J`. Seeded separately from the generator, as spec 4 requires."""
-    from torch.utils.data import DataLoader
+    """Train `J`. Seeded and split separately from the generator, per spec 4."""
+    from src.training import train_lm
 
-    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-    torch.manual_seed(seed)
-    np.random.seed(seed)
-
-    config = config or LMConfig(vocab_size=len(tokenizer))
-    model = MelodyLM(config, pad_id=tokenizer.pad_id).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
-
-    train_ds = MelodyTokenDataset(train_melodies, tokenizer, config.max_len)
-    val_ds = MelodyTokenDataset(val_melodies, tokenizer, config.max_len)
-    collate = make_collate(tokenizer.pad_id)
-
-    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, collate_fn=collate)
-    val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False, collate_fn=collate)
-
-    print(
-        f"judge: {model.n_parameters/1e6:.2f}M params | "
-        f"train {len(train_ds)} (dropped {train_ds.dropped}) | val {len(val_ds)}"
+    model, history = train_lm(
+        train_melodies,
+        val_melodies,
+        tokenizer,
+        config=config or LMConfig(vocab_size=len(tokenizer)),
+        label=kwargs.pop("label", "judge"),
+        **kwargs,
     )
-
-    history = {"train": [], "val": []}
-    best = float("inf")
-    best_state = None
-    stale = 0
-
-    for epoch in range(epochs):
-        model.train()
-        running = count = 0.0
-        for batch in train_loader:
-            batch = batch.to(device)
-            total, n = token_nll(model, batch)
-            loss = total.sum() / n.sum()
-
-            optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            optimizer.step()
-
-            running += float(total.sum())
-            count += float(n.sum())
-        train_nll = running / max(count, 1)
-
-        model.eval()
-        running = count = 0.0
-        with torch.no_grad():
-            for batch in val_loader:
-                batch = batch.to(device)
-                total, n = token_nll(model, batch)
-                running += float(total.sum())
-                count += float(n.sum())
-        val_nll = running / max(count, 1)
-
-        history["train"].append(train_nll)
-        history["val"].append(val_nll)
-        if log_every and epoch % log_every == 0:
-            print(f"  epoch {epoch+1:3d}  train {train_nll:.4f}  val {val_nll:.4f}")
-
-        if best - val_nll > 1e-4:
-            best, stale = val_nll, 0
-            best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
-        else:
-            stale += 1
-            if stale >= patience:
-                print(f"  early stop at epoch {epoch+1}; best val {best:.4f}")
-                break
-
-    if best_state is not None:
-        model.load_state_dict(best_state)
-
-    history["best_val_nll"] = best
-    return Judge(model, tokenizer, device), history
+    return Judge(model, tokenizer), history
 
 
 def calibration_report(judge: Judge, held_out: list[Melody], variant_pairs=None) -> dict:

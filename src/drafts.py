@@ -389,3 +389,64 @@ def generate(
             if draft is not None:
                 drafts.append(draft)
     return drafts
+
+
+# ------------------------------------------------------------------ D2
+
+def d2_continuations(
+    melodies: list[Melody],
+    model,
+    tokenizer,
+    rng: random.Random,
+    temperature: float = 1.0,
+    top_k: int | None = None,
+    prefix_fraction: tuple[float, float] = (0.25, 0.50),
+    seed: int = 0,
+) -> list[Draft]:
+    """Drafts produced by continuing a reference's own prefix with a generator.
+
+    Spec 3.2: keep the first k notes of a reference and sample the rest from `G`.
+
+    This is the draft source the validator result promoted from optional to
+    central. D1 and D3 both move a melody a short distance *off* the data
+    manifold, which is why they are ~100x more implausible per unit of change
+    than genuine musical variation. A generator's output is on-manifold by
+    construction, so D2 is the only source that can be plausible *and* worse --
+    which is the deployment scenario the paper has always claimed to address.
+
+    The known risk, which the validator exists to settle rather than assume: a
+    continuation may be a valid alternative melody rather than a flawed one. That
+    is why the filter is mandatory for D2, and why the report tracks how far the
+    drafts drift -- a continuation that diverges wildly is not an "edit" at all.
+    """
+    from src.sampling import sample_continuations
+
+    prefixes, keepers = [], []
+    for melody in melodies:
+        events = melody.notes
+        if len(events) < 8:
+            continue
+        low, high = prefix_fraction
+        k = rng.randint(max(1, int(len(events) * low)), max(2, int(len(events) * high)))
+
+        tokens, spans = tokenizer.encode_with_spans(events, melody.bar_starts)
+        # Cut before the k-th event's pitch token, so the prefix ends on a
+        # completed (pitch, duration) pair and the grammar resumes cleanly.
+        prefixes.append(tokens[: spans[k][0]])
+        keepers.append(melody)
+
+    if not prefixes:
+        return []
+
+    generated = sample_continuations(
+        model, tokenizer, prefixes,
+        temperature=temperature, top_k=top_k, seed=seed,
+    )
+
+    drafts = []
+    for melody, tokens in zip(keepers, generated):
+        notes = tokenizer.decode(tokens)
+        draft = finalize(notes, melody, "D2", [f"continuation@T{temperature}"])
+        if draft is not None:
+            drafts.append(draft)
+    return drafts
