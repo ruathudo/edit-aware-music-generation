@@ -136,5 +136,86 @@ class TestSampling(unittest.TestCase):
         self.assertEqual(len({tuple(t) for t in out}), 1)
 
 
+
+class TestD2Infill(unittest.TestCase):
+    """Infilling must keep the edit local, or the refinement framing collapses.
+
+    Plain prefix continuation changes ~89% of the melody, which is what spec 3.2
+    warned about: the draft stops being a draft. Infilling exists to hold surface
+    change near D1/D3 levels while keeping the generated notes on-manifold.
+    """
+
+    def setUp(self):
+        from src.corpus import Melody, NoteEvent
+
+        self.tok = make_tokenizer()
+        self.model = make_model(self.tok, seed=3)
+        scale = [60, 62, 64, 65, 67, 69, 71, 72]
+        self.melody = Melody(
+            id="m",
+            source="T",
+            events=tuple(
+                NoteEvent(pitch=scale[i % 8], duration=12, beat=float(i % 4 + 1),
+                          timesignature="4/4")
+                for i in range(24)
+            ),
+            tonic="C",
+            mode="major",
+            timesignature="4/4",
+        )
+
+    def _infill(self, seed=0, span=(3, 3)):
+        import random as _random
+        from src.drafts import d2_infill
+
+        return d2_infill(
+            [self.melody], self.model, self.tok, _random.Random(seed),
+            span=span, seed=seed,
+        )
+
+    def test_produces_a_draft(self):
+        drafts = self._infill()
+        self.assertEqual(len(drafts), 1)
+        self.assertEqual(drafts[0].source, "D2-infill")
+
+    def test_change_stays_local(self):
+        """Only a short span may differ; the rest of the reference is untouched."""
+        for seed in range(12):
+            drafts = self._infill(seed=seed)
+            if not drafts:
+                continue
+            draft, reference = drafts[0].notes, self.melody.notes
+            self.assertEqual(len(draft), len(reference))
+            differing = sum(1 for a, b in zip(draft, reference) if a != b)
+            self.assertLessEqual(differing, 3)
+
+    def test_note_count_is_preserved(self):
+        for seed in range(12):
+            drafts = self._infill(seed=seed)
+            if drafts:
+                self.assertEqual(len(drafts[0].notes), len(self.melody.notes))
+
+    def test_edit_script_is_short(self):
+        """The script must stay the length a refinement task implies."""
+        for seed in range(12):
+            drafts = self._infill(seed=seed)
+            if drafts:
+                self.assertLessEqual(drafts[0].n_edits, 6)
+
+    def test_is_deterministic(self):
+        a, b = self._infill(seed=4), self._infill(seed=4)
+        self.assertEqual([d.notes for d in a], [d.notes for d in b])
+
+    def test_short_melodies_are_skipped(self):
+        from src.corpus import Melody, NoteEvent
+        import random as _random
+        from src.drafts import d2_infill
+
+        tiny = Melody(id="s", source="T",
+                      events=tuple(NoteEvent(60, 12) for _ in range(6)))
+        self.assertEqual(
+            d2_infill([tiny], self.model, self.tok, _random.Random(0), seed=0), []
+        )
+
 if __name__ == "__main__":
     unittest.main()

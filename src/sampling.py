@@ -71,6 +71,7 @@ def sample_continuations(
     top_k: int | None = None,
     seed: int = 0,
     device=None,
+    forbid_eos: bool = False,
 ) -> list[list[int]]:
     """Continue each prefix until EOS, batched.
 
@@ -106,6 +107,11 @@ def sample_continuations(
         # Mask to the grammar, per sequence.
         last = tokens[torch.arange(batch, device=device), lengths - 1]
         allowed = torch.stack([grammar.next_mask(int(t)) for t in last.cpu()]).to(device)
+        if forbid_eos:
+            # Infilling needs a fixed number of events, so the model must not be
+            # able to end the sequence early.
+            allowed = allowed.clone()
+            allowed[:, grammar.eos_id] = False
         step = step.masked_fill(~allowed, float("-inf"))
 
         if temperature <= 0:

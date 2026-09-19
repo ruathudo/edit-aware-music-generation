@@ -450,3 +450,64 @@ def d2_continuations(
         if draft is not None:
             drafts.append(draft)
     return drafts
+
+
+def d2_infill(
+    melodies: list[Melody],
+    model,
+    tokenizer,
+    rng: random.Random,
+    temperature: float = 1.0,
+    span: tuple[int, int] = (2, 6),
+    seed: int = 0,
+) -> list[Draft]:
+    """Regenerate a short interior span, keeping the rest of the reference.
+
+    Plain prefix continuation (`d2_continuations`) turns out to change ~89% of
+    the melody, because everything after the prefix is free. That is the failure
+    spec 3.2 anticipated: the drafts stop being drafts and become different
+    tunes, and the edit script stops describing an edit.
+
+    Infilling keeps the framing intact. The model writes a handful of notes in
+    context and the reference supplies the rest, so the flaw is localized and the
+    edit script stays the length a refinement task implies -- while the generated
+    notes remain on-manifold, which is what made D2 worth having.
+
+    The splice point is not smoothed. A passage that does not rejoin its
+    continuation cleanly is a realistic draft flaw, not an artifact to hide.
+    """
+    from src.sampling import sample_continuations
+
+    prefixes, keepers, spans = [], [], []
+    for melody in melodies:
+        events = melody.notes
+        if len(events) < 12:
+            continue
+        length = rng.randint(*span)
+        start = rng.randint(2, max(3, len(events) - length - 2))
+
+        tokens, token_spans = tokenizer.encode_with_spans(events, melody.bar_starts)
+        prefixes.append(tokens[: token_spans[start][0]])
+        keepers.append(melody)
+        spans.append((start, length))
+
+    if not prefixes:
+        return []
+
+    generated = sample_continuations(
+        model, tokenizer, prefixes,
+        max_new_tokens=2 * span[1] + 8,
+        temperature=temperature, seed=seed, forbid_eos=True,
+    )
+
+    drafts = []
+    for melody, tokens, (start, length) in zip(keepers, generated, spans):
+        events = melody.notes
+        written = tokenizer.decode(tokens)[start : start + length]
+        if not written:
+            continue
+        notes = events[:start] + written + events[start + length :]
+        draft = finalize(notes, melody, "D2-infill", [f"infill@{start}+{length}T{temperature}"])
+        if draft is not None:
+            drafts.append(draft)
+    return drafts

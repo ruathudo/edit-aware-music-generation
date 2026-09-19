@@ -1,0 +1,197 @@
+{
+  "tau": 0.5849685847759245,
+  "rows": [
+    {
+      "source": "D4 human variants",
+      "n": 1012,
+      "delta_nll": 0.05409048273864942,
+      "pct_not_degraded": 44.9604743083004,
+      "surface_change": 0.9234581439215385,
+      "delta_nll_per_change": 0.03776487956444422,
+      "retention": 4.446640316205533,
+      "delta_scale": -0.050209343867185924,
+      "notes_draft": 48.3399209486166,
+      "notes_ref": 49.309288537549406
+    },
+    {
+      "source": "D1 random",
+      "n": 360,
+      "delta_nll": 0.2977254687084092,
+      "pct_not_degraded": 3.3333333333333335,
+      "surface_change": 0.06951348988689374,
+      "delta_nll_per_change": 3.6970229148864746,
+      "retention": 13.61111111111111,
+      "delta_scale": -0.016890121123221805,
+      "notes_draft": 48.09166666666667,
+      "notes_ref": 48.06666666666667
+    },
+    {
+      "source": "D3 musical",
+      "n": 356,
+      "delta_nll": 0.2624358471189992,
+      "pct_not_degraded": 3.3707865168539324,
+      "surface_change": 0.0941059773943256,
+      "delta_nll_per_change": 2.999460617701213,
+      "retention": 5.8988764044943816,
+      "delta_scale": -0.024327419885947808,
+      "notes_draft": 48.199438202247194,
+      "notes_ref": 48.199438202247194
+    },
+    {
+      "source": "D2 T=0.8",
+      "n": 360,
+      "delta_nll": 0.020634606646166908,
+      "pct_not_degraded": 48.05555555555556,
+      "surface_change": 0.8905473151957054,
+      "delta_nll_per_change": 0.021240323781967163,
+      "retention": 2.5,
+      "delta_scale": -0.003482927021833947,
+      "notes_draft": 51.85,
+      "notes_ref": 48.06666666666667
+    },
+    {
+      "source": "D2 T=1.0",
+      "n": 360,
+      "delta_nll": 0.13055270082420772,
+      "pct_not_degraded": 32.77777777777778,
+      "surface_change": 0.8606032281321706,
+      "delta_nll_per_change": 0.1578348936594051,
+      "retention": 6.388888888888888,
+      "delta_scale": -0.0073328096986463006,
+      "notes_draft": 49.733333333333334,
+      "notes_ref": 48.06666666666667
+    },
+    {
+      "source": "D2 T=1.2",
+      "n": 360,
+      "delta_nll": 0.26397875398397447,
+      "pct_not_degraded": 17.77777777777778,
+      "surface_change": 0.8913390443712883,
+      "delta_nll_per_change": 0.3124226792905126,
+      "retention": 11.944444444444445,
+      "delta_scale": -0.011563027049865606,
+      "notes_draft": 50.92777777777778,
+      "notes_ref": 48.06666666666667
+    },
+    {
+      "source": "D2 ep10 T=1.0",
+      "n": 360,
+      "delta_nll": 0.4280924911300341,
+      "pct_not_degraded": 8.88888888888889,
+      "surface_change": 0.8919718698447778,
+      "delta_nll_per_change": 0.5089337635834512,
+      "retention": 28.888888888888886,
+      "delta_scale": -0.011552787614250404,
+      "notes_draft": 52.22222222222222,
+      "notes_ref": 48.06666666666667
+    },
+    {
+      "source": "D2 ep2 T=1.0",
+      "n": 360,
+      "delta_nll": 0.8294066146016121,
+      "pct_not_degraded": 2.2222222222222223,
+      "surface_change": 0.9807856855327103,
+      "delta_nll_per_change": 0.8988005717595419,
+      "retention": 65.83333333333333,
+      "delta_scale": -0.032423377775020475,
+      "notes_draft": 54.766666666666666,
+      "notes_ref": 48.06666666666667
+    },
+    {
+      "source": "D2 ep5 T=1.0",
+      "n": 360,
+      "delta_nll": 0.643981716202365,
+      "pct_not_degraded": 3.0555555555555554,
+      "surface_change": 0.9084933365172722,
+      "delta_nll_per_change": 0.7199659880952558,
+      "retention": 49.72222222222222,
+      "delta_scale": -0.018121879330112757,
+      "notes_draft": 52.59166666666667,
+      "notes_ref": 48.06666666666667
+    },
+    {
+      "source": "D2-infill T=0.8",
+      "n": 349,
+      "delta_nll": 0.12912204101639013,
+      "pct_not_degraded": 20.630372492836678,
+      "surface_change": 0.10564155122491117,
+      "delta_nll_per_change": 0.8998716473579407,
+      "retention": 2.005730659025788,
+      "delta_scale": -0.0010311892137016868,
+      "notes_draft": 47.88825214899713,
+      "notes_ref": 47.97134670487106
+    },
+    {
+      "source": "D2-infill T=1.0",
+      "n": 352,
+      "delta_nll": 0.1544928950342265,
+      "pct_not_degraded": 17.329545454545457,
+      "surface_change": 0.10690288326557945,
+      "delta_nll_per_change": 1.1612937996784845,
+      "retention": 3.4090909090909087,
+      "delta_scale": -0.0018044946442011712,
+      "notes_draft": 47.94602272727273,
+      "notes_ref": 48.04829545454545
+    },
+    {
+      "source": "D2-infill T=1.2",
+      "n": 356,
+      "delta_nll": 0.1767575911591562,
+      "pct_not_degraded": 14.325842696629213,
+      "surface_change": 0.10848204677802209,
+      "delta_nll_per_change": 1.374784211317698,
+      "retention": 3.932584269662921,
+      "delta_scale": -0.0030412316320407888,
+      "notes_draft": 47.85674157303371,
+      "notes_ref": 47.93539325842696
+    },
+    {
+      "source": "D2-infill ep10",
+      "n": 359,
+      "delta_nll": 0.1915173724833305,
+      "pct_not_degraded": 12.534818941504177,
+      "surface_change": 0.11027916502340461,
+      "delta_nll_per_change": 1.3851203918457031,
+      "retention": 4.456824512534819,
+      "delta_scale": -0.0013089571312211103,
+      "notes_draft": 47.910863509749305,
+      "notes_ref": 47.986072423398326
+    },
+    {
+      "source": "D2-infill ep2",
+      "n": 360,
+      "delta_nll": 0.2586259060435825,
+      "pct_not_degraded": 6.944444444444445,
+      "surface_change": 0.1122841313734256,
+      "delta_nll_per_change": 1.9985517710447311,
+      "retention": 8.055555555555555,
+      "delta_scale": -0.005513990261115987,
+      "notes_draft": 47.975,
+      "notes_ref": 48.06666666666667
+    },
+    {
+      "source": "D2-infill ep5",
+      "n": 359,
+      "delta_nll": 0.2269998772230653,
+      "pct_not_degraded": 9.749303621169917,
+      "surface_change": 0.11057491052030705,
+      "delta_nll_per_change": 1.6479004791804723,
+      "retention": 8.356545961002785,
+      "delta_scale": -0.003050893839218364,
+      "notes_draft": 48.030640668523674,
+      "notes_ref": 48.10306406685237
+    }
+  ],
+  "config": {
+    "judge": "models/judge.pth",
+    "generator": "models/generator.pth",
+    "checkpoint_dir": "models/generator_checkpoints",
+    "out": "results/judge/d2_report.json",
+    "temperatures": [
+      0.8,
+      1.0,
+      1.2
+    ],
+    "seed": 7
+  }
+}
