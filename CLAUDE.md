@@ -16,7 +16,7 @@ Two corpus/layout decisions already settled, which the spec does not record:
 - **Corpus moved to Meertens Tune Collections (primary) + Essen Folksong Collection (cross-corpus).** MTC's *tune family* annotations supply the spec's D4 human-variant set in-corpus, so D4 stopped being an external dependency.
 - **Code lives under `src/`, artifacts stay at root.** The spec's proposed `data/` and `models/` (for loaders and model code) collide with the existing gitignored artifact directories of the same names.
 
-Done so far: `src/align.py`, `src/tokenizer.py`, `src/corpus.py`, `src/model.py`, `src/data.py`, `src/judge.py`, `src/drafts.py`, and their tests (122, stdlib `unittest`). Nothing in `src/train.py` or `main.py` has been migrated onto them yet — see "Migration status" below.
+Done so far: `src/align.py`, `src/tokenizer.py`, `src/corpus.py`, `src/model.py`, `src/data.py`, `src/judge.py`, `src/drafts.py`, `src/training.py`, `src/sampling.py`, and their tests (141, stdlib `unittest`). Nothing in `src/train.py` or `main.py` has been migrated onto them yet — see "Migration status" below.
 
 ### The validator result, and what it changes
 
@@ -34,11 +34,31 @@ The finding is that **Correction Cost and musical plausibility are close to orth
 This is a problem for the paper's own headline metric, not only for its corruption protocol, and it substantiates P5's thin-evaluation objection with evidence rather than assertion.
 
 Consequences for the plan:
-- **D2 is promoted from optional to scientifically central.** A generator's output is on-manifold by construction, so D2 is the only draft source that can produce a plausible-but-worse melody. D1 and D3 both sit off-manifold (3.94 and 2.97 per unit), so D3 is only marginally more human-like than random.
+- **D2 is promoted from optional to scientifically central.** A generator's output is on-manifold by construction, so D2 is the only draft source that can produce a plausible-but-worse melody. D1 and D3 both sit off-manifold (3.94 and 2.97 per unit), so D3 is only marginally more human-like than random. This is confirmed below.
 - **CC alone cannot carry the evaluation.** The musical-quality metrics in spec §6.1 are now load-bearing rather than due diligence.
 - **D4 is a calibration control, not a refinement target.** Family members differ in metre and length (one pair: 3/4 versus 6/8, 64 versus 30 events; within-family normalized CC 0.833 against 1.268 across families). They are variants of a tune, not a draft and its revision, so they must not be framed as a draft-refinement evaluation set.
 
 Caveats to state in the paper: `ΔNLL` is statistical implausibility under a small LM, not a judgement that a musician would call something an error; and `J` is trained on Essen but scores MTC, so it may be more sensitive to any deviation than a same-corpus judge would be. The paired design means the corpus offset cancels, but the sensitivity does not.
+
+### D2, and why infilling replaced prefix continuation
+
+`scripts/d2_report.py`, generator `G` trained on the Essen half `J` never sees (val NLL 1.228, three undertrained checkpoints kept).
+
+Prefix continuation confirmed the manifold hypothesis — every D2 condition costs +0.02 to +0.90 ΔNLL per unit change, in D4's regime rather than D1/D3's — but changed ~89% of the melody, as much as two different settings of one tune. Spec §3.2 predicted exactly this: the edit script stops describing an edit. **Infilling** regenerates a short interior span and keeps the rest of the reference.
+
+| source | surface change | ΔNLL | ΔNLL per unit change | retention |
+|---|---|---|---|---|
+| D4 human variants | 0.923 | +0.054 | +0.038 | 4.4% |
+| D2 continuation T=0.8 | 0.891 | +0.021 | +0.021 | 2.5% |
+| D2 continuation ep2 | 0.981 | +0.829 | +0.899 | 65.8% |
+| **D2-infill T=0.8** | **0.106** | +0.129 | **+0.900** | 2.0% |
+| **D2-infill ep2** | **0.112** | +0.259 | **+1.999** | 8.1% |
+| D3 musical | 0.094 | +0.262 | +2.999 | 5.9% |
+| D1 random | 0.070 | +0.298 | +3.697 | 13.6% |
+
+**D2-infill is the only source that is simultaneously local enough for the edit framing and on-manifold enough to be a plausible draft**, and severity is tunable across the whole intermediate band by temperature and checkpoint. Use it as the primary training source; keep D1 and D3 as comparison conditions.
+
+Two practical notes. The splice point is deliberately not smoothed — a passage that fails to rejoin its continuation is a realistic draft flaw. And D2-infill retention under the human-calibrated `tau` is low (2–8%), which is the training-set-shrinkage risk spec §8 flagged; mitigate by generating many drafts per reference, by using undertrained checkpoints, and by drawing references from Essen rather than only the 360 MTC melodies.
 
 ### Getting the data
 
@@ -50,6 +70,8 @@ python -m src.corpus                # print the dataset table
 
 python scripts/train_judge.py       # train J + run its calibration controls
 python scripts/validator_report.py  # the D1/D3/D4 degradation table
+python scripts/train_generator.py   # train G (+ undertrained checkpoints) for D2
+python scripts/d2_report.py         # where D2 sits vs D1/D3/D4
 ```
 
 Licensing, which matters for the paper: the MTCFeatures data is **CC BY-NC-SA 3.0** (attribution, non-commercial, share-alike) and should be cited to both the MTC and the Zenodo record. Essen feature values there derive from CCARH's **kern, whose own terms are "licensed (not sold)" with notable restrictions — so use the Zenodo feature sequences rather than redistributing kern.
