@@ -103,16 +103,22 @@ class MelodyTokenizer:
                 return False
         return True
 
-    def encode(self, events: list[Event]) -> list[int]:
-        return self.encode_with_spans(events)[0]
+    def encode(self, events: list[Event], bar_starts=None) -> list[int]:
+        return self.encode_with_spans(events, bar_starts)[0]
 
     def encode_with_spans(
-        self, events: list[Event]
+        self, events: list[Event], bar_starts=None
     ) -> tuple[list[int], list[tuple[int, int]]]:
         """Encode to token ids alongside each event's (pitch_index, duration_index).
 
         The spans are what downstream code should use to place per-event labels or
         masks -- never index arithmetic, which BAR and REST break.
+
+        `bar_starts` is a set of event indices that begin a bar, as the corpus
+        annotates them. Pass it whenever it is known: real metres vary (4/4, 3/4,
+        6/8) and pickup bars are common, so inferring barlines from cumulative
+        duration misplaces them. The `ticks_per_bar` fallback is for fixed-grid
+        sources only.
         """
         cfg = self.config
         tokens = [self.bos_id]
@@ -120,18 +126,22 @@ class MelodyTokenizer:
 
         tick = 0
         current_bar = 0
-        for pitch, dur in events:
+        for index, (pitch, dur) in enumerate(events):
             if dur not in self._duration_set:
                 raise ValueError(f"duration {dur} outside vocabulary")
             if pitch != REST and not (cfg.pitch_min <= pitch <= cfg.pitch_max):
                 raise ValueError(f"pitch {pitch} outside [{cfg.pitch_min}, {cfg.pitch_max}]")
 
-            # An event spanning a barline belongs to the bar it starts in.
             if cfg.use_bar:
-                bar = tick // cfg.ticks_per_bar
-                if bar > current_bar:
-                    tokens.append(self.bar_id)
-                    current_bar = bar
+                if bar_starts is not None:
+                    if index in bar_starts and index > 0:
+                        tokens.append(self.bar_id)
+                else:
+                    # An event spanning a barline belongs to the bar it starts in.
+                    bar = tick // cfg.ticks_per_bar
+                    if bar > current_bar:
+                        tokens.append(self.bar_id)
+                        current_bar = bar
 
             pitch_index = len(tokens)
             tokens.append(self.pitch_id(pitch))
