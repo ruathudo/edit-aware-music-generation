@@ -13,10 +13,21 @@ The paper this implements was rejected at ISMIR 2026 on execution, and `edit-awa
 Agreed build order: aligner → tokenizer/representation → judge `J` → validator report → generator `G` → training sweep. The validator (spec §4) comes before any edit-aware model because it is the only component that can falsify the rebuild's premise.
 
 Two corpus/layout decisions already settled, which the spec does not record:
-- **Corpus moves to Meertens Tune Collections (primary) + Essen Folksong Collection (cross-corpus).** Not yet downloaded — `data/` still holds only the legacy 4-bar arrays. MTC's *tune family* annotations supply the spec's D4 human-variant set in-corpus, so D4 stops being an external dependency.
+- **Corpus moved to Meertens Tune Collections (primary) + Essen Folksong Collection (cross-corpus).** MTC's *tune family* annotations supply the spec's D4 human-variant set in-corpus, so D4 stopped being an external dependency.
 - **Code lives under `src/`, artifacts stay at root.** The spec's proposed `data/` and `models/` (for loaders and model code) collide with the existing gitignored artifact directories of the same names.
 
-Done so far: `src/align.py`, `src/tokenizer.py`, and their tests. Nothing in `src/train.py` or `main.py` has been migrated onto them yet — see "Migration status" below.
+Done so far: `src/align.py`, `src/tokenizer.py`, `src/corpus.py`, and their tests (68, stdlib `unittest`). Nothing in `src/train.py` or `main.py` has been migrated onto them yet — see "Migration status" below.
+
+### Getting the data
+
+Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
+
+```bash
+python -m src.corpus fetch          # MTC-ANN + ESSEN from Zenodo, MD5-checked
+python -m src.corpus                # print the dataset table
+```
+
+Licensing, which matters for the paper: the MTCFeatures data is **CC BY-NC-SA 3.0** (attribution, non-commercial, share-alike) and should be cited to both the MTC and the Zenodo record. Essen feature values there derive from CCARH's **kern, whose own terms are "licensed (not sold)" with notable restrictions — so use the Zenodo feature sequences rather than redistributing kern.
 
 ## Environment & setup
 
@@ -64,7 +75,8 @@ The legacy pipeline has no test coverage — verify changes there by running the
 ### Rebuild modules (`src/align.py`, `src/tokenizer.py`)
 
 - **`src/align.py`** — Wagner-Fischer alignment over note tuples. Single source of truth for edit-script derivation, Correction Cost, fidelity, and the 5-class per-position labels (`KEEP`/`SUB_PITCH`/`SUB_DUR`/`INSERT_BEFORE`/`DELETE`). Corpus-independent but schema-dependent, so the cost vector is a `CostVector` parameter rather than inlined — that also provides the spec's weighted-CC variant for free. `correction_cost()` is verified against the legacy `minimal_edit_distance()` across 300 random pairs, so the rebuild provably preserves the published metric.
-- **`src/tokenizer.py`** — `MelodyTokenizer` with explicit REST and BAR tokens. `frames_to_events()` replaces `pitch_seq_to_notes()`; `encode_with_spans()` returns each event's token indices and is what downstream code must use to place masks or labels.
+- **`src/tokenizer.py`** — `MelodyTokenizer` with explicit REST and BAR tokens. `frames_to_events()` replaces `pitch_seq_to_notes()`; `encode_with_spans()` returns each event's token indices and is what downstream code must use to place masks or labels. Pass `bar_starts` from the corpus whenever it is known; the `ticks_per_bar` fallback is only correct for fixed-grid sources.
+- **`src/corpus.py`** — MTC / Essen loading. `Melody` carries `events` plus the annotations D3 and the judge need (`scaledegree`, `beat`, `beatstrength`, `phrase_ix`, `phrase_end`, `timesignature`, `tonic`, `mode`); `melody.notes` is the `(pitch, duration)` view the aligner consumes. Durations are integer ticks at `TICKS_PER_QUARTER = 24`, which represents every duration in both corpora exactly (verified across 462k notes). `split_by_tunefamily()` is the splitter to use — see below.
 
 Three design decisions in these modules that the spec leaves open, resolved here and needing to be stated in the paper:
 
@@ -72,7 +84,27 @@ Three design decisions in these modules that the spec leaves open, resolved here
 2. **A note differing in both pitch and duration has no 5-class label.** The full script keeps both ops; the single-position label falls back to `SUB_PITCH` (configurable via `both_differ`). When several ops land on one position, first-in-canonical-order wins.
 3. **Trailing insertions attach to an EOS slot.** `edit_labels()` returns `len(source) + 1` labels — insertions past the end of the source have no input position otherwise, and the tokenizer emits EOS anyway.
 
-Measured on 20k training melodies, justifying the representation change:
+Three further decisions in `src/corpus.py`, each with a measured justification:
+
+4. **`restduration_frac[i]` is the rest *following* note i**, confirmed against the corpus's own `nextisrest` flag (4876 co-occurrences, versus zero for the preceding note). Attaching it to the wrong side shifts every rest one position and drops bar accuracy from ~98% to 76%/71% — while every round-trip test still passes. `test_detected_bars_hold_the_duration_their_metre_implies` is the regression guard, and it works by checking the representation against real musical structure rather than against itself.
+5. **A bar begins where the beat count stops advancing** (`beats[i] <= beats[i-1]`, not `<`): two onsets cannot share a metric position within one bar, so an equal beat also means a new bar. Reading bars from annotated metre rather than cumulative duration is what handles pickup bars and the 30.6% of MTC-ANN melodies that change metre mid-piece.
+6. **Splits are by tune family, never by melody.** Family members are variants of one another, so a random split would leak a near-duplicate of a test melody into training, and would violate the judge's required independence from the generator even with disjoint melody ids.
+
+Corpus as loaded:
+
+| | MTC-ANN | ESSEN |
+|---|---|---|
+| melodies | 360 | 8,469 |
+| events / melody (mean) | 49.0 | 54.5 |
+| tune families | 26 | 0 |
+| melodies with a variant | 360 (all) | 0 |
+| rest fraction | 1.8% | 3.7% |
+| distinct durations | 16 | 40 |
+| free metre (no barlines) | 13 | 1,035 |
+
+Both roughly double the old 4-bar task's 25 events per melody, which is part of answering P5's toy-task objection.
+
+Measured on 20k melodies of the *legacy* corpus, justifying the representation change:
 
 | | legacy | rest-aware + full duration vocab |
 |---|---|---|
