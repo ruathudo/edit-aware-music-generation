@@ -1,0 +1,18 @@
+{
+  "model": "baseline",
+  "dataset": "test",
+  "total_cost": 56112.0,
+  "average_cost_per_sample": 4.536502546689304,
+  "edit_statistics": {
+    "insert": 8216,
+    "delete": 7764,
+    "replace_pitch": 25543,
+    "replace_duration": 14589
+  },
+  "sample_costs": {
+    "mean": 4.536502546689304,
+    "std": 3.0639262454450273,
+    "min": 0.0,
+    "max": 28.0
+  }
+}

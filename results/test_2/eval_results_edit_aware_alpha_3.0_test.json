@@ -1,0 +1,18 @@
+{
+  "model": "edit_aware_alpha_3.0",
+  "dataset": "test",
+  "total_cost": 51742.0,
+  "average_cost_per_sample": 4.093188829997627,
+  "edit_statistics": {
+    "insert": 12130,
+    "delete": 9326,
+    "replace_pitch": 19680,
+    "replace_duration": 10606
+  },
+  "sample_costs": {
+    "mean": 4.093188829997627,
+    "std": 2.970469104148315,
+    "min": 0.0,
+    "max": 25.0
+  }
+}
