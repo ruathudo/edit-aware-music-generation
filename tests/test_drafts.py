@@ -19,6 +19,8 @@ from src.align import REST, apply_script  # noqa: E402
 from src.corpus import Melody, NoteEvent  # noqa: E402
 from src.drafts import (  # noqa: E402
     MAX_SINGABLE_LEAP,
+    Priors,
+    empirical_priors,
     _cadential_disruption,
     _out_of_scale,
     _repeated_note_collapse,
@@ -33,6 +35,12 @@ from src.judge import scale_of  # noqa: E402
 Q = 24
 DURATIONS = (6, 12, 24, 36, 48)
 SPAN = (33, 108)  # representable pitch range, as the tokenizer is built with headroom
+PRIORS = Priors(
+    durations=DURATIONS,
+    duration_weights=(1.0,) * len(DURATIONS),
+    pitches=tuple(range(55, 80)),
+    pitch_weights=(1.0,) * 25,
+)
 
 
 def make_melody(n=16, tonic="C", mode="major", timesignature="4/4"):
@@ -69,7 +77,7 @@ class TestScriptDerivation(unittest.TestCase):
     def test_d1_script_reproduces_the_draft(self):
         melody = make_melody()
         for seed in range(200):
-            draft = d1_random(melody, DURATIONS, random.Random(seed))
+            draft = d1_random(melody, PRIORS, random.Random(seed))
             if draft is None:
                 continue
             self.assertEqual(apply_script(melody.notes, draft.script), draft.notes)
@@ -85,7 +93,7 @@ class TestScriptDerivation(unittest.TestCase):
     def test_derived_script_is_never_longer_than_needed(self):
         melody = make_melody()
         for seed in range(100):
-            draft = d1_random(melody, DURATIONS, random.Random(seed), max_edits=3)
+            draft = d1_random(melody, PRIORS, random.Random(seed), max_edits=3)
             if draft is None:
                 continue
             # Each injected edit costs at most 2 (pitch and duration both changed).
@@ -95,21 +103,21 @@ class TestScriptDerivation(unittest.TestCase):
 class TestD1(unittest.TestCase):
     def test_produces_a_different_melody(self):
         melody = make_melody()
-        draft = d1_random(melody, DURATIONS, random.Random(3))
+        draft = d1_random(melody, PRIORS, random.Random(3))
         self.assertIsNotNone(draft)
         self.assertNotEqual(draft.notes, melody.notes)
         self.assertEqual(draft.source, "D1")
 
     def test_is_deterministic_given_a_seed(self):
         melody = make_melody()
-        a = d1_random(melody, DURATIONS, random.Random(11))
-        b = d1_random(melody, DURATIONS, random.Random(11))
+        a = d1_random(melody, PRIORS, random.Random(11))
+        b = d1_random(melody, PRIORS, random.Random(11))
         self.assertEqual(a.notes, b.notes)
 
     def test_respects_the_duration_vocabulary(self):
         melody = make_melody()
         for seed in range(100):
-            draft = d1_random(melody, DURATIONS, random.Random(seed))
+            draft = d1_random(melody, PRIORS, random.Random(seed))
             if draft is None:
                 continue
             for pitch, duration in draft.notes:
@@ -121,7 +129,7 @@ class TestD1(unittest.TestCase):
         melody = make_melody()
         counts = {"replace_pitch": 0, "change_duration": 0, "delete_note": 0, "insert_note": 0}
         for seed in range(3000):
-            draft = d1_random(melody, DURATIONS, random.Random(seed))
+            draft = d1_random(melody, PRIORS, random.Random(seed))
             if draft is None:
                 continue
             for op in draft.injected:
@@ -218,20 +226,66 @@ class TestD3Rules(unittest.TestCase):
 class TestBatchGeneration(unittest.TestCase):
     def test_generate_is_deterministic(self):
         melodies = [make_melody() for _ in range(20)]
-        a = generate(melodies, "D1", DURATIONS, seed=5)
-        b = generate(melodies, "D1", DURATIONS, seed=5)
+        a = generate(melodies, "D1", PRIORS, seed=5)
+        b = generate(melodies, "D1", PRIORS, seed=5)
         self.assertEqual([d.notes for d in a], [d.notes for d in b])
 
     def test_different_seeds_give_different_drafts(self):
         melodies = [make_melody() for _ in range(20)]
-        a = generate(melodies, "D1", DURATIONS, seed=1)
-        b = generate(melodies, "D1", DURATIONS, seed=2)
+        a = generate(melodies, "D1", PRIORS, seed=1)
+        b = generate(melodies, "D1", PRIORS, seed=2)
         self.assertNotEqual([d.notes for d in a], [d.notes for d in b])
 
     def test_unknown_source_raises(self):
         with self.assertRaises(ValueError):
-            generate([make_melody()], "D9", DURATIONS)
+            generate([make_melody()], "D9", PRIORS)
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPriors(unittest.TestCase):
+    """D1 must draw from plausible material, or it tests a strawman.
+
+    Uniform sampling over a derived duration vocabulary inflates D1's apparent
+    damage: on this corpus seven of forty durations carry 98.3% of the mass, so
+    a flat draw picks a near-unused rhythm most of the time.
+    """
+
+    def _melodies(self):
+        melody = make_melody()
+        return [melody]
+
+    def test_empirical_priors_follow_corpus_frequency(self):
+        priors = empirical_priors(self._melodies())
+        weights = dict(zip(priors.durations, priors.duration_weights))
+        self.assertEqual(set(priors.durations), {Q})
+        self.assertGreater(weights[Q], 0)
+
+    def test_uniform_flag_flattens_the_weights(self):
+        priors = empirical_priors(self._melodies(), uniform=True)
+        self.assertEqual(set(priors.duration_weights), {1.0})
+
+    def test_sampled_duration_can_exclude_a_value(self):
+        priors = Priors((6, 12), (1.0, 99.0), (60,), (1.0,))
+        rng = random.Random(0)
+        for _ in range(50):
+            self.assertNotEqual(priors.sample_duration(rng, exclude=12), 12)
+
+    def test_weighted_sampling_prefers_common_durations(self):
+        priors = Priors((6, 12), (1.0, 99.0), (60,), (1.0,))
+        rng = random.Random(0)
+        draws = [priors.sample_duration(rng) for _ in range(500)]
+        self.assertGreater(draws.count(12), draws.count(6) * 5)
+
+    def test_inserted_pitches_stay_inside_the_corpus_span(self):
+        priors = empirical_priors([make_melody()])
+        lo, hi = priors.pitch_span
+        for seed in range(100):
+            draft = d1_random(make_melody(), priors, random.Random(seed))
+            if draft is None:
+                continue
+            for pitch, _ in draft.notes:
+                if pitch != REST:
+                    self.assertTrue(lo - 3 <= pitch <= hi + 3)

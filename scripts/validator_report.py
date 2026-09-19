@@ -22,20 +22,28 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.corpus import duration_vocabulary  # noqa: E402
+from src.align import correction_cost  # noqa: E402
 from src.data import standard_splits  # noqa: E402
-from src.drafts import generate  # noqa: E402
+from src.drafts import empirical_priors, generate  # noqa: E402
 from src.judge import Judge, save_json  # noqa: E402
 from scripts.train_judge import variant_pairs  # noqa: E402
 
 
-def summarize(name, scores, tau, judge):
+def summarize(name, scores, tau, judge, pairs=None):
+    """Summarize one draft source.
+
+    `surface_change` is normalized Correction Cost -- how much of the melody
+    actually differs. Reporting ΔNLL against it is what exposes the finding that
+    matters: note-level edit distance and musical plausibility are close to
+    orthogonal, so a source can sit far away in CC while remaining perfectly
+    plausible, or very close while being badly implausible.
+    """
     deltas = np.array([s.delta_nll for s in scores])
     scale = np.array([s.delta_scale_conformance or 0.0 for s in scores])
     metric = np.array([s.delta_metric_alignment or 0.0 for s in scores])
     retained = np.array([judge.is_degraded(s, tau) for s in scores])
 
-    return {
+    row = {
         "source": name,
         "n": len(scores),
         "delta_nll_mean": float(deltas.mean()),
@@ -49,6 +57,14 @@ def summarize(name, scores, tau, judge):
         "interval_distance": float(np.mean([s.interval_distance for s in scores])),
         "retention": float(retained.mean() * 100),
     }
+    if pairs:
+        cc = np.array([correction_cost(d, r.notes) for d, r in pairs])
+        n = np.array([max(len(r.notes), 1) for _, r in pairs])
+        surface = cc / n
+        row["correction_cost"] = float(cc.mean())
+        row["surface_change"] = float(surface.mean())
+        row["delta_nll_per_change"] = float(np.median(deltas / np.maximum(surface, 1e-9)))
+    return row
 
 
 def main():
@@ -69,7 +85,17 @@ def main():
     judge = Judge.load(args.judge)
     splits = standard_splits()
     references = splits["heldout"]
-    durations = duration_vocabulary([m for g in splits.values() for m in g])
+    every = [m for g in splits.values() for m in g]
+
+    # Two D1 variants. The uniform one is the naive translation of the published
+    # scheme to a derived duration vocabulary; the empirical one draws from the
+    # corpus's actual marginals. Reporting both makes visible how much of D1's
+    # measured degradation is an artifact of that choice rather than a property
+    # of random perturbation.
+    priors = {
+        "empirical": empirical_priors(every),
+        "uniform": empirical_priors(every, uniform=True),
+    }
 
     print(f"references: {len(references)} held-out MTC-ANN melodies")
 
@@ -81,33 +107,36 @@ def main():
     tau = args.tau if args.tau is not None else float(np.percentile(pair_deltas, 95))
     print(f"tau = {tau:.4f} (95th percentile of {len(pairs)} human variant pairs)\n")
 
-    rows = [summarize("D4 human variants", pair_scores, tau, judge)]
+    rows = [summarize("D4 human variants", pair_scores, tau, judge, pairs)]
 
-    for source in ("D1", "D3"):
+    conditions = [
+        ("D1", "empirical", "D1 random"),
+        ("D1", "uniform", "D1 random (uniform)"),
+        ("D3", "empirical", "D3 musical"),
+    ]
+    for source, prior_name, label in conditions:
         drafts = generate(
             references,
             source,
-            durations,
+            priors[prior_name],
             seed=args.seed,
             max_edits=args.max_edits,
             per_melody=args.per_melody,
         )
         scores = judge.score_drafts([(d.notes, d.reference) for d in drafts])
-        row = summarize(
-            {"D1": "D1 random", "D3": "D3 musical"}[source], scores, tau, judge
-        )
+        row = summarize(label, scores, tau, judge, [(d.notes, d.reference) for d in drafts])
         row["edits_per_draft"] = float(np.mean([d.n_edits for d in drafts]))
         rows.append(row)
 
-    header = f"{'source':20s} {'n':>6s} {'ΔNLL':>8s} {'med':>8s} {'%ΔNLL≤0':>9s} {'Δscale':>8s} {'Δmetric':>8s} {'retain%':>8s}"
+    header = f"{'source':22s} {'n':>6s} {'ΔNLL':>8s} {'med':>8s} {'%ΔNLL≤0':>9s} {'Δscale':>8s} {'retain%':>8s} {'change':>7s} {'ΔNLL/chg':>9s}"
     print(header)
     print("-" * len(header))
     for r in rows:
         print(
-            f"{r['source']:20s} {r['n']:6d} {r['delta_nll_mean']:+8.4f} "
+            f"{r['source']:22s} {r['n']:6d} {r['delta_nll_mean']:+8.4f} "
             f"{r['delta_nll_median']:+8.4f} {r['pct_not_degraded']:8.1f}% "
-            f"{r['delta_scale_conformance']:+8.4f} {r['delta_metric_alignment']:+8.4f} "
-            f"{r['retention']:7.1f}%"
+            f"{r['delta_scale_conformance']:+8.4f} "
+            f"{r['retention']:7.1f}% {r['surface_change']:7.3f} {r['delta_nll_per_change']:+9.3f}"
         )
 
     save_json({"tau": tau, "rows": rows, "config": vars(args)}, args.out)

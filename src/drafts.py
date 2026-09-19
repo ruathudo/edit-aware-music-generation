@@ -31,6 +31,70 @@ from src.judge import MAX_SINGABLE_LEAP
 Notes = list[tuple[int, int]]
 
 
+@dataclass(frozen=True)
+class Priors:
+    """Marginal pitch and duration distributions, for D1 to draw from.
+
+    Sampling *uniformly* over a derived duration vocabulary is not a faithful
+    translation of the published scheme, and getting this wrong inflates D1's
+    apparent damage badly. The original drew from six durations that were all
+    common; this corpus yields 40, of which seven carry 98.3% of the mass, so a
+    uniform draw picks a sub-1%-frequency rhythm 82% of the time. That is not
+    "random perturbation" -- it is an unrealistic-rhythm generator, and it tests
+    a strawman rather than the reviewers' actual objection, which presumes the
+    random edit draws from plausible material and may therefore land on a valid
+    alternative.
+    """
+    durations: tuple[int, ...]
+    duration_weights: tuple[float, ...]
+    pitches: tuple[int, ...]
+    pitch_weights: tuple[float, ...]
+
+    @property
+    def pitch_span(self) -> tuple[int, int]:
+        return (min(self.pitches), max(self.pitches))
+
+    def sample_duration(self, rng, exclude=None) -> int:
+        for _ in range(16):
+            value = rng.choices(self.durations, weights=self.duration_weights, k=1)[0]
+            if value != exclude:
+                return value
+        alternatives = [d for d in self.durations if d != exclude]
+        return rng.choice(alternatives) if alternatives else exclude
+
+    def sample_pitch(self, rng) -> int:
+        return rng.choices(self.pitches, weights=self.pitch_weights, k=1)[0]
+
+
+def empirical_priors(melodies: list[Melody], uniform: bool = False) -> Priors:
+    """Marginals measured from a corpus.
+
+    `uniform=True` reproduces the naive translation -- flat over the derived
+    vocabulary -- which is kept only so the report can show how much of D1's
+    measured degradation is an artifact of that choice.
+    """
+    from collections import Counter
+
+    durations = Counter()
+    pitches = Counter()
+    for melody in melodies:
+        for event in melody.events:
+            durations[event.duration] += 1
+            if not event.is_rest:
+                pitches[event.pitch] += 1
+
+    dur_keys = tuple(sorted(durations))
+    pit_keys = tuple(sorted(pitches))
+    if uniform:
+        return Priors(dur_keys, (1.0,) * len(dur_keys), pit_keys, (1.0,) * len(pit_keys))
+    return Priors(
+        dur_keys,
+        tuple(float(durations[d]) for d in dur_keys),
+        pit_keys,
+        tuple(float(pitches[p]) for p in pit_keys),
+    )
+
+
 @dataclass
 class Draft:
     """A corrupted melody together with how it differs from its reference."""
@@ -71,10 +135,9 @@ D1_WEIGHTS = (0.40, 0.30, 0.15, 0.15)
 
 def d1_random(
     melody: Melody,
-    durations: tuple[int, ...],
+    priors: Priors,
     rng: random.Random,
     max_edits: int = 5,
-    pitch_range: tuple[int, int] = (45, 96),
 ) -> Draft | None:
     """Uniformly random perturbation -- the legacy corruption scheme.
 
@@ -86,14 +149,14 @@ def d1_random(
     notes = list(melody.notes)
     injected: list[str] = []
     used: set[int] = set()
+    pitch_range = priors.pitch_span
 
     for _ in range(rng.randint(1, max_edits)):
         op = rng.choices(D1_OPERATIONS, weights=D1_WEIGHTS, k=1)[0]
 
         if op == "insert_note":
             position = rng.randint(0, len(notes))
-            pitch = rng.randint(*pitch_range)
-            notes.insert(position, (pitch, rng.choice(durations)))
+            notes.insert(position, (priors.sample_pitch(rng), priors.sample_duration(rng)))
             injected.append(op)
             used = {i + 1 if i >= position else i for i in used}
             used.add(position)
@@ -111,10 +174,10 @@ def d1_random(
                 shifted = max(pitch_range[0], min(pitch_range[1], pitch + rng.choice([-2, -1, 1, 2])))
             notes[index] = (shifted, duration)
         elif op == "change_duration":
-            alternatives = [d for d in durations if d != duration]
-            if not alternatives:
+            replacement = priors.sample_duration(rng, exclude=duration)
+            if replacement is None or replacement == duration:
                 continue
-            notes[index] = (pitch, rng.choice(alternatives))
+            notes[index] = (pitch, replacement)
         else:  # delete_note
             notes.pop(index)
             used = {i - 1 if i > index else i for i in used if i != index}
@@ -306,7 +369,7 @@ def d3_musical(
 def generate(
     melodies: list[Melody],
     source: str,
-    durations: tuple[int, ...],
+    priors: Priors,
     seed: int = 0,
     max_edits: int = 5,
     per_melody: int = 1,
@@ -318,7 +381,7 @@ def generate(
         for k in range(per_melody):
             rng = random.Random(seed * 1_000_003 + i * 101 + k)
             if source == "D1":
-                draft = d1_random(melody, durations, rng, max_edits, pitch_range)
+                draft = d1_random(melody, priors, rng, max_edits)
             elif source == "D3":
                 draft = d3_musical(melody, rng, max_edits, pitch_range=pitch_range)
             else:
