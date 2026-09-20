@@ -166,19 +166,66 @@ def edit_class_weights(
     labels: torch.Tensor,
     n_classes: int = len(EDIT_CLASSES),
     ignore_index: int = IGNORE_INDEX,
+    scheme: str = "inverse",
+    max_ratio: float = 10.0,
 ) -> torch.Tensor:
-    """Inverse-frequency class weights, normalized to mean 1.
+    """Class weights for the edit head, normalized to mean 1.
 
-    KEEP is the overwhelming majority of positions, so an unweighted objective
-    reaches a good loss by predicting it everywhere and macro-F1 collapses.
-    Inverse frequency is used rather than focal loss because it has no extra
-    hyperparameter to tune, and spec 5.1 asks for the choice to be stated.
+    KEEP is ~94% of positions, so an unweighted objective can reach a good loss
+    by predicting it everywhere. But the obvious correction over-shoots badly:
+    plain inverse frequency weights INSERT_BEFORE about **105x** KEEP on this
+    data, and the head duly learns to flag nearly everything -- measured at
+    recall 0.56 against precision 0.010, with KEEP recall collapsing to 0.29
+    despite precision 0.97. The imbalance fix became a worse imbalance.
+
+    Schemes:
+      ``none``     uniform; lets KEEP dominate.
+      ``sqrt``     inverse square-root frequency; a much gentler correction.
+      ``inverse``  plain inverse frequency; the overshooting default.
+      ``capped``   inverse frequency with the max:min ratio clamped to
+                   `max_ratio`, keeping the ordering but bounding the extreme.
     """
     valid = labels[labels != ignore_index]
-    counts = torch.bincount(valid.flatten(), minlength=n_classes).float()
-    counts = counts.clamp(min=1.0)
-    weights = counts.sum() / counts
+    counts = torch.bincount(valid.flatten(), minlength=n_classes).float().clamp(min=1.0)
+
+    if scheme == "none":
+        weights = torch.ones(n_classes)
+    elif scheme == "sqrt":
+        weights = counts.sum().sqrt() / counts.sqrt()
+    elif scheme == "inverse":
+        weights = counts.sum() / counts
+    elif scheme == "capped":
+        weights = counts.sum() / counts
+        weights = weights.clamp(max=weights.min() * max_ratio)
+    else:
+        raise ValueError(f"unknown weighting scheme {scheme!r}")
+
     return weights / weights.mean()
+
+
+def focal_edit_loss(
+    logits: torch.Tensor,
+    targets: torch.Tensor,
+    gamma: float = 2.0,
+    class_weights: torch.Tensor | None = None,
+    ignore_index: int = IGNORE_INDEX,
+) -> torch.Tensor:
+    """Focal loss over edit classes (spec 5.1's alternative to re-weighting).
+
+    Down-weights positions the model already gets right, so the easy KEEP
+    majority stops dominating the gradient without inflating rare classes by a
+    hundredfold the way inverse frequency does.
+    """
+    ce = F.cross_entropy(
+        logits.reshape(-1, logits.size(-1)),
+        targets.reshape(-1),
+        weight=class_weights,
+        ignore_index=ignore_index,
+        reduction="none",
+    )
+    valid = (targets.reshape(-1) != ignore_index).float()
+    focal = ((1.0 - torch.exp(-ce)) ** gamma) * ce
+    return (focal * valid).sum() / valid.sum().clamp(min=1.0)
 
 
 def edit_aware_loss(

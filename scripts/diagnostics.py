@@ -45,6 +45,7 @@ from src.edit_model import (  # noqa: E402
     EditAwareTransformer,
     EditModelConfig,
     edit_class_weights,
+    focal_edit_loss,
 )
 from src.evaluation import (  # noqa: E402
     copy_input_baseline,
@@ -85,8 +86,10 @@ def build_datasets(args, tokenizer, priors, generator):
     return out
 
 
-def run_probe(args, tokenizer, datasets, device):
+def run_probe(args, tokenizer, datasets, device, weighting=None, use_focal=None, quiet=False):
     """Train the encoder and edit head on classification alone."""
+    weighting = weighting if weighting is not None else getattr(args, "weighting", "inverse")
+    use_focal = use_focal if use_focal is not None else getattr(args, "focal", False)
     train_ds, val_ds, test_ds = datasets
     torch.manual_seed(args.seed)
 
@@ -98,13 +101,14 @@ def run_probe(args, tokenizer, datasets, device):
         pad_id=tokenizer.pad_id,
     ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.01)
-    weights = edit_class_weights(train_ds.label_tensor()).to(device)
+    weights = edit_class_weights(train_ds.label_tensor(), scheme=weighting).to(device)
 
     collate = make_collate(tokenizer.pad_id)
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, collate_fn=collate)
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, collate_fn=collate)
 
-    print(f"\n=== probe: edit head trained alone ({args.sources}) ===")
+    tag = f"{weighting}{'+focal' if use_focal else ''}"
+    print(f"\n=== probe: edit head alone | weighting={tag} | {args.sources} ===")
     best, best_state, stale = float("inf"), None, 0
 
     for epoch in range(1, args.epochs + 1):
@@ -112,9 +116,13 @@ def run_probe(args, tokenizer, datasets, device):
         for source, labels, _, _, _ in train_loader:
             source, labels = source.to(device), labels.to(device)
             logits = model.edit_head(model.encode(source))
-            loss = F.cross_entropy(
-                logits.reshape(-1, logits.size(-1)), labels.reshape(-1),
-                weight=weights, ignore_index=IGNORE_INDEX,
+            loss = (
+                focal_edit_loss(logits, labels, class_weights=weights)
+                if use_focal else
+                F.cross_entropy(
+                    logits.reshape(-1, logits.size(-1)), labels.reshape(-1),
+                    weight=weights, ignore_index=IGNORE_INDEX,
+                )
             )
             optimizer.zero_grad()
             loss.backward()
@@ -127,12 +135,17 @@ def run_probe(args, tokenizer, datasets, device):
             for source, labels, _, _, _ in val_loader:
                 source, labels = source.to(device), labels.to(device)
                 logits = model.edit_head(model.encode(source))
-                total += float(F.cross_entropy(
-                    logits.reshape(-1, logits.size(-1)), labels.reshape(-1),
-                    weight=weights, ignore_index=IGNORE_INDEX,
-                ))
+                total += float(
+                    focal_edit_loss(logits, labels, class_weights=weights)
+                    if use_focal else
+                    F.cross_entropy(
+                        logits.reshape(-1, logits.size(-1)), labels.reshape(-1),
+                        weight=weights, ignore_index=IGNORE_INDEX,
+                    )
+                )
         val = total / max(len(val_loader), 1)
-        print(f"  epoch {epoch:3d}  val edit-loss {val:.4f}")
+        if not quiet:
+            print(f"  epoch {epoch:3d}  val edit-loss {val:.4f}")
 
         if best - val > 1e-4:
             best, stale = val, 0
@@ -288,6 +301,9 @@ def main():
     parser.add_argument("--n-layers", type=int, default=3)
     parser.add_argument("--patience", type=int, default=5)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--weighting", default="inverse",
+                        choices=["none", "sqrt", "capped", "inverse"])
+    parser.add_argument("--focal", action="store_true")
     parser.add_argument("--max-train", type=int, default=0)
     parser.add_argument("--generator", default="models/generator.pth")
     parser.add_argument("--out", default=None)
