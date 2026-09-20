@@ -35,7 +35,7 @@ from src.judge import save_json  # noqa: E402
 
 def summarize(path: Path) -> dict:
     sweep = json.loads(path.read_text())
-    directory = path.parent
+    directory = path.with_suffix("")
     b3_costs = np.load(directory / "costs_b3.npy") if (directory / "costs_b3.npy").exists() else None
     b3_mean = sweep["b3_copy_input"]["correction_cost_mean"]
 

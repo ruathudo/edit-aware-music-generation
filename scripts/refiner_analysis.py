@@ -42,7 +42,7 @@ def main():
     args = parser.parse_args()
 
     sweep = json.loads(Path(args.sweep).read_text())
-    directory = Path(args.sweep).parent
+    directory = Path(args.sweep).with_suffix("")
     rows = sweep["rows"]
 
     b3 = load_costs("b3", directory)

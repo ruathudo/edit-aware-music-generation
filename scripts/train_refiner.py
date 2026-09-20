@@ -212,6 +212,12 @@ def main():
     parser.add_argument("--max-train", type=int, default=0, help="cap training melodies (0 = all)")
     args = parser.parse_args()
 
+    # Per-sample costs are namespaced by the sweep, so two sweeps cannot
+    # overwrite each other's arrays -- which silently made the D1 run's paired
+    # statistics stand in for the D2 run's.
+    cost_dir = Path(args.out).with_suffix("")
+    cost_dir.mkdir(parents=True, exist_ok=True)
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     splits = standard_splits()
     every = [m for group in splits.values() for m in group]
@@ -267,7 +273,7 @@ def main():
                 "best_val_loss": min(history["val"]),
             }
             results.append(row)
-            np.save(f"results/refiner/costs_{label}.npy", costs)
+            np.save(cost_dir / f"costs_{label}.npy", costs)
 
             summary = (f"  -> CC {row['correction_cost']:.2f} "
                        f"({row['correction_cost_per_note']:.4f}/note)  "
@@ -277,10 +283,9 @@ def main():
                             f"  locF1 {row['edit_scores']['localization']['f1']:.3f}")
             print(summary)
 
-    Path("results/refiner").mkdir(parents=True, exist_ok=True)
     save_json({"b3_copy_input": {k: v for k, v in b3.items() if k != "costs"},
                "rows": results, "config": vars(args)}, args.out)
-    np.save("results/refiner/costs_b3.npy", b3["costs"])
+    np.save(cost_dir / "costs_b3.npy", b3["costs"])
 
     print(f"\n{'condition':24s} {'CC/note':>9s} {'fidelity':>9s} {'macroF1':>8s} {'locF1':>7s}")
     print("-" * 62)
