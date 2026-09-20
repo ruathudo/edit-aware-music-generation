@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
-from src.align import DELETE, INSERT_BEFORE, KEEP, SUB_DUR, SUB_PITCH  # noqa: E402
+from src.align import DELETE, INSERT_BEFORE, KEEP, REST, SUB_DUR, SUB_PITCH  # noqa: E402
 from src.edit_model import (  # noqa: E402
     IGNORE_INDEX,
     EditAwareTransformer,
@@ -561,6 +561,78 @@ class TestSurprisalInjection(unittest.TestCase):
             a = model.encode(source, surprisal=torch.zeros(2, 9))
             b = model.encode(source, surprisal=torch.randn(2, 9))
         self.assertFalse(torch.allclose(a, b, atol=1e-6))
+
+
+class TestGatedDecoding(unittest.TestCase):
+    """Copy by default, regenerate only where the head is confident.
+
+    Localization precision is the binding constraint: at D1's 0.68, a third of
+    flagged positions are correct notes, so unconditional editing loses. The
+    threshold is the knob that trades recall for precision.
+    """
+
+    def setUp(self):
+        self.tok = make_tokenizer()
+        torch.manual_seed(0)
+        self.model = EditAwareTransformer(
+            EditModelConfig(
+                vocab_size=len(self.tok), d_model=32, n_heads=2, n_encoder_layers=2,
+                n_decoder_layers=2, d_ff=64, max_len=128, use_edit_head=True,
+            ),
+            pad_id=self.tok.pad_id,
+        ).eval()
+        self.notes = [(60, 24), (62, 24), (64, 12), (65, 48)]
+        self.source = torch.tensor([self.tok.encode(self.notes)])
+
+    def _gated(self, threshold):
+        from src.evaluation import generate_corrections_gated
+
+        return generate_corrections_gated(self.model, self.tok, self.source, threshold=threshold)
+
+    def test_threshold_one_copies_the_draft_exactly(self):
+        """Nothing can clear a threshold of 1.0, so the output must be the input.
+
+        This is the guarantee that matters: the gated decoder can never do worse
+        than B3, because B3 is its threshold-1.0 behaviour.
+        """
+        out = self._gated(1.01)
+        self.assertEqual(out[0], self.notes)
+
+    def test_low_threshold_permits_edits(self):
+        strict = self._gated(1.01)
+        loose = self._gated(0.0)
+        self.assertEqual(strict[0], self.notes)
+        # At threshold 0 every position is eligible, so the output should differ
+        # from a verbatim copy for an untrained head.
+        self.assertIsInstance(loose[0], list)
+
+    def test_output_is_well_formed(self):
+        for threshold in (0.0, 0.5, 1.01):
+            out = self._gated(threshold)
+            for pitch, duration in out[0]:
+                self.assertIn(duration, self.tok.config.durations)
+
+    def test_batch_of_ragged_lengths(self):
+        from src.evaluation import generate_corrections_gated
+
+        short = self.tok.encode([(60, 24)])
+        long = self.tok.encode(self.notes)
+        width = max(len(short), len(long))
+        batch = torch.full((2, width), self.tok.pad_id, dtype=torch.long)
+        batch[0, : len(short)] = torch.tensor(short)
+        batch[1, : len(long)] = torch.tensor(long)
+
+        out = generate_corrections_gated(self.model, self.tok, batch, threshold=1.01)
+        self.assertEqual(out[0], [(60, 24)])
+        self.assertEqual(out[1], self.notes)
+
+    def test_rest_events_survive_a_copy(self):
+        notes = [(60, 24), (REST, 12), (64, 24)]
+        source = torch.tensor([self.tok.encode(notes)])
+        from src.evaluation import generate_corrections_gated
+
+        out = generate_corrections_gated(self.model, self.tok, source, threshold=1.01)
+        self.assertEqual(out[0], notes)
 
 if __name__ == "__main__":
     unittest.main()

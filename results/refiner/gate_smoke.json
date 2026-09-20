@@ -1,0 +1,108 @@
+{
+  "b3_copy_input": {
+    "correction_cost_mean": 2.975,
+    "correction_cost_per_note": 0.06649393035241488
+  },
+  "rows": [
+    {
+      "label": "alpha1.0_seed0",
+      "alpha": 1.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "n_parameters": 5856126,
+      "correction_cost": 175.14166666666668,
+      "correction_cost_per_note": 3.8973110215895215,
+      "fidelity_distance": 175.55277777777778,
+      "fidelity_per_note": 3.9076670712574324,
+      "draft_cost": 2.975,
+      "n": 360,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9404180010112928,
+            "recall": 1.0,
+            "f1": 0.9692942453854506,
+            "support": 33477
+          },
+          "SUB_PITCH": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 834
+          },
+          "SUB_DUR": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 636
+          },
+          "INSERT_BEFORE": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 333
+          },
+          "DELETE": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 318
+          }
+        },
+        "macro_f1": 0.1938588490770901,
+        "localization": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "accuracy": 0.9404180010112928
+      },
+      "gated": {
+        "0.3": {
+          "correction_cost": 2.975,
+          "fidelity_per_note": 0.0
+        },
+        "0.5": {
+          "correction_cost": 2.975,
+          "fidelity_per_note": 0.0
+        },
+        "0.9": {
+          "correction_cost": 2.975,
+          "fidelity_per_note": 0.0
+        }
+      },
+      "best_val_loss": 2.729766539164952
+    }
+  ],
+  "config": {
+    "alphas": [
+      1.0
+    ],
+    "seeds": [
+      0
+    ],
+    "sources": [
+      "D1"
+    ],
+    "temperature": 1.0,
+    "per_melody": 1,
+    "epochs": 2,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "generator": "models/generator.pth",
+    "out": "results/refiner/gate_smoke.json",
+    "max_train": 300,
+    "gated_thresholds": [
+      0.3,
+      0.5,
+      0.9
+    ],
+    "surprisal": false,
+    "judge": "models/judge.pth",
+    "weighting": "none"
+  }
+}

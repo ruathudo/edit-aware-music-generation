@@ -242,3 +242,123 @@ def copy_input_baseline(pairs: list[tuple[Notes, Notes]]) -> dict:
         "correction_cost_per_note": float(per_note.mean()) if len(per_note) else float("nan"),
         "costs": costs,
     }
+
+
+@torch.no_grad()
+def generate_corrections_gated(
+    model: EditAwareTransformer,
+    tokenizer: MelodyTokenizer,
+    sources: torch.Tensor,
+    threshold: float = 0.5,
+    surprisal: torch.Tensor | None = None,
+    device=None,
+) -> list[Notes]:
+    """Copy the draft by default; regenerate only where the head is confident.
+
+    The diagnostics showed localization *precision* is the binding constraint,
+    not F1. At D1's precision of 0.68 roughly a third of flagged positions are
+    notes that were already correct, so every additional edit is a coin flip
+    weighted against you -- which is why raising recall (via judge surprisal)
+    made Correction Cost worse while improving F1, and why free-form decoding
+    settled on copying.
+
+    So the head is used as a gate rather than an auxiliary signal. Each input
+    event is either copied verbatim or handed to the decoder, according to the
+    predicted class and only when the model's confidence clears `threshold`.
+    Raising the threshold trades recall for precision directly, which is the
+    trade the measurements say is worth making.
+
+    This is also what "where and how" should mean operationally: the head
+    decides where and which operation, the decoder supplies the content.
+    """
+    from src.align import DELETE, INSERT_BEFORE, KEEP
+
+    device = device or next(model.parameters()).device
+    model.eval()
+    sources = sources.to(device)
+    batch = sources.size(0)
+
+    grammar = Grammar(tokenizer, device)
+    memory = model.encode(sources, surprisal=surprisal)
+
+    probabilities = torch.softmax(model.edit_head(memory), dim=-1).cpu()
+    predicted = probabilities.argmax(dim=-1)
+    confidence = 1.0 - probabilities[:, :, KEEP]  # P(this position needs an edit)
+
+    # Build each sequence's action tape up front: copy a token, or let the
+    # decoder write one. No model calls needed for this part.
+    tapes: list[list[tuple[str, int]]] = []
+    for i in range(batch):
+        row = sources[i].tolist()
+        events = tokenizer.decode(row)
+        _, spans = tokenizer.encode_with_spans(events) if events else ([], [])
+
+        # Map each source position back to its event, using the real token
+        # stream rather than index arithmetic, which BAR and REST would break.
+        starts = {}
+        event_index = 0
+        position = 0
+        while position < len(row) and event_index < len(events):
+            token = tokenizer.id_to_token.get(row[position], "")
+            if token.startswith("P") or token == "<REST>":
+                starts[position] = event_index
+                event_index += 1
+                position += 2
+            else:
+                position += 1
+
+        tape: list[tuple[str, int]] = []
+        position = 0
+        while position < len(row):
+            token_id = row[position]
+            token = tokenizer.id_to_token.get(token_id, "")
+
+            if position in starts:
+                index = starts[position]
+                pair = [token_id, row[position + 1]] if position + 1 < len(row) else [token_id]
+                klass = int(predicted[i, position])
+                confident = float(confidence[i, position]) >= threshold
+
+                if not confident or klass == KEEP:
+                    tape += [("copy", t) for t in pair]
+                elif klass == DELETE:
+                    pass
+                elif klass == INSERT_BEFORE:
+                    tape += [("free", 0), ("free", 0)]
+                    tape += [("copy", t) for t in pair]
+                else:  # SUB_PITCH or SUB_DUR
+                    tape += [("free", 0), ("free", 0)]
+                position += 2
+            else:
+                if token in ("<BAR>",):
+                    tape.append(("copy", token_id))
+                position += 1
+
+        tape.append(("copy", tokenizer.eos_id))
+        tapes.append(tape)
+
+    # Execute the tapes in lockstep, running the decoder only where needed.
+    tokens = torch.full((batch, 1), tokenizer.bos_id, dtype=torch.long, device=device)
+    cursors = [0] * batch
+    longest = max((len(t) for t in tapes), default=0)
+
+    for _ in range(min(longest, model.config.max_len - 1)):
+        logits = model.decode(tokens, memory, sources)[:, -1]
+        allowed = torch.stack(
+            [grammar.next_mask(int(t)) for t in tokens[:, -1].cpu()]
+        ).to(device)
+        free_choice = logits.masked_fill(~allowed, float("-inf")).argmax(dim=-1)
+
+        step = torch.full((batch,), tokenizer.pad_id, dtype=torch.long, device=device)
+        for i in range(batch):
+            if cursors[i] >= len(tapes[i]):
+                continue
+            action, value = tapes[i][cursors[i]]
+            step[i] = value if action == "copy" else int(free_choice[i])
+            cursors[i] += 1
+
+        tokens = torch.cat([tokens, step.unsqueeze(1)], dim=1)
+        if all(c >= len(t) for c, t in zip(cursors, tapes)):
+            break
+
+    return [tokenizer.decode(row.tolist()) for row in tokens]

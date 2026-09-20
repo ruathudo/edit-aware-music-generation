@@ -42,6 +42,7 @@ from src.evaluation import (  # noqa: E402
     copy_input_baseline,
     edit_prediction_scores,
     generate_corrections,
+    generate_corrections_gated,
     sample_metrics,
 )
 from src.judge import Judge, save_json  # noqa: E402
@@ -79,12 +80,13 @@ def make_drafts(melodies, tokenizer, priors, generator, args, seed, tag):
     )
 
 
-def evaluate(model, dataset, tokenizer, device, batch_size=32):
+def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=()):
     """Autoregressive decoding, Correction Cost, fidelity, and edit-F1."""
     collate = make_collate(tokenizer.pad_id)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, collate_fn=collate)
 
     rows, predicted_edits, actual_edits = [], [], []
+    gated = {t: [] for t in gated_thresholds}
 
     for source, labels, _, _, batch in loader:
         source = source.to(device)
@@ -103,6 +105,18 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32):
                 sample_metrics(output, example.draft_notes, example.reference.notes)
             )
 
+        # Gated decoding: copy by default, edit only where the head is confident.
+        # Threshold 1.0 reproduces B3 exactly, so this can only improve on it.
+        if gated_thresholds and model.edit_head is not None:
+            for threshold in gated_thresholds:
+                out = generate_corrections_gated(
+                    model, tokenizer, source, threshold=threshold, surprisal=surprisal
+                )
+                for output, example in zip(out, batch):
+                    gated[threshold].append(
+                        sample_metrics(output, example.draft_notes, example.reference.notes)
+                    )
+
     summary = {
         key: float(np.mean([r[key] for r in rows]))
         for key in ("correction_cost", "correction_cost_per_note",
@@ -112,6 +126,15 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32):
     summary["costs"] = np.array([r["correction_cost"] for r in rows])
     if predicted_edits:
         summary["edit_scores"] = edit_prediction_scores(predicted_edits, actual_edits)
+    if gated:
+        summary["gated"] = {
+            str(t): {
+                "correction_cost": float(np.mean([r["correction_cost"] for r in rs])),
+                "fidelity_per_note": float(np.mean([r["fidelity_per_note"] for r in rs])),
+                "costs": np.array([r["correction_cost"] for r in rs]),
+            }
+            for t, rs in gated.items() if rs
+        }
     return summary
 
 
@@ -217,6 +240,8 @@ def main():
     parser.add_argument("--generator", default="models/generator.pth")
     parser.add_argument("--out", default="results/refiner/sweep.json")
     parser.add_argument("--max-train", type=int, default=0, help="cap training melodies (0 = all)")
+    parser.add_argument("--gated-thresholds", type=float, nargs="*", default=[],
+                        help="evaluate gated decoding at these confidence thresholds")
     parser.add_argument("--surprisal", action="store_true",
                         help="feed the judge's per-token surprisal to the encoder")
     parser.add_argument("--judge", default="models/judge.pth")
@@ -287,8 +312,14 @@ def main():
             model, history, label = train_one(
                 args, alpha, seed, use_head, splits, tokenizer, datasets, device
             )
-            metrics = evaluate(model, datasets[2], tokenizer, device)
+            metrics = evaluate(model, datasets[2], tokenizer, device,
+                               gated_thresholds=tuple(args.gated_thresholds))
             costs = metrics.pop("costs")
+            gated_blocks = metrics.pop("gated", {})
+            for threshold, block in gated_blocks.items():
+                np.save(cost_dir / f"costs_{label}_gated{threshold}.npy", block.pop("costs"))
+            if gated_blocks:
+                metrics["gated"] = gated_blocks
 
             row = {
                 "label": label, "alpha": alpha, "seed": seed,
@@ -307,6 +338,11 @@ def main():
                 summary += (f"  macroF1 {row['edit_scores']['macro_f1']:.3f}"
                             f"  locF1 {row['edit_scores']['localization']['f1']:.3f}")
             print(summary)
+            for threshold, block in sorted(row.get("gated", {}).items(), key=lambda kv: float(kv[0])):
+                delta = b3["correction_cost_mean"] - block["correction_cost"]
+                print(f"       gated t={threshold:>4}  CC {block['correction_cost']:.3f}  "
+                      f"fidelity {block['fidelity_per_note']:.4f}  "
+                      f"vs B3 {delta:+.3f}{'  BEATS B3' if delta > 0 else ''}")
 
     save_json({"b3_copy_input": {k: v for k, v in b3.items() if k != "costs"},
                "rows": results, "config": vars(args)}, args.out)
