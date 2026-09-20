@@ -16,7 +16,7 @@ Two corpus/layout decisions already settled, which the spec does not record:
 - **Corpus moved to Meertens Tune Collections (primary) + Essen Folksong Collection (cross-corpus).** MTC's *tune family* annotations supply the spec's D4 human-variant set in-corpus, so D4 stopped being an external dependency.
 - **Code lives under `src/`, artifacts stay at root.** The spec's proposed `data/` and `models/` (for loaders and model code) collide with the existing gitignored artifact directories of the same names.
 
-Done so far: `src/align.py`, `src/tokenizer.py`, `src/corpus.py`, `src/model.py`, `src/data.py`, `src/judge.py`, `src/drafts.py`, `src/training.py`, `src/sampling.py`, and their tests (141, stdlib `unittest`). Nothing in `src/train.py` or `main.py` has been migrated onto them yet — see "Migration status" below.
+Done so far: `src/align.py`, `src/tokenizer.py`, `src/corpus.py`, `src/model.py`, `src/data.py`, `src/judge.py`, `src/drafts.py`, `src/training.py`, `src/sampling.py`, `src/edit_model.py`, `src/refinement.py`, `src/evaluation.py`, and their tests (185, stdlib `unittest`). Nothing in `src/train.py` or `main.py` has been migrated onto them yet — see "Migration status" below.
 
 ### The validator result, and what it changes
 
@@ -68,18 +68,38 @@ Baselines: **B1** = no edit head; **B2** = head present with α=0, so architectu
 
 **The headline problem is copy collapse.** On D2-infill drafts the imitation baseline learns to emit the draft verbatim — fidelity distance 0.0067/note, CC/note 0.1102 against B3's 0.1056, i.e. marginally *worse* than doing nothing. With realistic drafts only ~3 of 48 notes need changing, so copying gets ~94% of tokens right and is a strong local optimum. The fidelity metric was added to catch a model that *ignores the draft and regenerates*; it caught the opposite failure, a model that ignores the *correction*.
 
-Raising α does not break the collapse — it deepens it. Fidelity falls toward zero and CC converges onto B3 exactly:
+Raising α does not break the collapse — it deepens it. Fidelity falls toward zero and CC converges onto B3 exactly. `lift = (draft_cost − model_cost) / draft_cost` is the fraction of the draft's error actually removed; positive means the model improved the draft.
 
-| α | CC | fidelity/note | macro-F1 |
-|---|---|---|---|
-| 0.0 | 5.01 | 0.0104 | 0.079 |
-| 0.1 | 4.81 | 0.0046 | 0.101 |
-| 0.5 | 4.72 | 0.0011 | 0.089 |
-| *B3 copy-input* | *4.71* | *0* | — |
+**D2-infill drafts (realistic), MTC-ANN test, one seed:**
 
-Macro-F1 of 0.08–0.10 says the edit head barely localizes edits at all, and there is a principled reason that follows directly from the validator result: **D2-infill drafts are on-manifold, so the infilled span is locally plausible everywhere and carries little signal marking which notes were substituted.** The synthetic-corruption task was tractable precisely because corruption left off-manifold traces — the same traces the validator measured as ~100× implausibility per unit change.
+| α | CC | lift | fidelity/note | macro-F1 | beats B3 |
+|---|---|---|---|---|---|
+| 0.0 | 4.876 | −3.55% | 0.0066 | 0.082 | 1.4% |
+| 0.1 | 4.781 | −1.54% | 0.0033 | 0.104 | 0.8% |
+| **1.0** | **4.715** | **−0.14%** | **0.0007** | 0.096 | 0.5% |
+| 3.0 | 5.935 | −26.05% | 0.0150 | 0.124 | 0.4% |
+| B1 (no head) | 4.975 | −5.65% | 0.0079 | — | 1.1% |
+| *B3 copy-input* | *4.709* | *0* | *0* | — | — |
 
-If that explanation holds, the same sweep on D1 drafts should show edit-awareness helping, and the published gain would be an artifact of corruption being detectable rather than of edit-awareness being useful. That is the comparison spec §8 flagged as the outcome to plan for, and it is the next experiment.
+**D1 drafts (random corruption), same protocol:**
+
+| α | CC | lift | fidelity/note | macro-F1 | beats B3 |
+|---|---|---|---|---|---|
+| 0.0 | 3.501 | −17.46% | 0.0482 | 0.094 | 26.1% |
+| **0.1** | **3.452** | **−15.81%** | 0.0481 | 0.111 | 27.4% |
+| 1.0 | 3.829 | −28.46% | 0.0451 | 0.121 | 18.8% |
+| 2.0 | 6.964 | −133.64% | 0.0953 | 0.130 | 10.8% |
+| *B3 copy-input* | *2.981* | *0* | *0* | — | — |
+
+Three things to take from this:
+
+1. **No condition, on either draft source, achieves positive lift.** The model never learns to correct. On D2 it copies; on D1 it edits (fidelity 0.048, ~2 notes per melody) but its edits are net harmful. The task is not being done, and CC read in isolation conceals that completely.
+2. **Draft realism changes the failure mode, as predicted.** On D1 the model engages — it beats B3 on 27% of melodies. On D2 it disengages almost entirely — 0.5%. That is consistent with the validator's manifold result: corruption leaves off-manifold traces a model can detect, whereas an infilled span is locally plausible everywhere. Edit-awareness does not rescue either regime, and large α actively harms both.
+3. **The edit head barely localizes anywhere** — macro-F1 0.08–0.14 throughout, against a localization F1 of ~0.15. "Where and how" is architecturally expressible now but not yet learned.
+
+The most likely cause is the architecture, not the idea. Free-form seq2seq regeneration is a poor fit for sparse-edit refinement: the model must learn to copy ~94% of tokens *and* make a few targeted changes, and copying alone is a strong local optimum. Established editing models use explicit copy/pointer mechanisms or decode edit operations directly rather than regenerating the sequence. Since the aligner already produces typed operations and the head already predicts them, **predicting and applying the edit script** is the natural next formulation and a far better-posed problem.
+
+Caveats: one seed, ~20 epochs, 5.9M parameters. These numbers show the task is not being learned in this setup; they do not establish that edit-awareness cannot help in a setup where the base task is learnable.
 
 ### Getting the data
 
@@ -93,6 +113,10 @@ python scripts/train_judge.py       # train J + run its calibration controls
 python scripts/validator_report.py  # the D1/D3/D4 degradation table
 python scripts/train_generator.py   # train G (+ undertrained checkpoints) for D2
 python scripts/d2_report.py         # where D2 sits vs D1/D3/D4
+
+python scripts/train_refiner.py --alphas 0 0.1 0.5 1.0 2.0 3.0   # the sweep
+python scripts/refiner_analysis.py results/refiner/sweep_seed0.json
+python scripts/draft_source_comparison.py --sweeps <sweep-a> <sweep-b>
 ```
 
 Licensing, which matters for the paper: the MTCFeatures data is **CC BY-NC-SA 3.0** (attribution, non-commercial, share-alike) and should be cited to both the MTC and the Zenodo record. Essen feature values there derive from CCARH's **kern, whose own terms are "licensed (not sold)" with notable restrictions — so use the Zenodo feature sequences rather than redistributing kern.
