@@ -1,0 +1,253 @@
+{
+  "sources": [
+    "D1"
+  ],
+  "results": [
+    {
+      "weighting": "none",
+      "focal": false,
+      "macro_f1": 0.1938588490770901,
+      "localization_f1": 0.0,
+      "accuracy": 0.9404180010112928,
+      "keep_recall": 1.0,
+      "keep_precision": 0.9404180010112928,
+      "per_class": {
+        "KEEP": {
+          "precision": 0.9404180010112928,
+          "recall": 1.0,
+          "f1": 0.9692942453854506,
+          "support": 33477
+        },
+        "SUB_PITCH": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 834
+        },
+        "SUB_DUR": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 636
+        },
+        "INSERT_BEFORE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 333
+        },
+        "DELETE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 318
+        }
+      }
+    },
+    {
+      "weighting": "sqrt",
+      "focal": false,
+      "macro_f1": 0.19529157426617863,
+      "localization_f1": 0.002822201317027281,
+      "accuracy": 0.9404460924771054,
+      "keep_recall": 0.9999402574902172,
+      "keep_precision": 0.9404939173432978,
+      "per_class": {
+        "KEEP": {
+          "precision": 0.9404939173432978,
+          "recall": 0.9999402574902172,
+          "f1": 0.9693065006515129,
+          "support": 33477
+        },
+        "SUB_PITCH": {
+          "precision": 0.6,
+          "recall": 0.0035971223021582736,
+          "f1": 0.007151370679380215,
+          "support": 834
+        },
+        "SUB_DUR": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 636
+        },
+        "INSERT_BEFORE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 333
+        },
+        "DELETE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 318
+        }
+      }
+    },
+    {
+      "weighting": "capped",
+      "focal": false,
+      "macro_f1": 0.2110814806112759,
+      "localization_f1": 0.04114490161001789,
+      "accuracy": 0.9396314399685376,
+      "keep_recall": 0.9979388834124922,
+      "keep_precision": 0.9415212918862554,
+      "per_class": {
+        "KEEP": {
+          "precision": 0.9415212918862554,
+          "recall": 0.9979388834124922,
+          "f1": 0.968909512761021,
+          "support": 33477
+        },
+        "SUB_PITCH": {
+          "precision": 0.35964912280701755,
+          "recall": 0.049160671462829736,
+          "f1": 0.08649789029535865,
+          "support": 834
+        },
+        "SUB_DUR": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 636
+        },
+        "INSERT_BEFORE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 333
+        },
+        "DELETE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 318
+        }
+      }
+    },
+    {
+      "weighting": "inverse",
+      "focal": false,
+      "macro_f1": 0.050224212730762774,
+      "localization_f1": 0.11412498607552635,
+      "accuracy": 0.06699814596325636,
+      "keep_recall": 0.05194611225617588,
+      "keep_precision": 0.9602429596907786,
+      "per_class": {
+        "KEEP": {
+          "precision": 0.9602429596907786,
+          "recall": 0.05194611225617588,
+          "f1": 0.09856041713897076,
+          "support": 33477
+        },
+        "SUB_PITCH": {
+          "precision": 0.050036083714216986,
+          "recall": 0.24940047961630696,
+          "f1": 0.08335003005409738,
+          "support": 834
+        },
+        "SUB_DUR": {
+          "precision": 0.020893050512771513,
+          "recall": 0.5157232704402516,
+          "f1": 0.04015916743189471,
+          "support": 636
+        },
+        "INSERT_BEFORE": {
+          "precision": 0.011299435028248588,
+          "recall": 0.018018018018018018,
+          "f1": 0.01388888888888889,
+          "support": 333
+        },
+        "DELETE": {
+          "precision": 0.007761194029850746,
+          "recall": 0.3270440251572327,
+          "f1": 0.015162560139962093,
+          "support": 318
+        }
+      }
+    },
+    {
+      "weighting": "none",
+      "focal": true,
+      "macro_f1": 0.1938588490770901,
+      "localization_f1": 0.0,
+      "accuracy": 0.9404180010112928,
+      "keep_recall": 1.0,
+      "keep_precision": 0.9404180010112928,
+      "per_class": {
+        "KEEP": {
+          "precision": 0.9404180010112928,
+          "recall": 1.0,
+          "f1": 0.9692942453854506,
+          "support": 33477
+        },
+        "SUB_PITCH": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 834
+        },
+        "SUB_DUR": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 636
+        },
+        "INSERT_BEFORE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 333
+        },
+        "DELETE": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 318
+        }
+      }
+    },
+    {
+      "weighting": "sqrt",
+      "focal": true,
+      "macro_f1": 0.032630704479560534,
+      "localization_f1": 0.11319938343384081,
+      "accuracy": 0.03966514972751278,
+      "keep_recall": 0.021268333482689607,
+      "keep_precision": 0.9621621621621622,
+      "per_class": {
+        "KEEP": {
+          "precision": 0.9621621621621622,
+          "recall": 0.021268333482689607,
+          "f1": 0.04161674021685127,
+          "support": 33477
+        },
+        "SUB_PITCH": {
+          "precision": 0.030697002527988442,
+          "recall": 0.5095923261390888,
+          "f1": 0.057905851897268205,
+          "support": 834
+        },
+        "SUB_DUR": {
+          "precision": 0.02023291377485002,
+          "recall": 0.27044025157232704,
+          "f1": 0.03764911896683813,
+          "support": 636
+        },
+        "INSERT_BEFORE": {
+          "precision": 0.011406844106463879,
+          "recall": 0.009009009009009009,
+          "f1": 0.010067114093959733,
+          "support": 333
+        },
+        "DELETE": {
+          "precision": 0.008163931749530574,
+          "recall": 0.31446540880503143,
+          "f1": 0.015914697222885337,
+          "support": 318
+        }
+      }
+    }
+  ]
+}

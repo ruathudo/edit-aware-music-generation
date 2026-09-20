@@ -131,6 +131,34 @@ Three further things to take from the single-seed detail below:
 2. **Draft realism changes the failure mode, as predicted.** On D1 the model engages — it beats B3 on 27% of melodies. On D2 it disengages almost entirely — 0.5%. That is consistent with the validator's manifold result: corruption leaves off-manifold traces a model can detect, whereas an infilled span is locally plausible everywhere. Edit-awareness does not rescue either regime, and large α actively harms both.
 3. **The edit head barely localizes anywhere** — macro-F1 0.08–0.14 throughout, against a localization F1 of ~0.15. "Where and how" is architecturally expressible now but not yet learned.
 
+#### Diagnostics: the decoder is fine, the head is the bottleneck
+
+`scripts/diagnostics.py` runs two experiments that separate "cannot find the errors" from "cannot fix them". **They reverse the architectural conclusion below** — keep that paragraph only as a record of what the sweep alone suggested.
+
+**Oracle** — ground-truth edit labels fed in at the encoder input, then train generatively:
+
+| source | oracle CC | B3 | lift |
+|---|---|---|---|
+| D1 | 1.510 | 2.981 | **+49.3%** |
+| D2-infill | 3.695 | 4.709 | **+21.5%** |
+
+Given perfect localization the model removes half the draft's error on D1 and a fifth on D2, beating the copy-input baseline that nothing in the entire sweep could beat. **So the generative encoder-decoder formulation is not the problem, and it should not be replaced.**
+
+**Probe** — edit head trained on the edit loss alone: macro-F1 0.153 (D1), 0.141 (D2), against 0.12/0.11 jointly. Barely moves, so multi-task tension is not the problem either. The head simply cannot localize.
+
+**And the cause is partly self-inflicted.** Inverse-frequency weighting — chosen citing spec §5.1 without checking the ratio it produced — pays the head **105× more** for flagging an edit than for leaving a note alone:
+
+| class | precision | recall | weight |
+|---|---|---|---|
+| KEEP | 0.966 | 0.292 | 0.016 |
+| INSERT_BEFORE | 0.010 | 0.560 | 1.725 |
+
+The head learned to flag nearly everything: accuracy 0.29. `src/edit_model.py` now offers `none`/`sqrt`/`capped`/`inverse` weighting plus `focal_edit_loss`, with `scripts/weighting_ablation.py` to choose among them. The trade-off is two-sided — light weighting collapses to predicting KEEP everywhere (localization F1 0.000), heavy weighting flags everything.
+
+**Consequence for the plan:** keep the architecture, fix the head. The oracle also supplies something the paper needed — a principled **upper bound**. "Perfect localization yields +49% lift; our head recovers X% of it" is a far stronger framing than a bare CC comparison, and it converts the weak macro-F1 from an embarrassment into a quantified gap.
+
+The paragraph below predates these diagnostics and is retained for the record:
+
 The most likely cause is the architecture, not the idea. Free-form seq2seq regeneration is a poor fit for sparse-edit refinement: the model must learn to copy ~94% of tokens *and* make a few targeted changes, and copying alone is a strong local optimum. Established editing models use explicit copy/pointer mechanisms or decode edit operations directly rather than regenerating the sequence. Since the aligner already produces typed operations and the head already predicts them, **predicting and applying the edit script** is the natural next formulation and a far better-posed problem.
 
 Caveats: one seed, ~20 epochs, 5.9M parameters. These numbers show the task is not being learned in this setup; they do not establish that edit-awareness cannot help in a setup where the base task is learnable.
