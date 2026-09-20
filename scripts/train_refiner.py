@@ -44,13 +44,15 @@ from src.evaluation import (  # noqa: E402
     generate_corrections,
     sample_metrics,
 )
-from src.judge import save_json  # noqa: E402
+from src.judge import Judge, save_json  # noqa: E402
 from src.model import LMConfig, MelodyLM  # noqa: E402
 from src.refinement import (  # noqa: E402
     RefinementDataset,
+    attach_surprisal,
     build_draft_corpus,
     cached_drafts,
     make_collate,
+    surprisal_tensor,
 )
 
 
@@ -86,10 +88,11 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32):
 
     for source, labels, _, _, batch in loader:
         source = source.to(device)
-        outputs = generate_corrections(model, tokenizer, source)
+        surprisal = surprisal_tensor(batch, source.size(1), device)
+        outputs = generate_corrections(model, tokenizer, source, surprisal=surprisal)
 
         if model.edit_head is not None:
-            predictions = model.predict_edits(source).cpu()
+            predictions = model.predict_edits(source, surprisal=surprisal).cpu()
             for row, label_row in zip(predictions, labels):
                 keep = label_row != IGNORE_INDEX
                 predicted_edits.extend(row[keep].tolist())
@@ -124,6 +127,7 @@ def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
         n_encoder_layers=args.n_layers,
         n_decoder_layers=args.n_layers,
         use_edit_head=use_head,
+        use_surprisal=args.surprisal,
     )
     model = EditAwareTransformer(config, pad_id=tokenizer.pad_id).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.01)
@@ -144,11 +148,12 @@ def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
     for epoch in range(1, args.epochs + 1):
         model.train()
         running = 0.0
-        for source, labels, target_in, target_out, _ in train_loader:
+        for source, labels, target_in, target_out, batch in train_loader:
             source, labels = source.to(device), labels.to(device)
             target_in, target_out = target_in.to(device), target_out.to(device)
+            surprisal = surprisal_tensor(batch, source.size(1), device)
 
-            token_logits, edit_logits = model(source, target_in)
+            token_logits, edit_logits = model(source, target_in, surprisal=surprisal)
             loss, _, _ = edit_aware_loss(
                 token_logits, target_out, edit_logits, labels,
                 tokenizer.pad_id, alpha=alpha, class_weights=weights,
@@ -163,10 +168,11 @@ def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
         model.eval()
         val_running = 0.0
         with torch.no_grad():
-            for source, labels, target_in, target_out, _ in val_loader:
+            for source, labels, target_in, target_out, batch in val_loader:
                 source, labels = source.to(device), labels.to(device)
                 target_in, target_out = target_in.to(device), target_out.to(device)
-                token_logits, edit_logits = model(source, target_in)
+                surprisal = surprisal_tensor(batch, source.size(1), device)
+                token_logits, edit_logits = model(source, target_in, surprisal=surprisal)
                 loss, _, _ = edit_aware_loss(
                     token_logits, target_out, edit_logits, labels,
                     tokenizer.pad_id, alpha=alpha, class_weights=weights,
@@ -211,6 +217,9 @@ def main():
     parser.add_argument("--generator", default="models/generator.pth")
     parser.add_argument("--out", default="results/refiner/sweep.json")
     parser.add_argument("--max-train", type=int, default=0, help="cap training melodies (0 = all)")
+    parser.add_argument("--surprisal", action="store_true",
+                        help="feed the judge's per-token surprisal to the encoder")
+    parser.add_argument("--judge", default="models/judge.pth")
     parser.add_argument("--weighting", default="inverse",
                         choices=["none", "sqrt", "capped", "inverse"],
                         help="edit-head class weighting; the ablation found "
@@ -249,6 +258,17 @@ def main():
         RefinementDataset(test_drafts, tokenizer),
     )
     print(f"examples: train {len(datasets[0])}  val {len(datasets[1])}  test {len(datasets[2])}")
+
+    if args.surprisal:
+        judge = Judge.load(args.judge)
+        if len(judge.tokenizer) != len(tokenizer):
+            raise ValueError(
+                f"judge vocabulary {len(judge.tokenizer)} != refiner {len(tokenizer)}; "
+                "surprisal indices would not line up"
+            )
+        for dataset in datasets:
+            attach_surprisal(dataset, judge)
+        print("attached judge surprisal to all splits")
 
     # B3: the lower bound. A model that cannot beat this is not correcting.
     b3 = copy_input_baseline(

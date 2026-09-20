@@ -444,5 +444,69 @@ class TestDraftCache(unittest.TestCase):
         cached_drafts([b], build, {"t": 1}, cache_dir=self.dir)
         self.assertEqual(len(calls), 2)
 
+
+class TestSurprisalFeature(unittest.TestCase):
+    """The judge's per-token surprisal as an encoder input.
+
+    Unlike the oracle hint this leaks nothing -- the judge trains on a disjoint
+    corpus half and never sees an edit label -- so it is a legitimate
+    inference-time feature rather than a diagnostic.
+    """
+
+    def setUp(self):
+        self.tok = make_tokenizer()
+
+    def _model(self, use_surprisal):
+        torch.manual_seed(0)
+        return EditAwareTransformer(
+            EditModelConfig(
+                vocab_size=len(self.tok), d_model=32, n_heads=2,
+                n_encoder_layers=2, n_decoder_layers=2, d_ff=64, max_len=128,
+                use_surprisal=use_surprisal,
+            ),
+            pad_id=self.tok.pad_id,
+        ).eval()
+
+    def test_surprisal_changes_the_encoding(self):
+        model = self._model(True)
+        source = torch.randint(5, 20, (2, 9))
+        with torch.no_grad():
+            flat = model.encode(source, surprisal=torch.zeros(2, 9))
+            varied = model.encode(source, surprisal=torch.randn(2, 9))
+        self.assertFalse(torch.allclose(flat, varied, atol=1e-6))
+
+    def test_ignored_when_the_feature_is_disabled(self):
+        model = self._model(False)
+        source = torch.randint(5, 20, (2, 9))
+        with torch.no_grad():
+            a = model.encode(source, surprisal=torch.randn(2, 9))
+            b = model.encode(source)
+        torch.testing.assert_close(a, b)
+
+    def test_absent_surprisal_is_tolerated(self):
+        model = self._model(True)
+        source = torch.randint(5, 20, (2, 7))
+        with torch.no_grad():
+            logits, _ = model(source, torch.randint(5, 20, (2, 5)))
+        self.assertEqual(logits.shape[:2], (2, 5))
+
+    def test_surprisal_tensor_pads_and_respects_width(self):
+        from src.refinement import RefinementExample, surprisal_tensor
+
+        batch = [
+            RefinementExample([1, 2, 3], [0, 0, 0], [1, 2], [], None, "D1", [0.5, -1.0, 2.0]),
+            RefinementExample([1, 2], [0, 0], [1, 2], [], None, "D1", [1.5, 0.0]),
+        ]
+        out = surprisal_tensor(batch, 3, "cpu")
+        self.assertEqual(out.shape, (2, 3))
+        self.assertAlmostEqual(float(out[0, 2]), 2.0)
+        self.assertEqual(float(out[1, 2]), 0.0)  # padded
+
+    def test_surprisal_tensor_is_none_when_unattached(self):
+        from src.refinement import RefinementExample, surprisal_tensor
+
+        batch = [RefinementExample([1, 2], [0, 0], [1, 2], [], None, "D1")]
+        self.assertIsNone(surprisal_tensor(batch, 2, "cpu"))
+
 if __name__ == "__main__":
     unittest.main()

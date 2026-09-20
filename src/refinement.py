@@ -73,6 +73,7 @@ class RefinementExample:
     draft_notes: Notes
     reference: Melody
     draft_source: str
+    surprisal: list[float] | None = None
 
 
 class RefinementDataset(Dataset):
@@ -228,3 +229,68 @@ def build_draft_corpus(
         else:
             raise ValueError(f"unknown draft source {source!r}")
     return out
+
+
+# ---------------------------------------------------------------- judge surprisal
+
+@torch.no_grad()
+def attach_surprisal(dataset, judge, batch_size: int = 64, device=None):
+    """Store the judge's per-token surprisal on every example.
+
+    The judge already knows which notes are implausible -- that is the whole
+    reason it exists -- and a position the draft makes surprising is exactly a
+    candidate edit site. Nothing about this leaks: `J` is trained on a disjoint
+    corpus half and has never seen an edit label.
+
+    Surprisal is standardized *within each melody*, so the feature says "how
+    surprising is this note relative to the rest of this melody" rather than
+    "how unusual is this melody overall". Localization is a within-sequence
+    question, and the absolute level mostly reflects the melody's own difficulty.
+
+    It also predicts a sharp split. On D1 the corruption is off-manifold and
+    should light up; on D2-infill the span is plausible everywhere and should
+    not. That makes this a fix and a test of the manifold result at once.
+    """
+    import torch.nn.functional as F
+
+    device = device or next(judge.model.parameters()).device
+    pad_id = judge.tokenizer.pad_id
+
+    for start in range(0, len(dataset), batch_size):
+        chunk = dataset.examples[start : start + batch_size]
+        tokens = pad_sequence(
+            [torch.tensor(e.source, dtype=torch.long) for e in chunk],
+            batch_first=True, padding_value=pad_id,
+        ).to(device)
+
+        logits = judge.model(tokens[:, :-1])
+        targets = tokens[:, 1:]
+        ce = F.cross_entropy(
+            logits.reshape(-1, logits.size(-1)), targets.reshape(-1),
+            ignore_index=pad_id, reduction="none",
+        ).reshape(targets.shape)
+
+        # BOS has no prediction of its own; pad the front so indices line up.
+        full = torch.cat([torch.zeros(len(chunk), 1, device=device), ce], dim=1)
+        valid = (tokens != pad_id).float()
+
+        count = valid.sum(dim=1, keepdim=True).clamp(min=1)
+        mean = (full * valid).sum(dim=1, keepdim=True) / count
+        var = (((full - mean) ** 2) * valid).sum(dim=1, keepdim=True) / count
+        standardized = ((full - mean) / var.sqrt().clamp(min=1e-6)) * valid
+
+        for example, row in zip(chunk, standardized.cpu()):
+            example.surprisal = row[: len(example.source)].tolist()
+
+    return dataset
+
+
+def surprisal_tensor(batch, width: int, device) -> torch.Tensor | None:
+    """Padded (B, width) surprisal for a collated batch, or None if unattached."""
+    if not batch or batch[0].surprisal is None:
+        return None
+    out = torch.zeros(len(batch), width)
+    for i, example in enumerate(batch):
+        values = example.surprisal[:width]
+        out[i, : len(values)] = torch.tensor(values, dtype=torch.float)
+    return out.to(device)

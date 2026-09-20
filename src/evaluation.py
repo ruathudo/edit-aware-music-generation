@@ -36,6 +36,7 @@ def generate_corrections(
     sources: torch.Tensor,
     max_new_tokens: int = 512,
     device=None,
+    surprisal: torch.Tensor | None = None,
 ) -> list[Notes]:
     """Greedy, grammar-constrained autoregressive decoding.
 
@@ -49,7 +50,7 @@ def generate_corrections(
 
     batch = sources.size(0)
     grammar = Grammar(tokenizer, device)
-    memory = model.encode(sources)
+    memory = model.encode(sources, surprisal=surprisal)
 
     tokens = torch.full((batch, 1), tokenizer.bos_id, dtype=torch.long, device=device)
     finished = torch.zeros(batch, dtype=torch.bool, device=device)

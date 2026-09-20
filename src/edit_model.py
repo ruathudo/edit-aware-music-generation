@@ -47,6 +47,7 @@ class EditModelConfig:
     n_edit_classes: int = len(EDIT_CLASSES)
     use_edit_head: bool = True
     use_edit_hint: bool = False  # oracle input; diagnostics only
+    use_surprisal: bool = False  # judge per-token surprisal as an input feature
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -115,6 +116,14 @@ class EditAwareTransformer(nn.Module):
             if config.use_edit_hint else None
         )
 
+        # The judge's per-token surprisal, projected into the model's space.
+        # Unlike the oracle hint this leaks nothing: the judge is trained on a
+        # disjoint corpus half and has never seen an edit label. It is a genuine
+        # inference-time feature, not a diagnostic.
+        self.surprisal_proj = (
+            nn.Linear(1, config.d_model) if config.use_surprisal else None
+        )
+
     @property
     def n_parameters(self) -> int:
         return sum(p.numel() for p in self.parameters())
@@ -126,9 +135,16 @@ class EditAwareTransformer(nn.Module):
         pos = torch.arange(t, device=tokens.device).unsqueeze(0).expand(b, t)
         return self.drop(self.embed(tokens) + self.pos_embed(pos))
 
-    def encode(self, source: torch.Tensor, edit_hint: torch.Tensor | None = None) -> torch.Tensor:
+    def encode(
+        self,
+        source: torch.Tensor,
+        edit_hint: torch.Tensor | None = None,
+        surprisal: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         """Bidirectional encoding of the draft. No causal mask here by design."""
         hidden = self._embed(source)
+        if self.surprisal_proj is not None and surprisal is not None:
+            hidden = hidden + self.surprisal_proj(surprisal.unsqueeze(-1))
         if self.edit_hint is not None and edit_hint is not None:
             # IGNORE_INDEX maps to the final row rather than indexing negatively.
             safe = edit_hint.clone()
@@ -148,18 +164,18 @@ class EditAwareTransformer(nn.Module):
         )
         return self.fc(self.decoder_norm(hidden))
 
-    def forward(self, source: torch.Tensor, target_in: torch.Tensor, edit_hint=None):
+    def forward(self, source: torch.Tensor, target_in: torch.Tensor, edit_hint=None, surprisal=None):
         """Returns (token_logits, edit_logits); edit_logits is None without the head."""
-        memory = self.encode(source, edit_hint)
+        memory = self.encode(source, edit_hint, surprisal)
         token_logits = self.decode(target_in, memory, source)
         edit_logits = self.edit_head(memory) if self.edit_head is not None else None
         return token_logits, edit_logits
 
     @torch.no_grad()
-    def predict_edits(self, source: torch.Tensor) -> torch.Tensor:
+    def predict_edits(self, source: torch.Tensor, surprisal=None) -> torch.Tensor:
         if self.edit_head is None:
             raise RuntimeError("model has no edit head")
-        return self.edit_head(self.encode(source)).argmax(dim=-1)
+        return self.edit_head(self.encode(source, surprisal=surprisal)).argmax(dim=-1)
 
 
 def edit_class_weights(
