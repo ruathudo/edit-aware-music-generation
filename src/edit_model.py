@@ -46,6 +46,7 @@ class EditModelConfig:
     max_len: int = 1024
     n_edit_classes: int = len(EDIT_CLASSES)
     use_edit_head: bool = True
+    use_edit_hint: bool = False  # oracle input; diagnostics only
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -105,6 +106,15 @@ class EditAwareTransformer(nn.Module):
             nn.Linear(config.d_model, config.n_edit_classes) if config.use_edit_head else None
         )
 
+        # Oracle channel, used only by the diagnostics: it injects ground-truth
+        # edit labels at the input so the decoder can be asked what it would do
+        # given perfect localization. Never enabled for a reported model -- it
+        # leaks the answer by construction.
+        self.edit_hint = (
+            nn.Embedding(config.n_edit_classes + 1, config.d_model)
+            if config.use_edit_hint else None
+        )
+
     @property
     def n_parameters(self) -> int:
         return sum(p.numel() for p in self.parameters())
@@ -116,12 +126,16 @@ class EditAwareTransformer(nn.Module):
         pos = torch.arange(t, device=tokens.device).unsqueeze(0).expand(b, t)
         return self.drop(self.embed(tokens) + self.pos_embed(pos))
 
-    def encode(self, source: torch.Tensor) -> torch.Tensor:
+    def encode(self, source: torch.Tensor, edit_hint: torch.Tensor | None = None) -> torch.Tensor:
         """Bidirectional encoding of the draft. No causal mask here by design."""
-        memory = self.encoder(
-            self._embed(source),
-            src_key_padding_mask=(source == self.pad_id),
-        )
+        hidden = self._embed(source)
+        if self.edit_hint is not None and edit_hint is not None:
+            # IGNORE_INDEX maps to the final row rather than indexing negatively.
+            safe = edit_hint.clone()
+            safe[safe == IGNORE_INDEX] = self.config.n_edit_classes
+            hidden = hidden + self.edit_hint(safe)
+
+        memory = self.encoder(hidden, src_key_padding_mask=(source == self.pad_id))
         return self.encoder_norm(memory)
 
     def decode(self, target_in: torch.Tensor, memory: torch.Tensor, source: torch.Tensor):
@@ -134,9 +148,9 @@ class EditAwareTransformer(nn.Module):
         )
         return self.fc(self.decoder_norm(hidden))
 
-    def forward(self, source: torch.Tensor, target_in: torch.Tensor):
+    def forward(self, source: torch.Tensor, target_in: torch.Tensor, edit_hint=None):
         """Returns (token_logits, edit_logits); edit_logits is None without the head."""
-        memory = self.encode(source)
+        memory = self.encode(source, edit_hint)
         token_logits = self.decode(target_in, memory, source)
         edit_logits = self.edit_head(memory) if self.edit_head is not None else None
         return token_logits, edit_logits
