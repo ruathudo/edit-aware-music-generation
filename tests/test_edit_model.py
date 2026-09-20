@@ -286,5 +286,56 @@ class TestCollate(unittest.TestCase):
         self.assertEqual(target_out[0].tolist(), [4, 5, 2])
 
 
+
+class TestWilcoxon(unittest.TestCase):
+    """Self-contained signed-rank test, so the repo needs no scipy for one test."""
+
+    def test_clear_improvement_is_significant(self):
+        from src.evaluation import wilcoxon_signed_rank
+
+        rng = np.random.default_rng(0)
+        baseline = rng.normal(10, 1, 200)
+        treatment = baseline - 0.5
+        result = wilcoxon_signed_rank(baseline, treatment)
+        self.assertLess(result["p_value"], 0.001)
+
+    def test_no_difference_is_not_significant(self):
+        from src.evaluation import wilcoxon_signed_rank
+
+        rng = np.random.default_rng(1)
+        baseline = rng.normal(10, 1, 200)
+        treatment = baseline + rng.normal(0, 1, 200)
+        self.assertGreater(wilcoxon_signed_rank(baseline, treatment)["p_value"], 0.05)
+
+    def test_all_ties_are_reported_not_crashed(self):
+        from src.evaluation import wilcoxon_signed_rank
+
+        values = np.ones(50)
+        result = wilcoxon_signed_rank(values, values.copy())
+        self.assertEqual(result["n_nonzero"], 0)
+        self.assertIsNone(result["p_value"])
+
+    def test_too_few_pairs_declines_to_report(self):
+        from src.evaluation import wilcoxon_signed_rank
+
+        result = wilcoxon_signed_rank(np.arange(5.0), np.arange(5.0) - 1)
+        self.assertIsNone(result["p_value"])
+
+    def test_ranks_average_over_ties(self):
+        from src.evaluation import _average_ranks
+
+        ranks = _average_ranks(np.array([1.0, 2.0, 2.0, 3.0]))
+        self.assertEqual(ranks.tolist(), [1.0, 2.5, 2.5, 4.0])
+
+    def test_direction_is_symmetric(self):
+        from src.evaluation import wilcoxon_signed_rank
+
+        rng = np.random.default_rng(2)
+        a = rng.normal(0, 1, 120)
+        b = a + 0.4
+        forward = wilcoxon_signed_rank(a, b)["p_value"]
+        backward = wilcoxon_signed_rank(b, a)["p_value"]
+        self.assertAlmostEqual(forward, backward, places=6)
+
 if __name__ == "__main__":
     unittest.main()

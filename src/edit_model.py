@@ -190,7 +190,7 @@ def edit_aware_loss(
     )
 
     if edit_logits is None or edit_labels is None or alpha == 0.0:
-        return generative, float(generative), 0.0
+        return generative, generative.detach().item(), 0.0
 
     edit = F.cross_entropy(
         edit_logits.reshape(-1, edit_logits.size(-1)),
@@ -198,4 +198,4 @@ def edit_aware_loss(
         weight=class_weights,
         ignore_index=IGNORE_INDEX,
     )
-    return generative + alpha * edit, float(generative), float(edit)
+    return generative + alpha * edit, generative.detach().item(), edit.detach().item()

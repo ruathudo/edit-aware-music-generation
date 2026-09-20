@@ -138,6 +138,59 @@ def sample_metrics(output: Notes, draft: Notes, reference: Notes) -> dict:
     }
 
 
+def _average_ranks(values: np.ndarray) -> np.ndarray:
+    """Ranks with ties averaged, as the signed-rank test requires."""
+    order = np.argsort(values, kind="mergesort")
+    ranks = np.empty(len(values), dtype=float)
+    ranks[order] = np.arange(1, len(values) + 1, dtype=float)
+
+    sorted_values = values[order]
+    start = 0
+    for end in range(1, len(values) + 1):
+        if end == len(values) or sorted_values[end] != sorted_values[start]:
+            if end - start > 1:
+                ranks[order[start:end]] = ranks[order[start:end]].mean()
+            start = end
+    return ranks
+
+
+def wilcoxon_signed_rank(baseline: np.ndarray, treatment: np.ndarray) -> dict:
+    """Two-sided Wilcoxon signed-rank test, normal approximation.
+
+    Implemented here rather than pulled from scipy to avoid adding a dependency
+    for one test. The normal approximation with continuity and tie corrections is
+    appropriate at the sample sizes involved (hundreds of test melodies); it
+    would not be for a handful.
+    """
+    import math
+
+    deltas = np.asarray(baseline, dtype=float) - np.asarray(treatment, dtype=float)
+    nonzero = deltas[deltas != 0]
+    n = len(nonzero)
+    if n < 10:
+        return {"n_nonzero": n, "p_value": None, "z": None,
+                "note": "too few non-tied pairs for the normal approximation"}
+
+    ranks = _average_ranks(np.abs(nonzero))
+    w_plus = float(ranks[nonzero > 0].sum())
+
+    mean = n * (n + 1) / 4.0
+    variance = n * (n + 1) * (2 * n + 1) / 24.0
+
+    # Tie correction over groups of equal |d|.
+    _, counts = np.unique(np.abs(nonzero), return_counts=True)
+    variance -= float(((counts ** 3 - counts).sum()) / 48.0)
+
+    if variance <= 0:
+        return {"n_nonzero": n, "p_value": None, "z": None, "note": "zero variance"}
+
+    correction = 0.5 if w_plus > mean else -0.5
+    z = (w_plus - mean - correction) / math.sqrt(variance)
+    p = math.erfc(abs(z) / math.sqrt(2.0))
+
+    return {"n_nonzero": n, "w_plus": w_plus, "z": float(z), "p_value": float(p)}
+
+
 def paired_comparison(baseline: np.ndarray, treatment: np.ndarray, n_boot: int = 10000, seed: int = 0) -> dict:
     """Win rate, paired delta, bootstrap CI and a Wilcoxon test.
 
@@ -169,16 +222,7 @@ def paired_comparison(baseline: np.ndarray, treatment: np.ndarray, n_boot: int =
         "ci95": [float(low), float(high)],
     }
 
-    try:
-        from scipy.stats import wilcoxon
-
-        if len(deltas) and np.any(deltas != 0):
-            stat, p = wilcoxon(baseline, treatment)
-            result["wilcoxon_p"] = float(p)
-            result["wilcoxon_stat"] = float(stat)
-    except ImportError:
-        result["wilcoxon_p"] = None
-
+    result["wilcoxon"] = wilcoxon_signed_rank(baseline, treatment)
     return result
 
 
