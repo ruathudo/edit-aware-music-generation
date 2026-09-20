@@ -91,7 +91,41 @@ Raising α does not break the collapse — it deepens it. Fidelity falls toward 
 | 2.0 | 6.964 | −133.64% | 0.0953 | 0.130 | 10.8% |
 | *B3 copy-input* | *2.981* | *0* | *0* | — | — |
 
-Three things to take from this:
+#### Three seeds change one of these conclusions
+
+The single-seed reading above understated the effect. With three seeds (`scripts/seed_aggregate.py`, mean ± std, seed-matched against the same seed's B1):
+
+**D2-infill**, B1 CC 5.053 ± 0.244, B3 4.709:
+
+| α | CC | vs B1 | seeds positive | vs B3 |
+|---|---|---|---|---|
+| 0.0 (B2) | 4.993 ± 0.120 | +0.059 ± 0.305 (+1.2%) | 1/3 — straddles 0 | −0.285 |
+| 0.1 | 4.770 ± 0.033 | +0.283 ± 0.273 (+5.6%) | **3/3** | −0.061 |
+| 0.5 | 4.727 ± 0.019 | +0.326 ± 0.252 (+6.4%) | **3/3** | −0.018 |
+| **1.0** | **4.726 ± 0.020** | **+0.327 ± 0.252 (+6.5%)** | **3/3** | −0.017 |
+| 2.0 | 4.950 ± 0.303 | +0.103 ± 0.068 (+2.0%) | **3/3** | −0.241 |
+| 3.0 | 5.331 ± 0.705 | −0.278 ± 0.467 | 1/3 — straddles 0 | −0.622 |
+
+**Edit-awareness does reliably beat the imitation baseline on realistic drafts** — 3/3 seeds positive for α ∈ [0.1, 2.0], peaking at **+6.5%**, which is close to the published 6.3%. And **B2 (head present, α=0) straddles zero at 1/3 seeds**, so the gain comes from the auxiliary *loss*, not from the head's parameters. The parameter-matched control works exactly as intended.
+
+**D1 random corruption**, B1 CC 3.702 ± 0.512, B3 2.981:
+
+| α | vs B1 | seeds positive |
+|---|---|---|
+| 0.1 | +0.182 ± 0.466 | 1/3 — straddles 0 |
+| 0.5 | −0.267 ± 0.282 | 1/3 |
+| 1.0 | −1.151 ± 0.855 | **0/3** |
+| 2.0 | −2.436 ± 1.181 | **0/3** |
+
+On random corruption edit-awareness **does not help and actively hurts** at α ≥ 0.5. Note α=0.1's pooled Wilcoxon reports p = 1.45×10⁻⁸ while its per-seed deltas are −0.074, **+0.719**, −0.099 — one seed produced the entire effect. That is the concrete case for why a pooled within-run p-value cannot stand in for multi-seed reproducibility.
+
+**So the draft-source ablation answers spec §7 in the affirmative, and opposite to the copy-collapse reading alone: edit-awareness helps more when the errors are realistic.** The mechanism is visible in fidelity, which moves in opposite directions: on D2 raising α drives fidelity 0.0092 → 0.0009 (*less* editing), on D1 it drives 0.0539 → 0.0851 (*more* editing). The auxiliary loss calibrates the model's **edit propensity** to match the label distribution. On D2 the labels are almost all KEEP, so it teaches restraint, and restraint is nearly optimal. On D1 there are more true edits, so it encourages editing — and the model's edits are bad, so CC worsens.
+
+**Edit-awareness regulates how much the model edits, not how well.** That is a defensible mechanistic claim, and it is consistent with everything else: no condition on either source beats B3, and macro-F1 stays at 0.09–0.13 throughout.
+
+Caveat on magnitude: seed 0 is an outlier (+0.617 against +0.173 and +0.190 for seeds 1 and 2), so the *direction* is reproducible but the effect size is not well pinned by three seeds. More seeds would tighten it.
+
+Three further things to take from the single-seed detail below:
 
 1. **No condition, on either draft source, achieves positive lift.** The model never learns to correct. On D2 it copies; on D1 it edits (fidelity 0.048, ~2 notes per melody) but its edits are net harmful. The task is not being done, and CC read in isolation conceals that completely.
 2. **Draft realism changes the failure mode, as predicted.** On D1 the model engages — it beats B3 on 27% of melodies. On D2 it disengages almost entirely — 0.5%. That is consistent with the validator's manifold result: corruption leaves off-manifold traces a model can detect, whereas an infilled span is locally plausible everywhere. Edit-awareness does not rescue either regime, and large α actively harms both.
