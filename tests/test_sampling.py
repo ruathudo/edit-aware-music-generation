@@ -217,5 +217,49 @@ class TestD2Infill(unittest.TestCase):
             d2_infill([tiny], self.model, self.tok, _random.Random(0), seed=0), []
         )
 
+
+class TestChunking(unittest.TestCase):
+    """Generation must chunk: attention is quadratic in length and linear in
+    batch, so a whole corpus at once exhausts GPU memory (it did, at 3800)."""
+
+    def setUp(self):
+        self.tok = make_tokenizer()
+        self.model = make_model(self.tok, seed=5)
+
+    def _prefixes(self, n):
+        return [self.tok.encode([(60, 12), (62, 12)])[:-1] for _ in range(n)]
+
+    def test_chunking_returns_one_result_per_prefix(self):
+        out = sample_continuations(
+            self.model, self.tok, self._prefixes(37), max_new_tokens=10,
+            seed=0, batch_size=8,
+        )
+        self.assertEqual(len(out), 37)
+
+    def test_chunked_output_is_still_well_formed(self):
+        out = sample_continuations(
+            self.model, self.tok, self._prefixes(20), max_new_tokens=12,
+            seed=1, batch_size=6,
+        )
+        for tokens in out:
+            _, stats = self.tok.decode(tokens, return_stats=True)
+            self.assertEqual(stats.get("unpaired_pitch", 0), 0)
+
+    def test_chunks_do_not_all_sample_identically(self):
+        """Each chunk is seeded distinctly; otherwise chunking would collapse
+        the sample diversity it is meant to be neutral about."""
+        out = sample_continuations(
+            self.model, self.tok, self._prefixes(24), max_new_tokens=14,
+            seed=2, batch_size=4,
+        )
+        self.assertGreater(len({tuple(t) for t in out}), 1)
+
+    def test_chunking_is_deterministic(self):
+        a = sample_continuations(self.model, self.tok, self._prefixes(15),
+                                 max_new_tokens=10, seed=3, batch_size=4)
+        b = sample_continuations(self.model, self.tok, self._prefixes(15),
+                                 max_new_tokens=10, seed=3, batch_size=4)
+        self.assertEqual(a, b)
+
 if __name__ == "__main__":
     unittest.main()

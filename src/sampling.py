@@ -72,6 +72,7 @@ def sample_continuations(
     seed: int = 0,
     device=None,
     forbid_eos: bool = False,
+    batch_size: int = 128,
 ) -> list[list[int]]:
     """Continue each prefix until EOS, batched.
 
@@ -79,9 +80,27 @@ def sample_continuations(
     batch may contain prefixes of different lengths. Padding only ever sits after
     a sequence's current end, which the causal mask already excludes from
     attention.
+
+    Work is chunked at `batch_size`. Attention is quadratic in sequence length
+    and linear in batch, so handing a whole corpus in at once exhausts GPU memory
+    -- which it did, at 3800 melodies. Each chunk is seeded distinctly so
+    chunking does not make separate chunks sample identically.
     """
     device = device or next(model.parameters()).device
     model.eval()
+
+    if len(prefixes) > batch_size:
+        out: list[list[int]] = []
+        for start in range(0, len(prefixes), batch_size):
+            out.extend(
+                sample_continuations(
+                    model, tokenizer, prefixes[start : start + batch_size],
+                    max_new_tokens=max_new_tokens, temperature=temperature,
+                    top_k=top_k, seed=seed + start, device=device,
+                    forbid_eos=forbid_eos, batch_size=batch_size,
+                )
+            )
+        return out
 
     grammar = Grammar(tokenizer, device)
     generator = torch.Generator(device="cpu").manual_seed(seed)
