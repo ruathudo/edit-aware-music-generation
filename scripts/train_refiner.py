@@ -129,7 +129,8 @@ def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.01)
 
     train_ds, val_ds, _ = datasets
-    weights = edit_class_weights(train_ds.label_tensor()).to(device) if use_head else None
+    weights = (edit_class_weights(train_ds.label_tensor(), scheme=args.weighting).to(device)
+               if use_head else None)
 
     collate = make_collate(tokenizer.pad_id)
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, collate_fn=collate)
@@ -210,6 +211,10 @@ def main():
     parser.add_argument("--generator", default="models/generator.pth")
     parser.add_argument("--out", default="results/refiner/sweep.json")
     parser.add_argument("--max-train", type=int, default=0, help="cap training melodies (0 = all)")
+    parser.add_argument("--weighting", default="inverse",
+                        choices=["none", "sqrt", "capped", "inverse"],
+                        help="edit-head class weighting; the ablation found "
+                             "'inverse' halves macro-F1 on D1 against 'none'")
     args = parser.parse_args()
 
     # Per-sample costs are namespaced by the sweep, so two sweeps cannot
