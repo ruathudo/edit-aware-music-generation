@@ -60,6 +60,27 @@ Prefix continuation confirmed the manifold hypothesis — every D2 condition cos
 
 Two practical notes. The splice point is deliberately not smoothed — a passage that fails to rejoin its continuation is a realistic draft flaw. And D2-infill retention under the human-calibrated `tau` is low (2–8%), which is the training-set-shrinkage risk spec §8 flagged; mitigate by generating many drafts per reference, by using undertrained checkpoints, and by drawing references from Essen rather than only the 360 MTC melodies.
 
+### The refinement model, and copy collapse
+
+`src/edit_model.py` is encoder-decoder, not the legacy decoder-only stack. Spec §5.1 puts the edit head on input positions, and more fundamentally, deciding whether note *i* is an error requires seeing what follows it — a causal model reading the draft has only the prefix. The legacy design also aligned `corrupted[:, :-1]` against `clean[:, 1:]` position by position, which silently assumes draft and reference share a length; insertions and deletions break that.
+
+Baselines: **B1** = no edit head; **B2** = head present with α=0, so architecture and parameter count are identical and only the loss differs (a tighter control than rescaling width); **B3** = copy the draft unchanged.
+
+**The headline problem is copy collapse.** On D2-infill drafts the imitation baseline learns to emit the draft verbatim — fidelity distance 0.0067/note, CC/note 0.1102 against B3's 0.1056, i.e. marginally *worse* than doing nothing. With realistic drafts only ~3 of 48 notes need changing, so copying gets ~94% of tokens right and is a strong local optimum. The fidelity metric was added to catch a model that *ignores the draft and regenerates*; it caught the opposite failure, a model that ignores the *correction*.
+
+Raising α does not break the collapse — it deepens it. Fidelity falls toward zero and CC converges onto B3 exactly:
+
+| α | CC | fidelity/note | macro-F1 |
+|---|---|---|---|
+| 0.0 | 5.01 | 0.0104 | 0.079 |
+| 0.1 | 4.81 | 0.0046 | 0.101 |
+| 0.5 | 4.72 | 0.0011 | 0.089 |
+| *B3 copy-input* | *4.71* | *0* | — |
+
+Macro-F1 of 0.08–0.10 says the edit head barely localizes edits at all, and there is a principled reason that follows directly from the validator result: **D2-infill drafts are on-manifold, so the infilled span is locally plausible everywhere and carries little signal marking which notes were substituted.** The synthetic-corruption task was tractable precisely because corruption left off-manifold traces — the same traces the validator measured as ~100× implausibility per unit change.
+
+If that explanation holds, the same sweep on D1 drafts should show edit-awareness helping, and the published gain would be an artifact of corruption being detectable rather than of edit-awareness being useful. That is the comparison spec §8 flagged as the outcome to plan for, and it is the next experiment.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
