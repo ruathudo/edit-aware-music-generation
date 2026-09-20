@@ -163,6 +163,33 @@ The most likely cause is the architecture, not the idea. Free-form seq2seq regen
 
 Caveats: one seed, ~20 epochs, 5.9M parameters. These numbers show the task is not being learned in this setup; they do not establish that edit-awareness cannot help in a setup where the base task is learnable.
 
+### Gated decoding: the first thing to beat copy-input
+
+The diagnostics identified localization **precision**, not F1, as the binding constraint. At D1's precision of 0.678, a third of flagged positions are notes that were already correct, so each additional edit is a losing bet. That is why judge surprisal improved F1 (recall 0.245 → 0.314) while making CC *worse* (3.371 → 4.624), and why free-form decoding always settled on copying.
+
+`generate_corrections_gated` turns the head into a gate: each input event is copied verbatim or handed to the decoder, and only when confidence clears a threshold. **At threshold 1.0 the output is the draft verbatim, so this reproduces B3 exactly and can only improve on it** — B3 stops being an unbeaten baseline and becomes a special case.
+
+**D1, α=0.5, threshold 0.9, three seeds:**
+
+| | CC |
+|---|---|
+| B1 imitation baseline | 3.793 |
+| free decoding (α=0.5) | 3.497 |
+| B3 copy-input | 2.981 |
+| **gated (α=0.5, τ=0.9)** | **2.801** |
+| oracle (perfect localization) | 1.510 |
+
+**+0.180 ± 0.014 vs B3 = +6.04%, 3/3 seeds, p = 4.2×10⁻⁵².** Win 23.9%, loss 8.5%, tie 67.6% — it improves a quarter of melodies, damages under a tenth, and leaves two-thirds untouched. It recovers **12.2%** of the B3→oracle headroom.
+
+For contrast: the published result was +6.3% over an imitation baseline that is itself **21.4% worse than simply copying the draft**. A comparable percentage measured against a far stronger reference.
+
+**D2-infill: gating declines to act, and is right to.** At τ=0.9 it returns **exactly +0.000 ± 0.000** on all three seeds — no edit is confident enough to be worth making at precision 0.22, so it degenerates to copying. At τ=0.7 it goes slightly negative. That dissociation is the cleanest statement of the thesis yet:
+
+- **D1** (off-manifold corruption, precision 0.678) → gating converts localization into a real 6% gain over copy-input.
+- **D2** (on-manifold drafts, precision 0.220) → no threshold makes editing worthwhile, and the gate correctly refuses.
+
+A useful control falls out too: with α=0 the head exists but receives no edit loss, and gating on its untrained predictions is catastrophic (CC 29.2 against B3's 2.98). The gain comes from the auxiliary loss, not from the gating machinery.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
