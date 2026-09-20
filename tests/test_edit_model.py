@@ -337,5 +337,112 @@ class TestWilcoxon(unittest.TestCase):
         backward = wilcoxon_signed_rank(b, a)["p_value"]
         self.assertAlmostEqual(forward, backward, places=6)
 
+
+class TestRefinementDataset(unittest.TestCase):
+    """The dataset joins drafts, labels and targets; a misjoin here would train
+    the model against the wrong reference while every loss curve looked fine."""
+
+    def setUp(self):
+        from src.corpus import Melody, NoteEvent
+        from src.drafts import Draft
+
+        self.tok = make_tokenizer()
+        events = tuple(
+            NoteEvent(pitch=60 + (i % 8), duration=Q, beat=float(i % 4 + 1),
+                      timesignature="4/4")
+            for i in range(12)
+        )
+        self.reference = Melody(id="r", source="T", events=events,
+                                tonic="C", mode="major", timesignature="4/4")
+        notes = list(self.reference.notes)
+        notes[3] = (notes[3][0] + 1, notes[3][1])
+        self.draft = Draft(notes=notes, reference=self.reference, source="D1",
+                           injected=["replace_pitch"], script=[])
+
+    def _dataset(self, drafts=None):
+        from src.refinement import RefinementDataset
+
+        return RefinementDataset(drafts or [self.draft], self.tok)
+
+    def test_builds_one_example_per_draft(self):
+        self.assertEqual(len(self._dataset()), 1)
+
+    def test_source_is_the_draft_and_target_is_the_reference(self):
+        example = self._dataset()[0]
+        self.assertEqual(self.tok.decode(example.source), self.draft.notes)
+        self.assertEqual(self.tok.decode(example.target), self.reference.notes)
+
+    def test_labels_are_aligned_to_the_source(self):
+        example = self._dataset()[0]
+        self.assertEqual(len(example.source), len(example.source_labels))
+        self.assertIn(SUB_PITCH, example.source_labels)
+
+    def test_unencodable_drafts_are_dropped_not_crashed(self):
+        from src.drafts import Draft
+
+        bad = Draft(notes=[(200, Q)], reference=self.reference, source="D1")
+        dataset = self._dataset([self.draft, bad])
+        self.assertEqual(len(dataset), 1)
+        self.assertEqual(dataset.dropped, 1)
+
+    def test_label_tensor_covers_every_example(self):
+        dataset = self._dataset([self.draft, self.draft])
+        self.assertEqual(
+            len(dataset.label_tensor()),
+            sum(len(e.source_labels) for e in dataset.examples),
+        )
+
+
+class TestDraftCache(unittest.TestCase):
+    """Drafts are cached because D2 sampling is expensive; the key must include
+    the generating config so changed settings cannot silently reuse old drafts."""
+
+    def setUp(self):
+        import tempfile
+
+        self.dir = tempfile.mkdtemp()
+
+    def test_second_call_reuses_the_cache(self):
+        from src.refinement import cached_drafts
+
+        calls = []
+
+        def build():
+            calls.append(1)
+            return ["draft"]
+
+        cached_drafts([], build, {"t": 1}, cache_dir=self.dir)
+        cached_drafts([], build, {"t": 1}, cache_dir=self.dir)
+        self.assertEqual(len(calls), 1)
+
+    def test_changed_config_invalidates_the_cache(self):
+        from src.refinement import cached_drafts
+
+        calls = []
+
+        def build():
+            calls.append(1)
+            return ["draft"]
+
+        cached_drafts([], build, {"temperature": 1.0}, cache_dir=self.dir)
+        cached_drafts([], build, {"temperature": 1.2}, cache_dir=self.dir)
+        self.assertEqual(len(calls), 2)
+
+    def test_changed_reference_set_invalidates_the_cache(self):
+        from src.corpus import Melody, NoteEvent
+        from src.refinement import cached_drafts
+
+        calls = []
+
+        def build():
+            calls.append(1)
+            return ["draft"]
+
+        a = Melody(id="a", source="T", events=(NoteEvent(60, Q),))
+        b = Melody(id="b", source="T", events=(NoteEvent(62, Q),))
+        cached_drafts([a], build, {"t": 1}, cache_dir=self.dir)
+        cached_drafts([b], build, {"t": 1}, cache_dir=self.dir)
+        self.assertEqual(len(calls), 2)
+
 if __name__ == "__main__":
     unittest.main()
