@@ -123,6 +123,15 @@ class EditAwareTransformer(nn.Module):
         self.surprisal_proj = (
             nn.Linear(1, config.d_model) if config.use_surprisal else None
         )
+        if self.surprisal_proj is not None:
+            # Zero-initialized so the feature contributes nothing at step one and
+            # the model grows into it. At default init this projection adds a
+            # vector comparable to the token embedding at every position, driven
+            # by a standardized scalar reaching +/-3 -- measured to degrade
+            # Correction Cost by 62% even for the baseline with no edit head,
+            # where the feature is the only thing that changed.
+            nn.init.zeros_(self.surprisal_proj.weight)
+            nn.init.zeros_(self.surprisal_proj.bias)
 
     @property
     def n_parameters(self) -> int:

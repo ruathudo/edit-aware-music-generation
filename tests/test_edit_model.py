@@ -467,8 +467,11 @@ class TestSurprisalFeature(unittest.TestCase):
             pad_id=self.tok.pad_id,
         ).eval()
 
-    def test_surprisal_changes_the_encoding(self):
+    def test_surprisal_changes_the_encoding_once_the_projection_is_nonzero(self):
+        """The projection is zero-initialized, so it must be given weights first."""
         model = self._model(True)
+        with torch.no_grad():
+            model.surprisal_proj.weight.normal_(0.0, 0.5)
         source = torch.randint(5, 20, (2, 9))
         with torch.no_grad():
             flat = model.encode(source, surprisal=torch.zeros(2, 9))
@@ -507,6 +510,57 @@ class TestSurprisalFeature(unittest.TestCase):
 
         batch = [RefinementExample([1, 2], [0, 0], [1, 2], [], None, "D1")]
         self.assertIsNone(surprisal_tensor(batch, 2, "cpu"))
+
+
+class TestSurprisalInjection(unittest.TestCase):
+    """The projection must start as a no-op.
+
+    At default init it adds a vector comparable to the token embedding at every
+    position, which degraded Correction Cost by 62% even for the no-head
+    baseline -- where the feature was the only change. Zero-init lets the model
+    grow into the feature instead of being perturbed by it from step one.
+    """
+
+    def _model(self):
+        torch.manual_seed(0)
+        tok = make_tokenizer()
+        return EditAwareTransformer(
+            EditModelConfig(
+                vocab_size=len(tok), d_model=32, n_heads=2, n_encoder_layers=2,
+                n_decoder_layers=2, d_ff=64, max_len=128, use_surprisal=True,
+            ),
+            pad_id=tok.pad_id,
+        ).eval()
+
+    def test_projection_starts_at_zero(self):
+        model = self._model()
+        self.assertTrue(torch.all(model.surprisal_proj.weight == 0))
+        self.assertTrue(torch.all(model.surprisal_proj.bias == 0))
+
+    def test_untrained_model_is_unaffected_by_the_feature(self):
+        model = self._model()
+        source = torch.randint(5, 20, (2, 9))
+        with torch.no_grad():
+            without = model.encode(source)
+            with_feature = model.encode(source, surprisal=torch.randn(2, 9) * 3)
+        torch.testing.assert_close(without, with_feature)
+
+    def test_the_feature_still_has_an_effect_once_trained(self):
+        """Weights must be non-uniform across the feature dimension.
+
+        A projection that shifts every dimension equally is invisible: the
+        encoder normalizes over that dimension, so a uniform offset is
+        subtracted straight back out. Training differentiates the dimensions,
+        but a test that fills them with one constant would measure nothing.
+        """
+        model = self._model()
+        with torch.no_grad():
+            model.surprisal_proj.weight.normal_(0.0, 0.5)
+        source = torch.randint(5, 20, (2, 9))
+        with torch.no_grad():
+            a = model.encode(source, surprisal=torch.zeros(2, 9))
+            b = model.encode(source, surprisal=torch.randn(2, 9))
+        self.assertFalse(torch.allclose(a, b, atol=1e-6))
 
 if __name__ == "__main__":
     unittest.main()

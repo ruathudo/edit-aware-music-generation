@@ -1,0 +1,157 @@
+{
+  "b3_copy_input": {
+    "correction_cost_mean": 4.708646616541353,
+    "correction_cost_per_note": 0.1056332606766982
+  },
+  "rows": [
+    {
+      "label": "alpha0.0_seed0",
+      "alpha": 0.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "n_parameters": 5856126,
+      "correction_cost": 4.87406015037594,
+      "correction_cost_per_note": 0.10976529016889418,
+      "fidelity_distance": 0.2716165413533835,
+      "fidelity_per_note": 0.0069934399395771285,
+      "draft_cost": 4.708646616541353,
+      "n": 1064,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9261748757342974,
+            "recall": 0.1679882796492091,
+            "f1": 0.2843936450672957,
+            "support": 97608
+          },
+          "SUB_PITCH": {
+            "precision": 0.044681232091690545,
+            "recall": 0.2202118270079435,
+            "f1": 0.07428911716540122,
+            "support": 4532
+          },
+          "SUB_DUR": {
+            "precision": 0.008706125258086717,
+            "recall": 0.2509920634920635,
+            "f1": 0.016828522016762004,
+            "support": 1008
+          },
+          "INSERT_BEFORE": {
+            "precision": 0.009045925467759394,
+            "recall": 0.12289915966386554,
+            "f1": 0.01685150511306352,
+            "support": 952
+          },
+          "DELETE": {
+            "precision": 0.010164527521750366,
+            "recall": 0.2048611111111111,
+            "f1": 0.019368075502667212,
+            "support": 1152
+          }
+        },
+        "macro_f1": 0.08234617297303794,
+        "localization": {
+          "precision": 0.07238314981495865,
+          "recall": 0.8290162218733648,
+          "f1": 0.13314144045718126
+        },
+        "accuracy": 0.17102762892866644
+      },
+      "best_val_loss": 0.17040226943790912
+    },
+    {
+      "label": "alpha1.0_seed0",
+      "alpha": 1.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "n_parameters": 5856126,
+      "correction_cost": 4.794172932330827,
+      "correction_cost_per_note": 0.10784579745044942,
+      "fidelity_distance": 0.15225563909774437,
+      "fidelity_per_note": 0.0038018178342821493,
+      "draft_cost": 4.708646616541353,
+      "n": 1064,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9273743016759777,
+            "recall": 1.0,
+            "f1": 0.9623188405797102,
+            "support": 97608
+          },
+          "SUB_PITCH": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4532
+          },
+          "SUB_DUR": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1008
+          },
+          "INSERT_BEFORE": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 952
+          },
+          "DELETE": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1152
+          }
+        },
+        "macro_f1": 0.19246376811594204,
+        "localization": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "accuracy": 0.9273743016759777
+      },
+      "best_val_loss": 0.4772455029189587
+    },
+    {
+      "label": "alpha0.0_seed0_nohead",
+      "alpha": 0.0,
+      "seed": 0,
+      "use_edit_head": false,
+      "n_parameters": 5854841,
+      "correction_cost": 5.003759398496241,
+      "correction_cost_per_note": 0.11184124247977771,
+      "fidelity_distance": 0.39097744360902253,
+      "fidelity_per_note": 0.008438405764285953,
+      "draft_cost": 4.708646616541353,
+      "n": 1064,
+      "best_val_loss": 0.16925588585436344
+    }
+  ],
+  "config": {
+    "alphas": [
+      0.0,
+      1.0
+    ],
+    "seeds": [
+      0
+    ],
+    "sources": [
+      "D2-infill"
+    ],
+    "temperature": 1.0,
+    "per_melody": 3,
+    "epochs": 40,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "generator": "models/generator.pth",
+    "out": "results/refiner/d2_wnone.json",
+    "max_train": 0,
+    "weighting": "none"
+  }
+}

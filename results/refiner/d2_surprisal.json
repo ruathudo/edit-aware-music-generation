@@ -1,0 +1,159 @@
+{
+  "b3_copy_input": {
+    "correction_cost_mean": 4.708646616541353,
+    "correction_cost_per_note": 0.1056332606766982
+  },
+  "rows": [
+    {
+      "label": "alpha0.0_seed0",
+      "alpha": 0.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "n_parameters": 5856638,
+      "correction_cost": 5.475563909774436,
+      "correction_cost_per_note": 0.12374590313797836,
+      "fidelity_distance": 1.6099624060150375,
+      "fidelity_per_note": 0.038105926243864795,
+      "draft_cost": 4.708646616541353,
+      "n": 1064,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.919822167714242,
+            "recall": 0.1844111138431276,
+            "f1": 0.3072275275864717,
+            "support": 97608
+          },
+          "SUB_PITCH": {
+            "precision": 0.0447279798890101,
+            "recall": 0.20807590467784642,
+            "f1": 0.07362873316416162,
+            "support": 4532
+          },
+          "SUB_DUR": {
+            "precision": 0.008962812944370234,
+            "recall": 0.20634920634920634,
+            "f1": 0.01717943423497832,
+            "support": 1008
+          },
+          "INSERT_BEFORE": {
+            "precision": 0.007560105184072127,
+            "recall": 0.16911764705882354,
+            "f1": 0.014473211075152823,
+            "support": 952
+          },
+          "DELETE": {
+            "precision": 0.010250286112355077,
+            "recall": 0.17881944444444445,
+            "f1": 0.019389147724598807,
+            "support": 1152
+          }
+        },
+        "macro_f1": 0.08637961075707265,
+        "localization": {
+          "precision": 0.07090087882076958,
+          "recall": 0.7947409733124019,
+          "f1": 0.13018740557394964
+        },
+        "accuracy": 0.1854406567096112
+      },
+      "best_val_loss": 0.17619934156537057
+    },
+    {
+      "label": "alpha1.0_seed0",
+      "alpha": 1.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "n_parameters": 5856638,
+      "correction_cost": 5.18609022556391,
+      "correction_cost_per_note": 0.11714267665640041,
+      "fidelity_distance": 0.9689849624060151,
+      "fidelity_per_note": 0.02311832582510664,
+      "draft_cost": 4.708646616541353,
+      "n": 1064,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9589142374313477,
+            "recall": 0.8371342512908778,
+            "f1": 0.8938956350508697,
+            "support": 97608
+          },
+          "SUB_PITCH": {
+            "precision": 0.1202349172450614,
+            "recall": 0.4969108561341571,
+            "f1": 0.19362049694781186,
+            "support": 4532
+          },
+          "SUB_DUR": {
+            "precision": 0.04525547445255475,
+            "recall": 0.030753968253968252,
+            "f1": 0.03662138216184288,
+            "support": 1008
+          },
+          "INSERT_BEFORE": {
+            "precision": 0.25,
+            "recall": 0.0021008403361344537,
+            "f1": 0.004166666666666667,
+            "support": 952
+          },
+          "DELETE": {
+            "precision": 0.06969205834683954,
+            "recall": 0.03732638888888889,
+            "f1": 0.048615036743923125,
+            "support": 1152
+          }
+        },
+        "macro_f1": 0.2353838435142228,
+        "localization": {
+          "precision": 0.20673652694610778,
+          "recall": 0.5419937205651492,
+          "f1": 0.2993064586042479
+        },
+        "accuracy": 0.7984551362444419
+      },
+      "best_val_loss": 1.2557736337184906
+    },
+    {
+      "label": "alpha0.0_seed0_nohead",
+      "alpha": 0.0,
+      "seed": 0,
+      "use_edit_head": false,
+      "n_parameters": 5855353,
+      "correction_cost": 5.362781954887218,
+      "correction_cost_per_note": 0.12042954713367311,
+      "fidelity_distance": 1.5234962406015038,
+      "fidelity_per_note": 0.03499542225027846,
+      "draft_cost": 4.708646616541353,
+      "n": 1064,
+      "best_val_loss": 0.19309190958738326
+    }
+  ],
+  "config": {
+    "alphas": [
+      0.0,
+      1.0
+    ],
+    "seeds": [
+      0
+    ],
+    "sources": [
+      "D2-infill"
+    ],
+    "temperature": 1.0,
+    "per_melody": 3,
+    "epochs": 40,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "generator": "models/generator.pth",
+    "out": "results/refiner/d2_surprisal.json",
+    "max_train": 0,
+    "surprisal": true,
+    "judge": "models/judge.pth",
+    "weighting": "capped"
+  }
+}
