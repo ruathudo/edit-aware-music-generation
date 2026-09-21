@@ -190,6 +190,30 @@ For contrast: the published result was +6.3% over an imitation baseline that is 
 
 A useful control falls out too: with α=0 the head exists but receives no edit loss, and gating on its untrained predictions is catastrophic (CC 29.2 against B3's 2.98). The gain comes from the auxiliary loss, not from the gating machinery.
 
+### Same-corpus control: the result is not a corpus-mismatch artifact
+
+The headline numbers are cross-corpus — `J` and `G` trained on Essen, references from MTC-ANN — and `J` fits MTC **0.1365 nats/token** worse than its own corpus (1.3298 against 1.1933), a gap comparable to D2's entire ΔNLL signal. Two measurements rule the confound out.
+
+**Span-level.** If `J` were discounting `G`'s Essen-flavoured spans, those spans would score *cheaper* than the MTC notes they replaced. They score **+0.2162 dearer**, with only 35.5% coming out cheaper. (The unchanged notes also get +0.0677 dearer — splicing shifts the context for everything downstream, so the un-smoothed discontinuity propagates.)
+
+**Full same-corpus rerun.** `--essen-test 0.2` carves a held-out Essen slice; `J` and `G` are retrained on the reduced pool and the references come from Essen too, so the gap is zero by construction. Gated decoding, α=0.5, τ=0.9, three seeds:
+
+| | MTC refs (cross-corpus) | Essen refs (same-corpus) |
+|---|---|---|
+| D1 vs B3 | +6.04% ± 0.014 | **+5.21% ± 0.020** |
+| D1 seeds positive | 3/3 | **3/3** |
+| D1 localization precision | 0.678 | **0.728** |
+| D2 vs B3 | +0.00% ± 0.000 | **−0.03% ± 0.002** |
+| D2 seeds positive | 0/3 | 1/3 |
+| D2 localization precision | 0.220 | **0.137** |
+| n (test drafts) | 1,080 | ~5,060 |
+
+Both halves replicate on a test set nearly five times larger.
+
+**And the dissociation is *stronger* same-corpus, which is the theory's own prediction.** Removing the corpus gap made D2 harder, not easier — precision fell 0.220 → 0.137. That is what should happen: `G` is an Essen model, so when it writes into Essen references its spans blend in perfectly, whereas against MTC references they stuck out slightly. A confound account predicts the opposite, that D2 would get easier once the mismatch was removed.
+
+A control also falls out of the same runs: with α=0 the head receives no edit loss, and gating on its untrained predictions is catastrophic (−1005% against B3). The auxiliary loss, not the gating machinery, is what makes the gate usable.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
