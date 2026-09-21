@@ -18,7 +18,7 @@ from src.corpus import (
 from src.tokenizer import MelodyTokenizer, TokenizerConfig
 
 
-def standard_splits(seed: int = 42) -> dict[str, list[Melody]]:
+def standard_splits(seed: int = 42, essen_test: float = 0.0) -> dict[str, list[Melody]]:
     """The corpus partition every experiment shares.
 
     Essen is halved between the judge and the generator because spec 4 requires
@@ -35,6 +35,20 @@ def standard_splits(seed: int = 42) -> dict[str, list[Melody]]:
     reconstruct exactly this partition without a file on disk.
     """
     essen = load("ESSEN")
+
+    # `essen_test` carves out a same-corpus reference set, for the control that
+    # rules out corpus mismatch. The headline numbers use MTC-ANN references
+    # with Essen-trained J and G, so every measurement is cross-corpus: J fits
+    # MTC 0.14 nats/token worse than its own corpus. Holding references, judge
+    # and generator all inside Essen removes that gap entirely.
+    if essen_test > 0:
+        carved = split_by_tunefamily(
+            essen, {"pool": 1.0 - essen_test, "test": essen_test}, seed=seed - 1
+        )
+        essen, essen_test_set = carved["pool"], carved["test"]
+    else:
+        essen_test_set = []
+
     halves = split_by_tunefamily(essen, {"judge": 0.5, "generator": 0.5}, seed=seed)
     judge = split_by_tunefamily(halves["judge"], {"train": 0.9, "val": 0.1}, seed=seed + 1)
     generator = split_by_tunefamily(halves["generator"], {"train": 0.9, "val": 0.1}, seed=seed + 2)
@@ -45,6 +59,7 @@ def standard_splits(seed: int = 42) -> dict[str, list[Melody]]:
         "generator_train": generator["train"],
         "generator_val": generator["val"],
         "heldout": load("MTC-ANN"),
+        **({"essen_test": essen_test_set} if essen_test_set else {}),
     }
 
 

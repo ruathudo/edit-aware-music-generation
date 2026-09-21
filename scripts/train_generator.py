@@ -32,12 +32,14 @@ def main():
     parser.add_argument("--n-heads", type=int, default=4)
     parser.add_argument("--seed", type=int, default=777)
     parser.add_argument("--split-seed", type=int, default=42)
+    parser.add_argument("--essen-test", type=float, default=0.0,
+                        help="carve a same-corpus Essen reference set (control)")
     parser.add_argument("--out", default="models/generator.pth")
     parser.add_argument("--checkpoint-dir", default="models/generator_checkpoints")
     parser.add_argument("--checkpoint-epochs", type=int, nargs="*", default=[2, 5, 10])
     args = parser.parse_args()
 
-    splits = standard_splits(seed=args.split_seed)
+    splits = standard_splits(seed=args.split_seed, essen_test=args.essen_test)
     every = [m for group in splits.values() for m in group]
     tokenizer = build_tokenizer(every)
 

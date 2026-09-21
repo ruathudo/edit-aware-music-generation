@@ -61,11 +61,13 @@ def main():
     parser.add_argument("--n-heads", type=int, default=4)
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--split-seed", type=int, default=42)
+    parser.add_argument("--essen-test", type=float, default=0.0,
+                        help="carve a same-corpus Essen reference set (control)")
     parser.add_argument("--out", type=str, default="models/judge.pth")
     parser.add_argument("--report", type=str, default="results/judge/calibration.json")
     args = parser.parse_args()
 
-    splits = standard_splits(seed=args.split_seed)
+    splits = standard_splits(seed=args.split_seed, essen_test=args.essen_test)
     print("splits: " + "  ".join(f"{k}={len(v)}" for k, v in splits.items()))
 
     # The tokenizer is fitted to every split at once so a held-out melody can

@@ -258,7 +258,7 @@ def main():
     cost_dir.mkdir(parents=True, exist_ok=True)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    splits = standard_splits()
+    splits = standard_splits(essen_test=getattr(args, 'essen_test', 0.0))
     every = [m for group in splits.values() for m in group]
     tokenizer = build_tokenizer(every)
     priors = empirical_priors(every)
@@ -269,7 +269,7 @@ def main():
     if args.max_train:
         train_refs = train_refs[: args.max_train]
     val_refs = splits["judge_val"]
-    test_refs = splits["heldout"]
+    test_refs = splits[args.references]
 
     print(f"references: train {len(train_refs)}  val {len(val_refs)}  test {len(test_refs)}")
 
