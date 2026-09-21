@@ -240,6 +240,11 @@ def main():
     parser.add_argument("--generator", default="models/generator.pth")
     parser.add_argument("--out", default="results/refiner/sweep.json")
     parser.add_argument("--max-train", type=int, default=0, help="cap training melodies (0 = all)")
+    parser.add_argument("--essen-test", type=float, default=0.0,
+                        help="carve a same-corpus Essen reference set (control)")
+    parser.add_argument("--references", default="heldout",
+                        choices=["heldout", "essen_test"],
+                        help="which split supplies the test references")
     parser.add_argument("--gated-thresholds", type=float, nargs="*", default=[],
                         help="evaluate gated decoding at these confidence thresholds")
     parser.add_argument("--surprisal", action="store_true",
@@ -258,7 +263,7 @@ def main():
     cost_dir.mkdir(parents=True, exist_ok=True)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    splits = standard_splits(essen_test=getattr(args, 'essen_test', 0.0))
+    splits = standard_splits(essen_test=args.essen_test)
     every = [m for group in splits.values() for m in group]
     tokenizer = build_tokenizer(every)
     priors = empirical_priors(every)

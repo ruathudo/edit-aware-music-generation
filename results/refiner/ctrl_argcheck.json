@@ -1,0 +1,92 @@
+{
+  "b3_copy_input": {
+    "correction_cost_mean": 2.9663518299881937,
+    "correction_cost_per_note": 0.06754189025824267
+  },
+  "rows": [
+    {
+      "label": "alpha1.0_seed0",
+      "alpha": 1.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "n_parameters": 5856126,
+      "correction_cost": 211.42207792207793,
+      "correction_cost_per_note": 4.70944854369059,
+      "fidelity_distance": 211.55194805194805,
+      "fidelity_per_note": 4.719019965538066,
+      "draft_cost": 2.9663518299881937,
+      "n": 1694,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9462656375918784,
+            "recall": 0.9999657068391994,
+            "f1": 0.9723748308337015,
+            "support": 174962
+          },
+          "SUB_PITCH": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4082
+          },
+          "SUB_DUR": {
+            "precision": 0.2857142857142857,
+            "recall": 0.0006802721088435374,
+            "f1": 0.001357312521208008,
+            "support": 2940
+          },
+          "INSERT_BEFORE": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1494
+          },
+          "DELETE": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 1422
+          }
+        },
+        "macro_f1": 0.19474642867098188,
+        "localization": {
+          "precision": 0.3333333333333333,
+          "recall": 0.00030187160394445564,
+          "f1": 0.0006031969438021514
+        },
+        "accuracy": 0.9462303948080043
+      },
+      "best_val_loss": 4.325624119151723
+    }
+  ],
+  "config": {
+    "alphas": [
+      1.0
+    ],
+    "seeds": [
+      0
+    ],
+    "sources": [
+      "D1"
+    ],
+    "temperature": 1.0,
+    "per_melody": 1,
+    "epochs": 1,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "generator": "models/generator_ctrl.pth",
+    "out": "results/refiner/ctrl_argcheck.json",
+    "max_train": 60,
+    "essen_test": 0.2,
+    "references": "essen_test",
+    "gated_thresholds": [],
+    "surprisal": false,
+    "judge": "models/judge.pth",
+    "weighting": "none"
+  }
+}

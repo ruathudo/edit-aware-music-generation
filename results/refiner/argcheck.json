@@ -1,0 +1,92 @@
+{
+  "b3_copy_input": {
+    "correction_cost_mean": 2.975,
+    "correction_cost_per_note": 0.06649393035241488
+  },
+  "rows": [
+    {
+      "label": "alpha1.0_seed0",
+      "alpha": 1.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "n_parameters": 5856126,
+      "correction_cost": 206.4638888888889,
+      "correction_cost_per_note": 4.606019972048699,
+      "fidelity_distance": 207.0222222222222,
+      "fidelity_per_note": 4.618649863802148,
+      "draft_cost": 2.975,
+      "n": 360,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9404129793510324,
+            "recall": 0.9999103862353258,
+            "f1": 0.9692494788047255,
+            "support": 33477
+          },
+          "SUB_PITCH": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 834
+          },
+          "SUB_DUR": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 636
+          },
+          "INSERT_BEFORE": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 333
+          },
+          "DELETE": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 318
+          }
+        },
+        "macro_f1": 0.19384989576094508,
+        "localization": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0
+        },
+        "accuracy": 0.9403337266138547
+      },
+      "best_val_loss": 4.308245488575527
+    }
+  ],
+  "config": {
+    "alphas": [
+      1.0
+    ],
+    "seeds": [
+      0
+    ],
+    "sources": [
+      "D1"
+    ],
+    "temperature": 1.0,
+    "per_melody": 1,
+    "epochs": 1,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "generator": "models/generator.pth",
+    "out": "results/refiner/argcheck.json",
+    "max_train": 60,
+    "essen_test": 0.0,
+    "references": "heldout",
+    "gated_thresholds": [],
+    "surprisal": false,
+    "judge": "models/judge.pth",
+    "weighting": "none"
+  }
+}
