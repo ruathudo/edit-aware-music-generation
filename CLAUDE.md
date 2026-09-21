@@ -214,6 +214,25 @@ Both halves replicate on a test set nearly five times larger.
 
 A control also falls out of the same runs: with α=0 the head receives no edit loss, and gating on its untrained predictions is catastrophic (−1005% against B3). The auxiliary loss, not the gating machinery, is what makes the gate usable.
 
+### Head-type ablation: typing adds nothing, so the claim must narrow
+
+Spec §7's head-type axis (none / binary / 5-class), α=0.5, τ=0.9, three seeds:
+
+| references | head | loc P | loc R | loc F1 | gated vs B3 | seeds+ |
+|---|---|---|---|---|---|---|
+| MTC (n=1080) | 5-class | 0.684 | 0.244 | 0.360 | +6.04% ± 0.014 | 3/3 |
+| MTC | **binary** | 0.689 | 0.232 | 0.347 | **+5.93% ± 0.010** | 3/3 |
+| Essen (n=5082) | 5-class | 0.728 | 0.188 | 0.296 | +5.21% ± 0.020 | 3/3 |
+| Essen | **binary** | 0.687 | 0.188 | 0.293 | **+4.80% ± 0.006** | 3/3 |
+
+Seed-matched, 5-class minus binary: **+0.003 ± 0.011** (MTC) and **+0.012 ± 0.020** (Essen), **2/3 seeds** each way. Indistinguishable on both, on a test set of 1,080 and one of 5,082.
+
+**The five-class head earns nothing over a binary one.** That follows directly from its per-class scores — INSERT_BEFORE at F1 **0.000**, DELETE at **0.107**, SUB_DUR at 0.194. Only pitch substitution is predicted at all, so collapsing the classes loses nothing that was working.
+
+**Consequence for the paper: the abstract must claim "where", not "where and how".** The supported contribution is *precision-gated localization* — knowing where to edit, used as a gate, beats copy-input by ~5-6%. This resolves P3 by correcting the overclaim rather than fulfilling it, which is the outcome the evidence supports and is better made by the authors than by a reviewer.
+
+Two things make this a better paper rather than a worse one. The recommended method gets **simpler** — a binary head matches a five-way one. And "typed edit prediction does not work at this scale, with insertions unpredictable outright" is a reusable negative finding for anyone building edit-aware music models; the oracle quantifies what typing would be worth if it did work.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

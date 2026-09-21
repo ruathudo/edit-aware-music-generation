@@ -1,0 +1,377 @@
+{
+  "b3_copy_input": {
+    "correction_cost_mean": 2.9879968516332154,
+    "correction_cost_per_note": 0.06801455300465199
+  },
+  "rows": [
+    {
+      "label": "alpha0.0_seed0_binary",
+      "alpha": 0.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.846910665092484,
+      "correction_cost_per_note": 0.10169141186231911,
+      "fidelity_distance": 4.475206611570248,
+      "fidelity_per_note": 0.07241842464546419,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.943840701039504,
+            "recall": 0.510223097913078,
+            "f1": 0.6623771622231706,
+            "support": 524792
+          },
+          "SUB_PITCH": {
+            "precision": 0.05205332939939884,
+            "recall": 0.4697463888703987,
+            "f1": 0.09372125993140565,
+            "support": 30046
+          }
+        },
+        "macro_f1": 0.3780492110772881,
+        "localization": {
+          "precision": 0.05205332939939884,
+          "recall": 0.4697463888703987,
+          "f1": 0.09372125993140565
+        },
+        "accuracy": 0.5080311730631283
+      },
+      "gated": {
+        "0.7": {
+          "correction_cost": 3.4336875245966154,
+          "fidelity_per_note": 0.00616727958616106
+        },
+        "0.9": {
+          "correction_cost": 3.0059031877213696,
+          "fidelity_per_note": 6.697581533026896e-05
+        }
+      },
+      "best_val_loss": 0.21722638723440468
+    },
+    {
+      "label": "alpha0.0_seed1_binary",
+      "alpha": 0.0,
+      "seed": 1,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.951397087760724,
+      "correction_cost_per_note": 0.1060295673958382,
+      "fidelity_distance": 4.699330972058244,
+      "fidelity_per_note": 0.07989004690152714,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9497617476134516,
+            "recall": 0.4496886385463193,
+            "f1": 0.6103782905797214,
+            "support": 524792
+          },
+          "SUB_PITCH": {
+            "precision": 0.05732760590412649,
+            "recall": 0.584537043200426,
+            "f1": 0.10441487717295667,
+            "support": 30046
+          }
+        },
+        "macro_f1": 0.357396583876339,
+        "localization": {
+          "precision": 0.05732760590412649,
+          "recall": 0.584537043200426,
+          "f1": 0.10441487717295667
+        },
+        "accuracy": 0.45699104963971465
+      },
+      "gated": {
+        "0.7": {
+          "correction_cost": 3.263675718221173,
+          "fidelity_per_note": 0.007232238087911698
+        },
+        "0.9": {
+          "correction_cost": 2.9891774891774894,
+          "fidelity_per_note": 7.1353992932488636e-06
+        }
+      },
+      "best_val_loss": 0.23599615460261703
+    },
+    {
+      "label": "alpha0.0_seed2_binary",
+      "alpha": 0.0,
+      "seed": 2,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.540338449429359,
+      "correction_cost_per_note": 0.09633054353259181,
+      "fidelity_distance": 4.182998819362456,
+      "fidelity_per_note": 0.06755352646327177,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9451845128451551,
+            "recall": 0.4047965670208387,
+            "f1": 0.5668337900542461,
+            "support": 524792
+          },
+          "SUB_PITCH": {
+            "precision": 0.0537014820469941,
+            "recall": 0.5899620581774613,
+            "f1": 0.09844222919501291,
+            "support": 30046
+          }
+        },
+        "macro_f1": 0.33263800962462947,
+        "localization": {
+          "precision": 0.0537014820469941,
+          "recall": 0.5899620581774613,
+          "f1": 0.09844222919501291
+        },
+        "accuracy": 0.4148237864025175
+      },
+      "gated": {
+        "0.7": {
+          "correction_cost": 3.242424242424242,
+          "fidelity_per_note": 0.007649872667124154
+        },
+        "0.9": {
+          "correction_cost": 2.99547422274695,
+          "fidelity_per_note": 6.983326854925683e-05
+        }
+      },
+      "best_val_loss": 0.21903145778924227
+    },
+    {
+      "label": "alpha0.5_seed0_binary",
+      "alpha": 0.5,
+      "seed": 0,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.510232192050374,
+      "correction_cost_per_note": 0.0941383599989962,
+      "fidelity_distance": 4.189295552931917,
+      "fidelity_per_note": 0.06535993919442844,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9537682793756455,
+            "recall": 0.9959869815088644,
+            "f1": 0.9744205426103686,
+            "support": 524792
+          },
+          "SUB_PITCH": {
+            "precision": 0.6910211267605634,
+            "recall": 0.15675963522598682,
+            "f1": 0.25554771851771474,
+            "support": 30046
+          }
+        },
+        "macro_f1": 0.6149841305640417,
+        "localization": {
+          "precision": 0.6910211267605634,
+          "recall": 0.15675963522598682,
+          "f1": 0.25554771851771474
+        },
+        "accuracy": 0.9505405181332208
+      },
+      "gated": {
+        "0.7": {
+          "correction_cost": 2.8628492719401812,
+          "fidelity_per_note": 0.016195421878905887
+        },
+        "0.9": {
+          "correction_cost": 2.849665486029122,
+          "fidelity_per_note": 0.01346175080593046
+        }
+      },
+      "best_val_loss": 0.3094319854862988
+    },
+    {
+      "label": "alpha0.5_seed1_binary",
+      "alpha": 0.5,
+      "seed": 1,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 6.037977174340811,
+      "correction_cost_per_note": 0.10441895250382044,
+      "fidelity_distance": 4.864620228256592,
+      "fidelity_per_note": 0.08000225619172668,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9539014409337675,
+            "recall": 0.9954153264531471,
+            "f1": 0.9742163306829489,
+            "support": 524792
+          },
+          "SUB_PITCH": {
+            "precision": 0.6661579020396836,
+            "recall": 0.15978832456899422,
+            "f1": 0.257751053606421,
+            "support": 30046
+          }
+        },
+        "macro_f1": 0.615983692144685,
+        "localization": {
+          "precision": 0.6661579020396836,
+          "recall": 0.15978832456899422,
+          "f1": 0.257751053606421
+        },
+        "accuracy": 0.9501638316049009
+      },
+      "gated": {
+        "0.7": {
+          "correction_cost": 2.845336481700118,
+          "fidelity_per_note": 0.016907989187380814
+        },
+        "0.9": {
+          "correction_cost": 2.837465564738292,
+          "fidelity_per_note": 0.01406246946327061
+        }
+      },
+      "best_val_loss": 0.33177137235179543
+    },
+    {
+      "label": "alpha0.5_seed2_binary",
+      "alpha": 0.5,
+      "seed": 2,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.783943329397875,
+      "correction_cost_per_note": 0.09818028897424226,
+      "fidelity_distance": 4.599763872491145,
+      "fidelity_per_note": 0.07321513695676561,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9583892913374253,
+            "recall": 0.9940281101846065,
+            "f1": 0.9758834308141716,
+            "support": 524792
+          },
+          "SUB_PITCH": {
+            "precision": 0.7024024309182414,
+            "recall": 0.2461891765958863,
+            "f1": 0.3645907780269611,
+            "support": 30046
+          }
+        },
+        "macro_f1": 0.6702371044205664,
+        "localization": {
+          "precision": 0.7024024309182414,
+          "recall": 0.2461891765958863,
+          "f1": 0.3645907780269611
+        },
+        "accuracy": 0.9535305800972537
+      },
+      "gated": {
+        "0.7": {
+          "correction_cost": 2.851042896497442,
+          "fidelity_per_note": 0.017411226655916615
+        },
+        "0.9": {
+          "correction_cost": 2.8467138921684376,
+          "fidelity_per_note": 0.014767239558748285
+        }
+      },
+      "best_val_loss": 0.30635228753089905
+    },
+    {
+      "label": "alpha0.0_seed0_nohead",
+      "alpha": 0.0,
+      "seed": 0,
+      "use_edit_head": false,
+      "head_type": "none",
+      "n_parameters": 5854841,
+      "correction_cost": 5.803227075954348,
+      "correction_cost_per_note": 0.10199082306643832,
+      "fidelity_distance": 4.432310114128296,
+      "fidelity_per_note": 0.07296981966794812,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "best_val_loss": 0.2135334697086364
+    },
+    {
+      "label": "alpha0.0_seed1_nohead",
+      "alpha": 0.0,
+      "seed": 1,
+      "use_edit_head": false,
+      "head_type": "none",
+      "n_parameters": 5854841,
+      "correction_cost": 6.07418339236521,
+      "correction_cost_per_note": 0.10631915769078702,
+      "fidelity_distance": 4.739275875639512,
+      "fidelity_per_note": 0.07785715512265128,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "best_val_loss": 0.22533221542835236
+    },
+    {
+      "label": "alpha0.0_seed2_nohead",
+      "alpha": 0.0,
+      "seed": 2,
+      "use_edit_head": false,
+      "head_type": "none",
+      "n_parameters": 5854841,
+      "correction_cost": 5.418732782369146,
+      "correction_cost_per_note": 0.09776528825002562,
+      "fidelity_distance": 4.131641086186541,
+      "fidelity_per_note": 0.07055321917571518,
+      "draft_cost": 2.9879968516332154,
+      "n": 5082,
+      "best_val_loss": 0.22299940511584282
+    }
+  ],
+  "config": {
+    "alphas": [
+      0.0,
+      0.5
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "sources": [
+      "D1"
+    ],
+    "temperature": 1.0,
+    "per_melody": 3,
+    "epochs": 40,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "generator": "models/generator_ctrl.pth",
+    "out": "results/refiner/ctrl_d1_binary.json",
+    "max_train": 0,
+    "essen_test": 0.2,
+    "references": "essen_test",
+    "gated_thresholds": [
+      0.7,
+      0.9
+    ],
+    "surprisal": false,
+    "judge": "models/judge.pth",
+    "head_type": "binary",
+    "weighting": "none"
+  }
+}
