@@ -634,5 +634,58 @@ class TestGatedDecoding(unittest.TestCase):
         out = generate_corrections_gated(self.model, self.tok, source, threshold=1.01)
         self.assertEqual(out[0], notes)
 
+
+class TestBinaryHead(unittest.TestCase):
+    """Spec 7's head-type axis. This ablation decides what the paper may claim:
+    the five-class head scores INSERT_BEFORE at F1 0.000 and DELETE at 0.107, so
+    if binary matches it under the gate, typing contributes nothing."""
+
+    def test_collapses_edit_classes_to_one(self):
+        from src.edit_model import binarize_labels
+
+        labels = torch.tensor([KEEP, SUB_PITCH, SUB_DUR, INSERT_BEFORE, DELETE])
+        self.assertEqual(binarize_labels(labels).tolist(), [0, 1, 1, 1, 1])
+
+    def test_preserves_ignore_index(self):
+        from src.edit_model import binarize_labels
+
+        labels = torch.tensor([IGNORE_INDEX, KEEP, DELETE, IGNORE_INDEX])
+        self.assertEqual(binarize_labels(labels).tolist(), [IGNORE_INDEX, 0, 1, IGNORE_INDEX])
+
+    def test_does_not_mutate_its_input(self):
+        from src.edit_model import binarize_labels
+
+        labels = torch.tensor([KEEP, DELETE])
+        binarize_labels(labels)
+        self.assertEqual(labels.tolist(), [KEEP, DELETE])
+
+    def test_class_weights_respect_two_classes(self):
+        from src.edit_model import binarize_labels
+
+        labels = binarize_labels(torch.tensor([KEEP] * 90 + [SUB_PITCH] * 10))
+        weights = edit_class_weights(labels, n_classes=2, scheme="capped")
+        self.assertEqual(len(weights), 2)
+        self.assertGreater(weights[1], weights[0])
+
+    def test_a_two_class_head_builds_and_runs(self):
+        tok = make_tokenizer()
+        torch.manual_seed(0)
+        model = EditAwareTransformer(
+            EditModelConfig(
+                vocab_size=len(tok), d_model=32, n_heads=2, n_encoder_layers=2,
+                n_decoder_layers=2, d_ff=64, max_len=128, n_edit_classes=2,
+            ),
+            pad_id=tok.pad_id,
+        ).eval()
+        _, edits = model(torch.randint(5, 20, (2, 9)), torch.randint(5, 20, (2, 5)))
+        self.assertEqual(edits.shape, (2, 9, 2))
+
+    def test_gate_treats_a_binary_flag_as_substitution(self):
+        """With two classes the gate knows only 'edit here', so class 1 must
+        fall through to regeneration rather than to delete or insert."""
+        from src.align import DELETE as D, INSERT_BEFORE as I
+
+        self.assertNotIn(1, (D, I))  # class 1 is SUB_PITCH in the 5-class enum
+
 if __name__ == "__main__":
     unittest.main()

@@ -187,6 +187,22 @@ class EditAwareTransformer(nn.Module):
         return self.edit_head(self.encode(source, surprisal=surprisal)).argmax(dim=-1)
 
 
+def binarize_labels(labels: torch.Tensor, ignore_index: int = IGNORE_INDEX) -> torch.Tensor:
+    """Collapse the five edit classes to KEEP vs EDIT, preserving IGNORE_INDEX.
+
+    This is the `binary` arm of spec 7's head-type axis, and it is the ablation
+    that decides what the paper may claim. The five-class head predicts
+    INSERT_BEFORE at F1 0.000 and DELETE at 0.107, so "where *and how*" may be
+    resting on the pitch-substitution class alone. If binary matches five-class
+    under the gate, typing contributes nothing and the contribution is
+    precision-gated *localization*, not typed correction.
+    """
+    out = labels.clone()
+    mask = out != ignore_index
+    out[mask] = (out[mask] != 0).long()
+    return out
+
+
 def edit_class_weights(
     labels: torch.Tensor,
     n_classes: int = len(EDIT_CLASSES),

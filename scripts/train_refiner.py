@@ -35,6 +35,7 @@ from src.edit_model import (  # noqa: E402
     IGNORE_INDEX,
     EditAwareTransformer,
     EditModelConfig,
+    binarize_labels,
     edit_aware_loss,
     edit_class_weights,
 )
@@ -80,7 +81,7 @@ def make_drafts(melodies, tokenizer, priors, generator, args, seed, tag):
     )
 
 
-def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=()):
+def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=(), binary=False):
     """Autoregressive decoding, Correction Cost, fidelity, and edit-F1."""
     collate = make_collate(tokenizer.pad_id)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, collate_fn=collate)
@@ -95,7 +96,8 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=
 
         if model.edit_head is not None:
             predictions = model.predict_edits(source, surprisal=surprisal).cpu()
-            for row, label_row in zip(predictions, labels):
+            truth = binarize_labels(labels) if binary else labels
+            for row, label_row in zip(predictions, truth):
                 keep = label_row != IGNORE_INDEX
                 predicted_edits.extend(row[keep].tolist())
                 actual_edits.extend(label_row[keep].tolist())
@@ -125,7 +127,8 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=
     summary["n"] = len(rows)
     summary["costs"] = np.array([r["correction_cost"] for r in rows])
     if predicted_edits:
-        summary["edit_scores"] = edit_prediction_scores(predicted_edits, actual_edits)
+        summary["edit_scores"] = edit_prediction_scores(
+            predicted_edits, actual_edits, n_classes=2 if binary else 5)
     if gated:
         summary["gated"] = {
             str(t): {
@@ -139,7 +142,10 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=
 
 
 def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
-    label = f"alpha{alpha}_seed{seed}" + ("" if use_head else "_nohead")
+    binary = args.head_type == "binary"
+    label = (f"alpha{alpha}_seed{seed}"
+             + ("" if use_head else "_nohead")
+             + ("_binary" if binary and use_head else ""))
     torch.manual_seed(seed)
     np.random.seed(seed)
 
@@ -151,12 +157,16 @@ def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
         n_decoder_layers=args.n_layers,
         use_edit_head=use_head,
         use_surprisal=args.surprisal,
+        n_edit_classes=2 if binary else 5,
     )
     model = EditAwareTransformer(config, pad_id=tokenizer.pad_id).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.01)
 
     train_ds, val_ds, _ = datasets
-    weights = (edit_class_weights(train_ds.label_tensor(), scheme=args.weighting).to(device)
+    raw = train_ds.label_tensor()
+    weights = (edit_class_weights(binarize_labels(raw) if binary else raw,
+                                  n_classes=2 if binary else 5,
+                                  scheme=args.weighting).to(device)
                if use_head else None)
 
     collate = make_collate(tokenizer.pad_id)
@@ -177,8 +187,9 @@ def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
             surprisal = surprisal_tensor(batch, source.size(1), device)
 
             token_logits, edit_logits = model(source, target_in, surprisal=surprisal)
+            targets_edit = binarize_labels(labels) if binary else labels
             loss, _, _ = edit_aware_loss(
-                token_logits, target_out, edit_logits, labels,
+                token_logits, target_out, edit_logits, targets_edit,
                 tokenizer.pad_id, alpha=alpha, class_weights=weights,
             )
 
@@ -196,8 +207,9 @@ def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
                 target_in, target_out = target_in.to(device), target_out.to(device)
                 surprisal = surprisal_tensor(batch, source.size(1), device)
                 token_logits, edit_logits = model(source, target_in, surprisal=surprisal)
+                targets_edit = binarize_labels(labels) if binary else labels
                 loss, _, _ = edit_aware_loss(
-                    token_logits, target_out, edit_logits, labels,
+                    token_logits, target_out, edit_logits, targets_edit,
                     tokenizer.pad_id, alpha=alpha, class_weights=weights,
                 )
                 val_running += float(loss)
@@ -250,6 +262,8 @@ def main():
     parser.add_argument("--surprisal", action="store_true",
                         help="feed the judge's per-token surprisal to the encoder")
     parser.add_argument("--judge", default="models/judge.pth")
+    parser.add_argument("--head-type", default="five", choices=["five", "binary"],
+                        help="spec 7 head-type axis; 'none' is the --alphas 0 B1 row")
     parser.add_argument("--weighting", default="inverse",
                         choices=["none", "sqrt", "capped", "inverse"],
                         help="edit-head class weighting; the ablation found "
@@ -318,7 +332,8 @@ def main():
                 args, alpha, seed, use_head, splits, tokenizer, datasets, device
             )
             metrics = evaluate(model, datasets[2], tokenizer, device,
-                               gated_thresholds=tuple(args.gated_thresholds))
+                               gated_thresholds=tuple(args.gated_thresholds),
+                               binary=(args.head_type == "binary"))
             costs = metrics.pop("costs")
             gated_blocks = metrics.pop("gated", {})
             for threshold, block in gated_blocks.items():
@@ -329,6 +344,7 @@ def main():
             row = {
                 "label": label, "alpha": alpha, "seed": seed,
                 "use_edit_head": use_head,
+                "head_type": args.head_type if use_head else "none",
                 "n_parameters": model.n_parameters,
                 **metrics,
                 "best_val_loss": min(history["val"]),
