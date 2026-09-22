@@ -233,6 +233,24 @@ Seed-matched, 5-class minus binary: **+0.003 ± 0.011** (MTC) and **+0.012 ± 0.
 
 Two things make this a better paper rather than a worse one. The recommended method gets **simpler** — a binary head matches a five-way one. And "typed edit prediction does not work at this scale, with insertions unpredictable outright" is a reusable negative finding for anyone building edit-aware music models; the oracle quantifies what typing would be worth if it did work.
 
+### Span-level detection also fails: generated material is not localizable
+
+The global-not-local finding prescribed span-level detection. It was built
+(`src/span_model.py`, `scripts/span_detection.py`) and it does not work.
+
+| system | top-1 | top-5 | × chance |
+|---|---|---|---|
+| chance (210 candidates/draft) | 0.48% | — | 1.0× |
+| judge surprisal pooled over spans, zero-shot | 0.56% | 2.44% | **1.2×** |
+| trained span detector, 3 seeds | 0.75% ± 0.19% | 3.51% | **1.6×** |
+| *per-position head, for reference* | — | — | *~1.5×* |
+
+Changing granularity changed nothing, and the trained detector barely beats the untrained judge — so the encoder learned almost nothing the judge did not already supply. The span task was additionally given the true span-length range as a candidate prior, which a deployed system would not have; making it easier did not help.
+
+**The decisive control is that the same architecture, size and recipe reaches localization precision 0.728 on D1.** The difference lies in the drafts, not in the method — this is not a capacity or tuning failure.
+
+Three independent measurements now agree that generator-written material cannot be localized: the per-position head (~1.5× chance, flat across degradation bands), zero-shot pooled surprisal (1.2×), and the trained span detector (1.6×). **Localize-then-fix is the wrong formulation for model-generated drafts.** See `paper-framing.md` for what the paper claims as a result.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
