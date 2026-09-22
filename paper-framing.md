@@ -75,7 +75,26 @@ obvious fix — use a generator — produces drafts nothing can localize.
    same-corpus at +5.21% ± 0.020 on a 5× larger test set. On D2 it returns ≈0.00% — it
    abstains, which is correct given precision 0.137.
 
-6. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
+6. **The gain holds across capacity, and the gate bounds the damage.** Nine
+   configurations, 2/4/8 layers × d_model 128/256/512, 1.6M to 42.7M parameters (26×),
+   three seeds each. **Gated editing beats copy-input in 9/9 configurations on every
+   seed**, +3.78% to +6.99%, mean +5.85%.
+
+   Two things in that sweep matter more than the headline. **Localization precision is
+   flat across the whole range** — 0.655 to 0.719, correlation with log-parameters
+   −0.58, i.e. if anything it *falls* with scale. Localization is information-limited,
+   not capacity-limited. That is a third independent argument against "your models are
+   too small," alongside the D1/D2 same-architecture control: precision does not improve
+   with 26× more parameters even where the task *is* solvable.
+
+   And **the gate bounds the damage**. Free decoding ranges over CC 3.42–9.04 and is
+   worse than doing nothing in **9/9** configurations; gated stays within 2.77–2.87 and
+   beats doing nothing in 9/9. At 1.6M parameters free decoding is three times worse
+   than leaving the draft alone, while gated is still ahead of it. That is the τ=1
+   guarantee doing real work, and for a deployable tool the graceful degradation is
+   arguably worth more than the 6%.
+
+7. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
    ground-truth labels the model removes 49.3% of the draft's error (D1); the real head
    recovers 12.2%. Raising *recall* (judge surprisal, 0.245 → 0.314) made CC *worse*,
    because at precision 0.678 a third of flagged positions are notes that were already
@@ -151,7 +170,7 @@ gets one sentence as motivation, never as a demonstrated result.
 | objection | answer |
 |---|---|
 | "Your method only works on the synthetic setting you criticise." | Yes — and that is the finding, stated as the title. The boundary is mapped from both sides, and the negative side is measured three independent ways. |
-| "Your detector is just weak / your models are too small." | The same architecture, size and recipe reaches precision 0.728 on D1. The difference is the drafts. The span task was additionally given the true span-length prior and still failed. |
+| "Your detector is just weak / your models are too small." | Three answers. The same architecture, size and recipe reaches precision 0.728 on D1 — the difference is the drafts. Localization precision is flat from 1.6M to 42.7M parameters (corr with log-params −0.58), so it is information-limited, not capacity-limited. And the span task was given the true span-length prior and still failed. |
 | "Maybe the drafts aren't degraded, so there is nothing to find." | Tested and rejected: precision is flat across degradation bands; judge-certified degraded drafts are no more localizable. |
 | "+6% is small." | It is over *copy-input*. The published +6.3% was over an imitation baseline itself 21.4% worse than copying. |
 | "ΔNLL isn't musical correctness." | Conceded explicitly; calibrated against human variants; see §6. |
@@ -165,12 +184,12 @@ gets one sentence as motivation, never as a demonstrated result.
 | P2 human-in-the-loop framing | **retitle** per §5; no experiments needed |
 | P3 "where and how" | **answered by narrowing** — claim "where" (§4) |
 | P4 representation contradictions | **fixed** — REST/BAR, measured; onset shift removed from the vocabulary |
-| P5 thin evaluation | **answered** — §7 final row |
+| P5 thin evaluation | **answered** — §7 final row, plus 9 size configurations × 3 seeds |
 | P6 no citations in introduction | **outstanding** — pure writing, and an explicit rejection reason |
 
 ## 9. Remaining work
 
-1. Model-size ablation (running) — fills the P5 row; nothing in the thesis depends on it.
+1. ~~Model-size ablation~~ — done, 9/9 configurations; see contribution 6.
 2. **P6 related work** — McLeod et al. (MDT, ISMIR 2020) and Ramoneda et al. (RefinPaint,
    ISMIR 2024) need explicit positioning with a stated delta; plus Ji, Yang & Luo (2023),
    Lakh provenance, Vaswani et al. Zero citations in the introduction was a stated

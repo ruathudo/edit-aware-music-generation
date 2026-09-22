@@ -251,6 +251,20 @@ Changing granularity changed nothing, and the trained detector barely beats the 
 
 Three independent measurements now agree that generator-written material cannot be localized: the per-position head (~1.5× chance, flat across degradation bands), zero-shot pooled surprisal (1.2×), and the trained span detector (1.6×). **Localize-then-fix is the wrong formulation for model-generated drafts.** See `paper-framing.md` for what the paper claims as a result.
 
+### Model-size ablation: the gain holds, and the gate bounds the damage
+
+Nine configurations (2/4/8 layers × d_model 128/256/512), 1.6M–42.7M parameters, three seeds each. **Gated editing beats copy-input in 9/9 on every seed**, +3.78% to +6.99%, mean +5.85%.
+
+| | free decoding CC | gated CC |
+|---|---|---|
+| range across 9 configs | 3.42 – 9.04 (2.65×) | **2.77 – 2.87 (1.03×)** |
+| worse than B3 (2.981) | **9/9 configurations** | 0/9 |
+
+Two secondary findings matter more than the headline:
+
+- **Localization precision is flat across a 26× parameter range** — 0.655 to 0.719, correlation with log-parameters −0.58. Localization is *information*-limited, not capacity-limited. This is a third independent argument that the D2 failure is not about model size, alongside the D1/D2 same-architecture control.
+- **The gate bounds the damage.** Free decoding is worse than doing nothing in every configuration; at 1.6M parameters it is three times worse. Gated stays ahead of B3 throughout. That is the τ=1 guarantee doing real work, and the graceful degradation may matter more for deployment than the 6%.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
