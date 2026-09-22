@@ -687,5 +687,77 @@ class TestBinaryHead(unittest.TestCase):
 
         self.assertNotIn(1, (D, I))  # class 1 is SUB_PITCH in the 5-class enum
 
+
+class TestSpanDetector(unittest.TestCase):
+    """Span-level scoring, the tool the global-not-local finding prescribes."""
+
+    def setUp(self):
+        from src.span_model import SpanDetector, SpanModelConfig
+
+        self.tok = make_tokenizer()
+        torch.manual_seed(0)
+        self.model = SpanDetector(
+            SpanModelConfig(vocab_size=len(self.tok), d_model=32, n_heads=2,
+                            n_layers=2, d_ff=64, max_len=128),
+            pad_id=self.tok.pad_id,
+        ).eval()
+
+    def test_enumerate_spans_respects_length_and_margin(self):
+        from src.span_model import enumerate_spans
+
+        spans = enumerate_spans(20, lengths=(2, 3), margin=2)
+        self.assertTrue(all(L in (2, 3) for _, L in spans))
+        self.assertTrue(all(s >= 2 for s, _ in spans))
+        self.assertTrue(all(s + L <= 20 for s, L in spans))
+
+    def test_enumerate_spans_empty_for_short_melodies(self):
+        from src.span_model import enumerate_spans
+
+        self.assertEqual(enumerate_spans(3, lengths=(6,), margin=2), [])
+
+    def test_scores_one_logit_per_candidate(self):
+        bounds = torch.tensor([[[1, 5], [3, 9]], [[2, 6], [4, 8]]])
+        mask = torch.ones(2, 2, dtype=torch.bool)
+        out = self.model(torch.randint(5, 20, (2, 12)), bounds, mask)
+        self.assertEqual(out.shape, (2, 2))
+
+    def test_padded_candidates_are_excluded(self):
+        """A padded candidate must never win an argmax or take softmax mass."""
+        bounds = torch.tensor([[[1, 5], [0, 0]]])
+        mask = torch.tensor([[True, False]])
+        out = self.model(torch.randint(5, 20, (1, 10)), bounds, mask)
+        self.assertEqual(float(out[0, 1]), float("-inf"))
+        self.assertTrue(torch.isfinite(out[0, 0]))
+        self.assertEqual(int(out.argmax(dim=-1)), 0)
+
+    def test_pooling_matches_an_explicit_mean(self):
+        """The prefix-sum shortcut must agree with the obvious computation."""
+        tokens = torch.randint(5, 20, (1, 14))
+        with torch.no_grad():
+            memory = self.model.encode(tokens)
+            start, end = 3, 9
+            expected = memory[0, start:end].mean(dim=0)
+            zero = memory.new_zeros(1, 1, memory.size(-1))
+            cumulative = torch.cat([zero, memory.cumsum(dim=1)], dim=1)
+            got = (cumulative[0, end] - cumulative[0, start]) / (end - start)
+        torch.testing.assert_close(expected, got, rtol=1e-4, atol=1e-5)
+
+    def test_surprisal_baseline_prefers_the_surprising_span(self):
+        from src.span_model import surprisal_span_scores
+
+        surprisal = torch.zeros(1, 12)
+        surprisal[0, 6:9] = 5.0
+        bounds = torch.tensor([[[0, 3], [6, 9]]])
+        mask = torch.ones(1, 2, dtype=torch.bool)
+        scores = surprisal_span_scores(surprisal, bounds, mask)
+        self.assertEqual(int(scores.argmax(dim=-1)), 1)
+
+    def test_span_iou(self):
+        from scripts.span_detection import iou
+
+        self.assertEqual(iou((4, 4), (4, 4)), 1.0)
+        self.assertEqual(iou((0, 2), (10, 2)), 0.0)
+        self.assertAlmostEqual(iou((4, 4), (6, 4)), 2 / 6)
+
 if __name__ == "__main__":
     unittest.main()
