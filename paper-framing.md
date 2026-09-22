@@ -3,8 +3,9 @@
 Companion to `edit-aware-revision-spec.md`. The spec says what to *build*; this says
 what to *claim*, and which measurement backs each claim. Written 2026-09-22.
 
-Claims marked **[PENDING]** depend on the degradation-stratification result
-(`scripts/degradation_strata.py`) and must not be written up until it lands.
+The degradation stratification has now run. The hypothesis it tested — that D2
+localization fails because most drafts are not actually degraded — is **not
+supported**, and §2.6 records what replaced it.
 
 ---
 
@@ -48,8 +49,26 @@ generator — relocates the problem instead of solving it.
    the method provably cannot do worse than leaving the draft alone.** +6.04% ± 0.014
    over copy-input on D1 (3/3 seeds, p=4.2e-52), replicated same-corpus at +5.21% ±
    0.020 on a 5× larger test set.
-6. **[PENDING] Realistic-draft construction is unsolved.** 96.6% of generator drafts
-   fall below τ, the 95th percentile of human-authored variants; 17% are no less
+6. **On generator drafts, degradation is global, not local.** The draft is measurably
+   less plausible as a whole, yet no individual position carries enough signal for a
+   per-position head to find it. Localization precision sits at 1.3–1.7× chance and is
+   **flat across degradation bands** — 1.56× on drafts with ΔNLL ≤ 0 and 1.66× on those
+   the judge certifies as degraded, with no trend (`scripts/degradation_strata.py`).
+
+   The tempting explanation — that most drafts simply are not degraded, so there is
+   nothing to find — was tested and rejected: certified-degraded drafts are no more
+   localizable than undegraded ones. Two measurements point instead at distribution.
+   In a D2 draft the *unchanged* notes also become more expensive under the judge
+   (+0.0677) alongside the infilled span (+0.2162), so the damage is spread through
+   context rather than concentrated on the notes that changed. The generator writes a
+   locally coherent span; what is wrong is how it fits the piece.
+
+   **Consequence: per-position edit supervision is the wrong tool for this error class.**
+   Span-level or global detection is the direction. State this as a contribution, not a
+   limitation — it is what the next person needs.
+
+   Supporting context, still true and worth reporting: 96.6% of generator drafts fall
+   below τ, the 95th percentile of human-authored variants, and 17% are no less
    plausible than the reference. Using a generator does not solve the realism problem,
    it relocates it.
 
@@ -71,7 +90,9 @@ than no edit. Pair it with the τ=1 guarantee: bounded downside plus abstention 
 deployable property, and more honest than claiming uniform improvement.
 
 **M4 — Make the unsolved part an explicit contribution, not a limitation buried in
-§7.** The next person needs to know that generator drafts are mostly valid alternatives.
+§7.** The next person needs two things: that generator drafts are mostly within human
+variation, and that their degradation is global rather than per-position, so
+per-position supervision cannot reach it.
 
 ## 4. Claim discipline
 
@@ -116,7 +137,7 @@ one sentence as motivation, never as a demonstrated result.
 
 | objection | answer |
 |---|---|
-| "Your method only works on the synthetic setting you criticise." | On realistic drafts the oracle shows 21.5% is available and precision is the bottleneck at 0.137; the system abstains rather than damaging the melody. Quantified gap, not silent failure. **[PENDING]** the stratification strengthens this to "the task is ill-posed there and the gate is correct to decline." |
+| "Your method only works on the synthetic setting you criticise." | Correct, and the paper says why. On generator drafts the degradation is global rather than per-position: precision sits at 1.3–1.7× chance and does not improve even on judge-certified degraded drafts. A per-position head cannot address that error class, and the gate abstains rather than damaging the melody. The oracle shows 21.5% is available to a method that *can* localize, so the gap is quantified rather than a silent failure. |
 | "+6% is small." | It is over *copy-input*. The published +6.3% was over an imitation baseline itself 21.4% worse than copying. |
 | "ΔNLL isn't musical correctness." | Conceded explicitly; calibrated against human variants; see §6. |
 | "One model size." | Size ablation over 2/4/8 layers × 128/256/512 (running). |
@@ -135,7 +156,7 @@ one sentence as motivation, never as a demonstrated result.
 
 ## 9. Remaining work
 
-1. **[PENDING]** degradation stratification — decides §2.6 and the §7 row 1 answer.
+1. ~~degradation stratification~~ — done; hypothesis rejected, §2.6 rewritten.
 2. Model-size ablation (running).
 3. **P6 related work** — McLeod et al. (MDT, ISMIR 2020) and Ramoneda et al.
    (RefinPaint, ISMIR 2024) need explicit positioning with a stated delta; plus Ji,

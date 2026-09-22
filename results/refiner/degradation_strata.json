@@ -1,0 +1,65 @@
+{
+  "bands": [
+    {
+      "band": "not degraded (dNLL <= 0)",
+      "n": 218,
+      "precision": 0.11328709370325038,
+      "recall": 0.5458715596330275,
+      "mean_delta_nll": -0.06582433286063168,
+      "gated_minus_draft_cc": 0.0
+    },
+    {
+      "band": "mild (0 < dNLL <= median)",
+      "n": 314,
+      "precision": 0.09114782798993325,
+      "recall": 0.40358527131782945,
+      "mean_delta_nll": 0.0442767570352858,
+      "gated_minus_draft_cc": 0.0
+    },
+    {
+      "band": "moderate (median < dNLL <= tau)",
+      "n": 504,
+      "precision": 0.12145992423786904,
+      "recall": 0.5252210088403536,
+      "mean_delta_nll": 0.2558208429624164,
+      "gated_minus_draft_cc": 0.0
+    },
+    {
+      "band": "degraded (dNLL > tau=0.585)",
+      "n": 28,
+      "precision": 0.12052117263843648,
+      "recall": 0.5336538461538461,
+      "mean_delta_nll": 0.6963617950677872,
+      "gated_minus_draft_cc": 0.0
+    }
+  ],
+  "tau": 0.585,
+  "config": {
+    "sources": [
+      "D2-infill"
+    ],
+    "weighting": "capped",
+    "head_type": "binary",
+    "alpha": 0.5,
+    "threshold": 0.9,
+    "epochs": 40,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "per_melody": 3,
+    "temperature": 1.0,
+    "seed": 0,
+    "seeds": [
+      0
+    ],
+    "max_train": 0,
+    "surprisal": false,
+    "generator": "models/generator.pth",
+    "judge": "models/judge.pth",
+    "tau": 0.585,
+    "out": "results/refiner/degradation_strata.json"
+  }
+}
