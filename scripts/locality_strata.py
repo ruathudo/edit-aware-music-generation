@@ -45,20 +45,29 @@ from scripts.diagnostics import build_datasets, load_generator  # noqa: E402
 from scripts.train_refiner import train_one  # noqa: E402
 
 
-def longest_run(example) -> int:
-    """Longest contiguous stretch of edited event positions in a draft.
+def longest_run(example, tokenizer) -> int:
+    """Longest contiguous stretch of edited *events* in a draft.
 
-    Computed from the *labels*, so it measures the supervision the head actually
-    receives rather than the rule that produced the draft.
+    Measured in event space, not token space. Each event contributes two tokens
+    carrying the same label, so counting token positions makes a single-note edit
+    look like a run of two -- which it is not, and which would put every draft in
+    the "span-like" band.
+
+    Computed from the labels rather than the generating rule, so it reflects the
+    supervision the head actually receives.
     """
-    flagged = [i for i, v in enumerate(example.source_labels)
-               if v != IGNORE_INDEX and v != KEEP]
+    _, spans = tokenizer.encode_with_spans(example.draft_notes)
+    flagged = sorted({
+        event
+        for event, (pitch_at, _) in enumerate(spans)
+        if pitch_at < len(example.source_labels)
+        and example.source_labels[pitch_at] not in (IGNORE_INDEX, KEEP)
+    })
     if not flagged:
         return 0
     best = run = 1
     for a, b in zip(flagged, flagged[1:]):
-        # tokens come in (pitch, duration) pairs, so adjacent events are 2 apart
-        run = run + 1 if b - a <= 2 else 1
+        run = run + 1 if b == a + 1 else 1
         best = max(best, run)
     return best
 
@@ -83,7 +92,7 @@ def per_example(model, dataset, tokenizer, device, binary, threshold, batch_size
                 "fp": int((pred & ~actual).sum()),
                 "fn": int((~pred & actual).sum()),
                 "gain": metrics["draft_cost"] - metrics["correction_cost"],
-                "run": longest_run(example),
+                "run": longest_run(example, tokenizer),
             })
     return rows
 
@@ -128,7 +137,7 @@ def main():
 
     runs = np.array([r["run"] for r in rows])
     print(f"\nlongest edited run per draft: mean {runs.mean():.2f}  "
-          f"point-like (<=1) {np.mean(runs <= 1):.1%}  span-like (>=3) {np.mean(runs >= 3):.1%}")
+          f"point-like (=1) {np.mean(runs == 1):.1%}  span-like (>=3) {np.mean(runs >= 3):.1%}")
 
     def band(mask, name):
         sel = [r for r, m in zip(rows, mask) if m]
@@ -143,9 +152,9 @@ def main():
         }
 
     bands = [b for b in (
-        band(runs <= 1, "point-like (run = 1)"),
-        band(runs == 2, "run = 2"),
-        band(runs >= 3, "span-like (run >= 3)"),
+        band(runs == 1, "point-like (1 event)"),
+        band(runs == 2, "2 adjacent events"),
+        band(runs >= 3, "span-like (3+ events)"),
     ) if b]
 
     print(f"\n{'band':26s} {'n':>6s} {'locP':>7s} {'locR':>7s} {'gated gain':>11s}")

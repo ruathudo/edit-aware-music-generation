@@ -11,12 +11,15 @@ below is the one the evidence supports.
 
 ## 1. Thesis
 
-> **Generated drafts are not locally wrong.** A model-generated draft is measurably
-> less plausible than its reference, yet the material the generator wrote cannot be
-> identified — not per note, not per span, not by a trained detector, not by the
-> judge's own surprisal. *Localize-then-fix* is the wrong formulation for this class of
-> draft. Where errors genuinely are local — synthetic corruption — the same machinery
-> works, and precision-gated editing beats copy-input by 6%.
+> **Apparent progress on symbolic draft refinement is largely a function of how the
+> drafts were made.** Across three sources under identical machinery, localizability
+> collapses as drafts become more realistic — rule-based degradation 0.776 precision,
+> random corruption 0.728, generator output 0.137 — and measured performance falls with
+> it, +9.85% to +6.04% to +0.00%. Generated drafts are the realistic case, and they are
+> **not locally wrong**: the material the generator wrote cannot be identified per note,
+> per span, by a trained detector, or by the judge's own surprisal. *Localize-then-fix*
+> is the wrong formulation for that class of draft. Where errors genuinely are local,
+> the same machinery works and precision-gated editing beats copy-input by 6%.
 
 The paper's subject is therefore **the domain of validity of the localize-then-fix
 formulation**, mapped from both sides. That subsumes the ISMIR reviewers' P1 objection
@@ -37,7 +40,37 @@ obvious fix — use a generator — produces drafts nothing can localize.
    changed. Corruption moves a melody *off* the data manifold; real variation moves it a
    long way *along* it.
 
-3. **Generated material is not localizable, at any granularity tried.** Three
+3. **Localizability collapses as drafts become more realistic — and apparent method
+   performance falls with it.** Three draft sources, same machinery, three seeds each:
+
+   | source | errors come from | ΔNLL/unit | loc precision | gated vs B3 |
+   |---|---|---|---|---|
+   | D3 rule-based | rules we wrote | 2.97 | 0.776 | +9.85% |
+   | D1 random | unsystematic noise | 3.94 | 0.728 | +6.04% |
+   | D2 generated | a real generator | 0.90 | 0.137 | +0.00% |
+
+   **D3 is a negative control, not a result.** Its edits come from the same rule family
+   a detector can learn — out-of-scale, unsingable leap, cadential disruption — so it
+   reports the best number in the paper precisely because the benchmark is circular.
+   Report it in the ablation, keep it out of headline claims, and put the circularity in
+   the caption. Spec §3 proposed rule-based degradation as the *fix* for D1's unrealism;
+   the result is that it is worse in a different way — more realistic-sounding errors,
+   less valid as a benchmark. Anyone about to build one needs to know that.
+
+   D3 also earns its place by falsifying the two obvious accounts of the boundary. It is
+   *less* off-manifold than D1 (2.97 against 3.94) and *less* point-like (mean edited run
+   1.50 against 1.05), yet *more* localizable. So neither manifold distance nor edit
+   locality governs on its own. The working hypothesis — held as a hypothesis, since two
+   earlier accounts were already falsified — is that what matters is whether the error
+   has a **learnable regularity**: off-manifold is necessary but not sufficient, and the
+   deviation must also be systematic enough to train a detector for. D3's errors are
+   rule-shaped, D1's are unsystematic, D2's are in-distribution by construction.
+
+   **The D1 result stays the headline** (+6.04%, replicated same-corpus, 9/9 size
+   configurations) precisely because random corruption is not something we designed a
+   detector for.
+
+4. **Generated material is not localizable, at any granularity tried.** Three
    independent measurements on D2-infill drafts:
 
    | method | result |
@@ -61,21 +94,21 @@ obvious fix — use a generator — produces drafts nothing can localize.
    generator writes a locally coherent passage; what is wrong is how it sits in the
    piece.
 
-4. **The published result reproduces, and is an artifact.** The U-shaped α curve
+5. **The published result reproduces, and is an artifact.** The U-shaped α curve
    replicates with its minimum at α=1.0 and a 5.85% CC reduction (published: 6.3%), but
    at that optimum fidelity is 0.0007 and CC equals copy-input: the curve measures
    convergence to copying. Visible only with a copy-input baseline and a fidelity
    metric, neither of which the original evaluation had. **Prescription: always report
    B3 and fidelity alongside CC.**
 
-5. **Precision-gated decoding, where errors are local.** Copy by default; hand an event
+6. **Precision-gated decoding, where errors are local.** Copy by default; hand an event
    to the decoder only when the head's confidence clears τ. **At τ=1 the output is the
    draft verbatim, so the method provably cannot do worse than leaving the draft
    alone.** +6.04% ± 0.014 over copy-input on D1 (3/3 seeds, p=4.2e-52), replicated
    same-corpus at +5.21% ± 0.020 on a 5× larger test set. On D2 it returns ≈0.00% — it
    abstains, which is correct given precision 0.137.
 
-6. **The gain holds across capacity, and the gate bounds the damage.** Nine
+7. **The gain holds across capacity, and the gate bounds the damage.** Nine
    configurations, 2/4/8 layers × d_model 128/256/512, 1.6M to 42.7M parameters (26×),
    three seeds each. **Gated editing beats copy-input in 9/9 configurations on every
    seed**, +3.78% to +6.99%, mean +5.85%.
@@ -94,7 +127,7 @@ obvious fix — use a generator — produces drafts nothing can localize.
    guarantee doing real work, and for a deployable tool the graceful degradation is
    arguably worth more than the 6%.
 
-7. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
+8. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
    ground-truth labels the model removes 49.3% of the draft's error (D1); the real head
    recovers 12.2%. Raising *recall* (judge surprisal, 0.245 → 0.314) made CC *worse*,
    because at precision 0.678 a third of flagged positions are notes that were already
@@ -117,11 +150,17 @@ confidently warranted" is a *feature* for a creative tool, where a wrong edit is
 than no edit. With the τ=1 guarantee, bounded downside plus abstention is a deployable
 property and more honest than claiming uniform improvement.
 
-**M4 — Say plainly what the field should stop doing.** Generator-infilled drafts are not
-a drop-in fix for unrealistic synthetic corruption in a localize-then-fix pipeline. They
-are more realistic *and* unlocalizable. Anyone wanting realistic drafts needs either a
-different task formulation (holistic rewriting, span-free) or human-annotated error
-locations.
+**M4 — Say plainly what the field should stop doing.** Two warnings, in order of how
+easy they are to walk into. Rule-based degradation produces a circular benchmark: the
+detector learns the injection rules, and the resulting number says nothing about musical
+error. Generator-infilled drafts avoid that but are unlocalizable, so they are not a
+drop-in fix either. Anyone wanting realistic drafts needs a different task formulation
+(holistic rewriting, span-free) or human-annotated error locations.
+
+**M5 — Report the number you distrust.** D3 gives the paper's best result and is in the
+git history; reporting D1 and D2 while dropping it would be exactly the selective
+reporting reviewers look for. Include it, demote it, and explain why it should not be
+believed. That is more persuasive than omission and costs nothing.
 
 ## 4. Claim discipline
 
@@ -194,10 +233,7 @@ gets one sentence as motivation, never as a demonstrated result.
    ISMIR 2024) need explicit positioning with a stated delta; plus Ji, Yang & Luo (2023),
    Lakh provenance, Vaswani et al. Zero citations in the introduction was a stated
    rejection reason.
-3. D3 refinement sweep — would complete the draft-source axis and test whether
-   musically-grounded degradation is localizable, which the thesis predicts it should be
-   (it is off-manifold at 2.97 ΔNLL per unit change, close to D1's 3.94). **This is the
-   one remaining experiment that could still change the picture**, since it probes the
-   middle of the boundary rather than its ends.
+3. ~~D3 refinement sweep~~ — done; it falsified both accounts of the boundary and is
+   reframed as a negative control (contribution 3).
 4. 5 seeds on the headline (seed 0 was an outlier once).
 5. `scripts/` have no test coverage — that is how a broken-argparse bug reached a launch.

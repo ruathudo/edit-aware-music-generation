@@ -197,7 +197,7 @@ def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
-            running += float(loss)
+            running += loss.detach().item()
 
         model.eval()
         val_running = 0.0

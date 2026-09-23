@@ -265,6 +265,22 @@ Two secondary findings matter more than the headline:
 - **Localization precision is flat across a 26× parameter range** — 0.655 to 0.719, correlation with log-parameters −0.58. Localization is *information*-limited, not capacity-limited. This is a third independent argument that the D2 failure is not about model size, alongside the D1/D2 same-architecture control.
 - **The gate bounds the damage.** Free decoding is worse than doing nothing in every configuration; at 1.6M parameters it is three times worse. Gated stays ahead of B3 throughout. That is the τ=1 guarantee doing real work, and the graceful degradation may matter more for deployment than the 6%.
 
+### D3, and the benchmark-validity spectrum
+
+D3 (rule-based musical degradation) is the **best-performing source and a negative control**, not a result: loc precision 0.776, gated +9.85% ± 0.040 (3/3 seeds, win 38.6% / loss 6.0%). Its edits come from the same rule family a detector can learn, so it reports the paper's best number precisely because the benchmark is circular.
+
+| source | errors come from | ΔNLL/unit | loc precision | gated vs B3 |
+|---|---|---|---|---|
+| D3 rule-based | rules we wrote | 2.97 | 0.776 | +9.85% |
+| D1 random | unsystematic noise | 3.94 | 0.728 | +6.04% |
+| D2 generated | a real generator | 0.90 | 0.137 | +0.00% |
+
+**Localizability collapses as drafts get more realistic, and apparent method performance falls with it.** That trend needs all three points; D1/D2 alone is a contrast, not a curve.
+
+D3 also falsified both accounts of the boundary: it is *less* off-manifold than D1 (2.97 vs 3.94) and *less* point-like (mean run 1.50 vs 1.05) yet *more* localizable. The working hypothesis is that **learnable regularity** governs — off-manifold is necessary but not sufficient, and the deviation must be systematic enough to train a detector for.
+
+Report D3 in the ablation, keep it out of headline claims, state the circularity in the caption. **D1 stays the headline** because random corruption is not something we designed a detector for.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

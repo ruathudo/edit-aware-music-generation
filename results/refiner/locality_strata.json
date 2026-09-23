@@ -1,0 +1,47 @@
+{
+  "bands": [
+    {
+      "band": "run = 2",
+      "n": 501,
+      "precision": 0.7443223443223443,
+      "recall": 0.43982683982683984,
+      "gated_gain": 0.38922155688622756
+    },
+    {
+      "band": "span-like (run >= 3)",
+      "n": 560,
+      "precision": 0.7439024390243902,
+      "recall": 0.2050256081946223,
+      "gated_gain": 0.375
+    }
+  ],
+  "sources": [
+    "D3"
+  ],
+  "config": {
+    "sources": [
+      "D3"
+    ],
+    "weighting": "none",
+    "head_type": "binary",
+    "alpha": 0.5,
+    "threshold": 0.9,
+    "epochs": 40,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "per_melody": 3,
+    "temperature": 1.0,
+    "seed": 0,
+    "seeds": [
+      0
+    ],
+    "max_train": 0,
+    "surprisal": false,
+    "generator": "models/generator.pth",
+    "out": "results/refiner/locality_strata.json"
+  }
+}
