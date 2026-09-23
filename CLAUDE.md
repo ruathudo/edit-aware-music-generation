@@ -277,9 +277,29 @@ D3 (rule-based musical degradation) is the **best-performing source and a negati
 
 **Localizability collapses as drafts get more realistic, and apparent method performance falls with it.** That trend needs all three points; D1/D2 alone is a contrast, not a curve.
 
-D3 also falsified both accounts of the boundary: it is *less* off-manifold than D1 (2.97 vs 3.94) and *less* point-like (mean run 1.50 vs 1.05) yet *more* localizable. The working hypothesis is that **learnable regularity** governs — off-manifold is necessary but not sufficient, and the deviation must be systematic enough to train a detector for.
+D3 also falsified both accounts of the boundary: it is *less* off-manifold than D1 (2.97 vs 3.94) and *less* point-like (mean run 1.50 vs 1.05) yet *more* localizable. The working hypothesis is that **learnable regularity** governs — off-manifold is necessary but not sufficient, and the deviation must be systematic enough to train a detector for. The locality account is then tested directly within D3 below, and falsified.
 
 Report D3 in the ablation, keep it out of headline claims, state the circularity in the caption. **D1 stays the headline** because random corruption is not something we designed a detector for.
+
+### Locality does not govern: H2 falsified within D3
+
+The D1/D2 contrast admitted two accounts, and comparing sources cannot separate them because D1 and D2 differ on both axes at once. **H1**: off-manifold damage is detectable (D1 at 3.94 ΔNLL/unit localizable, D2 at 0.90 not). **H2**: a per-position head suits isolated changes and is blind to contiguous ones (D1's edits are near-all single notes, D2 replaces spans of 2–6).
+
+D3 separates them — uniformly off-manifold, but mixed in locality. `scripts/locality_strata.py` splits D3's own test set by the longest edited run per draft (measured in *event* space; each event carries two tokens with the same label, so a token-space run makes every single-note edit look span-like). α=0.5, τ=0.9, binary head, one seed. Longest run per draft: mean 1.58, 51.3% point-like, 17.7% span-like.
+
+| band | n | loc P | loc R | gated gain (CC) |
+|---|---|---|---|---|
+| point-like (1 event) | 544 | **0.825** | 0.427 | +0.441 |
+| 2 adjacent events | 262 | 0.806 | 0.251 | +0.405 |
+| span-like (3+ events) | 188 | **0.805** | 0.210 | +0.356 |
+
+**Precision is flat — +0.019 across the whole range — so H2 is falsified.** Contiguity does not cost the head its precision, which is the quantity gating actually depends on.
+
+The decisive comparison is with D2: D3's span-like band is contiguous in exactly the way D2's infilled spans are, yet holds precision **0.805 against D2's 0.137**. Contiguity cannot be what breaks D2.
+
+What locality *does* cost is **recall**, which halves (0.427 → 0.210): the head flags part of a long run and misses the rest. Gated gain falls with it (+0.441 → +0.356), and understates the shortfall — span-like drafts carry more damage, so the same absolute gain is a smaller fraction of it. This is the recall/precision dissociation already on record: recall responds to properties of the edit, precision does not, and precision is the binding constraint.
+
+So **manifold distance survives where locality does not**, though D3 itself already showed manifold distance is insufficient alone (less off-manifold than D1, more localizable). Learnable regularity remains the working hypothesis. Caveats: one seed, D3 only, and the bands are sized 544/262/188.
 
 ### Getting the data
 

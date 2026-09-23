@@ -5,7 +5,9 @@ what to *claim*, and which measurement backs each claim.
 
 Rewritten 2026-09-22 after span-level detection failed. The earlier version expected
 span-level detection to rescue the realistic-draft setting; it did not, and the thesis
-below is the one the evidence supports.
+below is the one the evidence supports. Updated 2026-09-23 with the within-D3 locality
+stratification, which rules out edit contiguity as the account of the boundary
+(contribution 4).
 
 ---
 
@@ -70,7 +72,35 @@ obvious fix — use a generator — produces drafts nothing can localize.
    configurations) precisely because random corruption is not something we designed a
    detector for.
 
-4. **Generated material is not localizable, at any granularity tried.** Three
+4. **The boundary is not about contiguity.** The obvious alternative account of
+   contribution 3 is mechanical rather than epistemic: a per-position head suits isolated
+   changes and is blind to contiguous ones, and D2 happens to replace spans of 2–6 events
+   while D1 alters single notes. Comparing sources cannot decide this, because D1 and D2
+   differ in manifold distance *and* locality at once. D3 can, being uniformly
+   off-manifold but mixed in locality; splitting its own test set by the longest edited
+   run per draft holds the first fixed and varies the second.
+
+   | band | n | loc P | loc R | gated gain (CC) |
+   |---|---|---|---|---|
+   | point-like (1 event) | 544 | **0.825** | 0.427 | +0.441 |
+   | 2 adjacent events | 262 | 0.806 | 0.251 | +0.405 |
+   | span-like (3+ events) | 188 | **0.805** | 0.210 | +0.356 |
+
+   **Precision is flat — +0.019 end to end — so contiguity is not what breaks
+   localization.** And the comparison that settles it: D3's span-like band is contiguous
+   in exactly the way D2's infilled spans are, yet holds precision **0.805 against D2's
+   0.137**. What contiguity does cost is *recall*, which halves (0.427 → 0.210) as the
+   head flags part of a long run and misses the rest — the same recall/precision
+   dissociation as contribution 9, and precision is the binding constraint.
+
+   This is worth reporting as a result and not only as a control. It says the failure is
+   a property of the *drafts*, not an artifact of per-position output granularity — which
+   is the same conclusion the span-detector null reached (contribution 5) from the
+   opposite direction, by changing the granularity and getting nothing. One seed, D3
+   only; runs measured in event space, since each event carries two like-labelled tokens
+   and a token-space run would classify every single-note edit as span-like.
+
+5. **Generated material is not localizable, at any granularity tried.** Three
    independent measurements on D2-infill drafts:
 
    | method | result |
@@ -94,21 +124,21 @@ obvious fix — use a generator — produces drafts nothing can localize.
    generator writes a locally coherent passage; what is wrong is how it sits in the
    piece.
 
-5. **The published result reproduces, and is an artifact.** The U-shaped α curve
+6. **The published result reproduces, and is an artifact.** The U-shaped α curve
    replicates with its minimum at α=1.0 and a 5.85% CC reduction (published: 6.3%), but
    at that optimum fidelity is 0.0007 and CC equals copy-input: the curve measures
    convergence to copying. Visible only with a copy-input baseline and a fidelity
    metric, neither of which the original evaluation had. **Prescription: always report
    B3 and fidelity alongside CC.**
 
-6. **Precision-gated decoding, where errors are local.** Copy by default; hand an event
+7. **Precision-gated decoding, where errors are local.** Copy by default; hand an event
    to the decoder only when the head's confidence clears τ. **At τ=1 the output is the
    draft verbatim, so the method provably cannot do worse than leaving the draft
    alone.** +6.04% ± 0.014 over copy-input on D1 (3/3 seeds, p=4.2e-52), replicated
    same-corpus at +5.21% ± 0.020 on a 5× larger test set. On D2 it returns ≈0.00% — it
    abstains, which is correct given precision 0.137.
 
-7. **The gain holds across capacity, and the gate bounds the damage.** Nine
+8. **The gain holds across capacity, and the gate bounds the damage.** Nine
    configurations, 2/4/8 layers × d_model 128/256/512, 1.6M to 42.7M parameters (26×),
    three seeds each. **Gated editing beats copy-input in 9/9 configurations on every
    seed**, +3.78% to +6.99%, mean +5.85%.
@@ -127,7 +157,7 @@ obvious fix — use a generator — produces drafts nothing can localize.
    guarantee doing real work, and for a deployable tool the graceful degradation is
    arguably worth more than the 6%.
 
-8. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
+9. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
    ground-truth labels the model removes 49.3% of the draft's error (D1); the real head
    recovers 12.2%. Raising *recall* (judge surprisal, 0.245 → 0.314) made CC *worse*,
    because at precision 0.678 a third of flagged positions are notes that were already
@@ -164,7 +194,7 @@ believed. That is more persuasive than omission and costs nothing.
 
 ## 4. Claim discipline
 
-Four things the evidence does **not** support, each of which was claimed at some point
+Five things the evidence does **not** support, each of which was claimed at some point
 while this work was being done:
 
 - **Not "where and how".** Binary matches 5-class (seed-matched +0.003 ± 0.011 on MTC,
@@ -179,6 +209,10 @@ while this work was being done:
   alone. Fixed with `weighting=none` on D1.
 - **Not "span-level detection recovers what per-position missed".** It does not: 1.6×
   chance, barely above the untrained judge's 1.2×.
+- **Not "the per-position head is blind to contiguous edits".** Tested within D3, where
+  manifold distance is held roughly fixed: precision is 0.825 on point-like drafts and
+  0.805 on span-like ones, a gap of +0.019. Recall does fall with run length; precision,
+  the quantity gating depends on, does not. Do not explain D2 by span length.
 
 ## 5. Title (closes P2)
 
@@ -210,6 +244,7 @@ gets one sentence as motivation, never as a demonstrated result.
 |---|---|
 | "Your method only works on the synthetic setting you criticise." | Yes — and that is the finding, stated as the title. The boundary is mapped from both sides, and the negative side is measured three independent ways. |
 | "Your detector is just weak / your models are too small." | Three answers. The same architecture, size and recipe reaches precision 0.728 on D1 — the difference is the drafts. Localization precision is flat from 1.6M to 42.7M parameters (corr with log-params −0.58), so it is information-limited, not capacity-limited. And the span task was given the true span-length prior and still failed. |
+| "Your per-position head just can't represent multi-note edits." | Tested within D3, holding manifold distance roughly fixed: precision 0.825 point-like against 0.805 span-like (+0.019). D3's span-like band is contiguous exactly as D2's infills are and still scores 0.805 against D2's 0.137. Granularity was also varied directly, in the span detector, with the same null. |
 | "Maybe the drafts aren't degraded, so there is nothing to find." | Tested and rejected: precision is flat across degradation bands; judge-certified degraded drafts are no more localizable. |
 | "+6% is small." | It is over *copy-input*. The published +6.3% was over an imitation baseline itself 21.4% worse than copying. |
 | "ΔNLL isn't musical correctness." | Conceded explicitly; calibrated against human variants; see §6. |
@@ -228,12 +263,13 @@ gets one sentence as motivation, never as a demonstrated result.
 
 ## 9. Remaining work
 
-1. ~~Model-size ablation~~ — done, 9/9 configurations; see contribution 6.
+1. ~~Model-size ablation~~ — done, 9/9 configurations; see contribution 8.
 2. **P6 related work** — McLeod et al. (MDT, ISMIR 2020) and Ramoneda et al. (RefinPaint,
    ISMIR 2024) need explicit positioning with a stated delta; plus Ji, Yang & Luo (2023),
    Lakh provenance, Vaswani et al. Zero citations in the introduction was a stated
    rejection reason.
 3. ~~D3 refinement sweep~~ — done; it falsified both accounts of the boundary and is
    reframed as a negative control (contribution 3).
-4. 5 seeds on the headline (seed 0 was an outlier once).
+4. 5 seeds on the headline (seed 0 was an outlier once). The within-D3 locality
+   stratification (contribution 4) is also single-seed and should be repeated.
 5. `scripts/` have no test coverage — that is how a broken-argparse bug reached a launch.
