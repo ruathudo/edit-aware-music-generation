@@ -179,14 +179,14 @@ The diagnostics identified localization **precision**, not F1, as the binding co
 | **gated (α=0.5, τ=0.9)** | **2.801** |
 | oracle (perfect localization) | 1.510 |
 
-**+0.180 ± 0.014 vs B3 = +6.04%, 3/3 seeds, p = 4.2×10⁻⁵².** Win 23.9%, loss 8.5%, tie 67.6% — it improves a quarter of melodies, damages under a tenth, and leaves two-thirds untouched. It recovers **12.2%** of the B3→oracle headroom.
+**+0.180 ± 0.014 CC vs B3 = +6.04%, 3/3 seeds (5.59 / 6.00 / 6.52%).** (A pooled Wilcoxon over melodies × seeds gives p = 4.2×10⁻⁵², but that is not a reproducibility statistic — report the per-seed values.) Win 23.9%, loss 8.5%, tie 67.6% — it improves a quarter of melodies, damages under a tenth, and leaves two-thirds untouched. It recovers **12.2%** of the B3→oracle headroom.
 
 For contrast: the published result was +6.3% over an imitation baseline that is itself **21.4% worse than simply copying the draft**. A comparable percentage measured against a far stronger reference.
 
 **D2-infill: gating declines to act, and is right to.** At τ=0.9 it returns **exactly +0.000 ± 0.000** on all three seeds — no edit is confident enough to be worth making at precision 0.22, so it degenerates to copying. At τ=0.7 it goes slightly negative. That dissociation is the cleanest statement of the thesis yet:
 
-- **D1** (off-manifold corruption, precision 0.678) → gating converts localization into a real 6% gain over copy-input.
-- **D2** (on-manifold drafts, precision 0.220) → no threshold makes editing worthwhile, and the gate correctly refuses.
+- **D1** (off-manifold corruption, precision 0.684) → gating converts localization into a real 6% gain over copy-input.
+- **D2** (on-manifold drafts, precision 0.137) → no threshold makes editing worthwhile, and the gate correctly refuses.
 
 A useful control falls out too: with α=0 the head exists but receives no edit loss, and gating on its untrained predictions is catastrophic (CC 29.2 against B3's 2.98). The gain comes from the auxiliary loss, not from the gating machinery.
 
@@ -202,15 +202,15 @@ The headline numbers are cross-corpus — `J` and `G` trained on Essen, referenc
 |---|---|---|
 | D1 vs B3 | +6.04% ± 0.014 | **+5.21% ± 0.020** |
 | D1 seeds positive | 3/3 | **3/3** |
-| D1 localization precision | 0.678 | **0.728** |
+| D1 localization precision | 0.684 | **0.728** |
 | D2 vs B3 | +0.00% ± 0.000 | **−0.03% ± 0.002** |
 | D2 seeds positive | 0/3 | 1/3 |
-| D2 localization precision | 0.220 | **0.137** |
+| D2 localization precision | 0.137 | **0.137** |
 | n (test drafts) | 1,080 | ~5,060 |
 
 Both halves replicate on a test set nearly five times larger.
 
-**And the dissociation is *stronger* same-corpus, which is the theory's own prediction.** Removing the corpus gap made D2 harder, not easier — precision fell 0.220 → 0.137. That is what should happen: `G` is an Essen model, so when it writes into Essen references its spans blend in perfectly, whereas against MTC references they stuck out slightly. A confound account predicts the opposite, that D2 would get easier once the mismatch was removed.
+**Correction (2026-09-23): the dissociation is *not* stronger same-corpus.** An earlier version of this section claimed D2 precision fell 0.220 → 0.137 once the corpus gap was removed, "the theory's own prediction". The 0.220 came from `D2-infill_surp0.json` — a single-seed α=1.0 run with judge-surprisal input — not from the gated baseline. Under the matched configuration D2 precision is **0.137 ± 0.010 (MTC) and 0.137 ± 0.006 (Essen)**: identical. The control does what a control needs to — both halves replicate, so the corpus mismatch is not driving the result — but it supplies no additional evidence for the theory.
 
 A control also falls out of the same runs: with α=0 the head receives no edit loss, and gating on its untrained predictions is catastrophic (−1005% against B3). The auxiliary loss, not the gating machinery, is what makes the gate usable.
 
@@ -247,7 +247,7 @@ The global-not-local finding prescribed span-level detection. It was built
 
 Changing granularity changed nothing, and the trained detector barely beats the untrained judge — so the encoder learned almost nothing the judge did not already supply. The span task was additionally given the true span-length range as a candidate prior, which a deployed system would not have; making it easier did not help.
 
-**The decisive control is that the same architecture, size and recipe reaches localization precision 0.728 on D1.** The difference lies in the drafts, not in the method — this is not a capacity or tuning failure.
+**The decisive control is that the same architecture, size and recipe reaches localization precision 0.68–0.73 on D1 (0.689 MTC binary, 0.728 same-corpus 5-class).** The difference lies in the drafts, not in the method — this is not a capacity or tuning failure.
 
 Three independent measurements now agree that generator-written material cannot be localized: the per-position head (~1.5× chance, flat across degradation bands), zero-shot pooled surprisal (1.2×), and the trained span detector (1.6×). **Localize-then-fix is the wrong formulation for model-generated drafts.** See `paper-framing.md` for what the paper claims as a result.
 
@@ -267,13 +267,15 @@ Two secondary findings matter more than the headline:
 
 ### D3, and the benchmark-validity spectrum
 
-D3 (rule-based musical degradation) is the **best-performing source and a negative control**, not a result: loc precision 0.776, gated +9.85% ± 0.040 (3/3 seeds, win 38.6% / loss 6.0%). Its edits come from the same rule family a detector can learn, so it reports the paper's best number precisely because the benchmark is circular.
+D3 (rule-based musical degradation) is the **best-performing source and a negative control**, not a result: loc precision 0.776, gated +9.69% (per seed 9.07 / 10.33 / 9.66%; win 36.9% / loss 4.5%) at τ=0.9. An earlier version quoted +9.85% ± 0.040, win 38.6% / loss 6.0% — that is the τ=0.7 result, not comparable with D1's τ=0.9 numbers. Its edits come from the same rule family a detector can learn, so it reports the paper's best number precisely because the benchmark is circular.
 
 | source | errors come from | ΔNLL/unit | loc precision | gated vs B3 |
 |---|---|---|---|---|
-| D3 rule-based | rules we wrote | 2.97 | 0.776 | +9.85% |
-| D1 random | unsystematic noise | 3.94 | 0.728 | +6.04% |
-| D2 generated | a real generator | 0.90 | 0.137 | +0.00% |
+| D3 rule-based | rules we wrote | 2.97 | 0.776 | +9.69% |
+| D1 random | unsystematic noise | 3.94 | 0.689 | +5.93% |
+| D2 generated | a real generator | 1.16 | 0.137 | +0.00% |
+
+MTC references, α=0.5, τ=0.9, three seeds. D1/D3: binary head, `weighting=none`. **D2 differs**: 5-class head, `weighting=capped` (no binary-head D2 run exists yet). ΔNLL/unit for D2 is the T=1.0 infill row, matching the drafts the refiner actually trained on; 0.90 is the T=0.8 row.
 
 **Localizability collapses as drafts get more realistic, and apparent method performance falls with it.** That trend needs all three points; D1/D2 alone is a contrast, not a curve.
 
