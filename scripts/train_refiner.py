@@ -259,6 +259,10 @@ def main():
                         help="which split supplies the test references")
     parser.add_argument("--gated-thresholds", type=float, nargs="*", default=[],
                         help="evaluate gated decoding at these confidence thresholds")
+    parser.add_argument("--eval-splits", nargs="+", default=["test"], choices=["val", "test"],
+                        help="splits to decode and score. Hyperparameter selection runs "
+                             "must use 'val' alone, so test results are never seen "
+                             "while choosing alpha, tau or the weighting")
     parser.add_argument("--surprisal", action="store_true",
                         help="feed the judge's per-token surprisal to the encoder")
     parser.add_argument("--judge", default="models/judge.pth")
@@ -315,11 +319,20 @@ def main():
         print("attached judge surprisal to all splits")
 
     # B3: the lower bound. A model that cannot beat this is not correcting.
-    b3 = copy_input_baseline(
-        [(e.draft_notes, e.reference.notes) for e in datasets[2].examples]
-    )
-    print(f"\nB3 copy-input: CC {b3['correction_cost_mean']:.2f} "
-          f"({b3['correction_cost_per_note']:.4f}/note)")
+    split_index = {"val": 1, "test": 2}
+    b3_by_split = {
+        split: copy_input_baseline(
+            [(e.draft_notes, e.reference.notes) for e in datasets[split_index[split]].examples]
+        )
+        for split in args.eval_splits
+    }
+    for split, block in b3_by_split.items():
+        print(f"\nB3 copy-input ({split}): CC {block['correction_cost_mean']:.2f} "
+              f"({block['correction_cost_per_note']:.4f}/note)")
+    # The primary split fills the top-level row fields, as before; any other
+    # split is nested under its own name.
+    primary = "test" if "test" in args.eval_splits else args.eval_splits[0]
+    b3 = b3_by_split[primary]
 
     results = []
     conditions = [(a, True) for a in args.alphas]
@@ -331,15 +344,24 @@ def main():
             model, history, label = train_one(
                 args, alpha, seed, use_head, splits, tokenizer, datasets, device
             )
-            metrics = evaluate(model, datasets[2], tokenizer, device,
-                               gated_thresholds=tuple(args.gated_thresholds),
-                               binary=(args.head_type == "binary"))
-            costs = metrics.pop("costs")
-            gated_blocks = metrics.pop("gated", {})
-            for threshold, block in gated_blocks.items():
-                np.save(cost_dir / f"costs_{label}_gated{threshold}.npy", block.pop("costs"))
-            if gated_blocks:
-                metrics["gated"] = gated_blocks
+            by_split = {}
+            for split in args.eval_splits:
+                m = evaluate(model, datasets[split_index[split]], tokenizer, device,
+                             gated_thresholds=tuple(args.gated_thresholds),
+                             binary=(args.head_type == "binary"))
+                suffix = "" if split == primary else f"_{split}"
+                np.save(cost_dir / f"costs_{label}{suffix}.npy", m.pop("costs"))
+                gated_blocks = m.pop("gated", {})
+                for threshold, block in gated_blocks.items():
+                    np.save(cost_dir / f"costs_{label}{suffix}_gated{threshold}.npy",
+                            block.pop("costs"))
+                if gated_blocks:
+                    m["gated"] = gated_blocks
+                by_split[split] = m
+            metrics = by_split[primary]
+            for split, m in by_split.items():
+                if split != primary:
+                    metrics[split] = m
 
             row = {
                 "label": label, "alpha": alpha, "seed": seed,
@@ -350,7 +372,6 @@ def main():
                 "best_val_loss": min(history["val"]),
             }
             results.append(row)
-            np.save(cost_dir / f"costs_{label}.npy", costs)
 
             summary = (f"  -> CC {row['correction_cost']:.2f} "
                        f"({row['correction_cost_per_note']:.4f}/note)  "
@@ -366,8 +387,13 @@ def main():
                       f"vs B3 {delta:+.3f}{'  BEATS B3' if delta > 0 else ''}")
 
     save_json({"b3_copy_input": {k: v for k, v in b3.items() if k != "costs"},
+               "b3_by_split": {s: {k: v for k, v in b.items() if k != "costs"}
+                               for s, b in b3_by_split.items()},
+               "primary_split": primary,
                "rows": results, "config": vars(args)}, args.out)
-    np.save(cost_dir / "costs_b3.npy", b3["costs"])
+    for split, block in b3_by_split.items():
+        suffix = "" if split == primary else f"_{split}"
+        np.save(cost_dir / f"costs_b3{suffix}.npy", block["costs"])
 
     print(f"\n{'condition':24s} {'CC/note':>9s} {'fidelity':>9s} {'macroF1':>8s} {'locF1':>7s}")
     print("-" * 62)
