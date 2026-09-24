@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."
 W=$1; A=$2; T=$3; OUT=${4:-results/refiner/headline}
 mkdir -p "$OUT"
 common=(--alphas 0 "$A" --seeds 0 1 2 --head-type binary --weighting "$W"
-        --per-melody 3 --gated-thresholds "$T" --eval-splits test)
+        --per-melody 3 --gated-thresholds "$T" --eval-splits test --save-artifacts)
 
 run() {  # corpus source
   local corpus=$1 src=$2 tag

@@ -7,15 +7,23 @@ Rewritten 2026-09-22 after span-level detection failed. The earlier version expe
 span-level detection to rescue the realistic-draft setting; it did not, and the thesis
 below is the one the evidence supports. Updated 2026-09-23 with the within-D3 locality
 stratification, which rules out edit contiguity as the account of the boundary
-(contribution 4). Numbers reconciled against the result files 2026-09-23 (§9 step 1);
-the framing itself is still to be revised (§9 step 9).
+(contribution 4). Numbers reconciled against the result files 2026-09-23 (§9 step 1),
+and the headline re-run under validation-selected settings 2026-09-24 (§9 steps 2–3).
+The framing itself is still to be revised (§9 step 9).
 
-**Reporting conventions.** Unless stated otherwise: MTC-ANN references, α=0.5, τ=0.9,
-three seeds. "Gated vs B3" is (CC_B3 − CC_gated) / CC_B3 on per-seed means, averaged
-over seeds; spread is the sample sd of the per-seed percentages, in percentage points.
-Localization precision is at input positions, KEEP vs any edit. **Caveat on every
-headline number: α, τ and the class weighting were selected by looking at test-set
-results. Step 2 of §9 re-selects them on validation data.**
+**Reporting conventions.** Unless stated otherwise: MTC-ANN references, three seeds,
+and **one setting for every source and corpus — binary head, `weighting=none`, α=0.5,
+τ=0.8 — selected on D1 *validation* data** (`scripts/select_settings.py`; test decoded
+at τ\* only). Canonical numbers are `results/refiner/headline_r2/`. "Gated vs B3" is
+(CC_B3 − CC_gated) / CC_B3 per seed, averaged over seeds; spread is the sample sd of the
+per-seed percentages, in percentage points. Localization is compared threshold-free —
+AP lift (average precision ÷ base rate) and AUROC of the head's P(edit) — because
+argmax precision is undefined for a head that barely flags. **Gate precision** is
+precision among the positions the gate actually edits.
+
+Runs are not bit-reproducible: cuDNN determinism is not set, so an identical seed gives
+a slightly different model. Two full runs of the headline differ by up to 1.17 pp on one
+seed and 0.36 pp on a cell mean (`headline/` vs `headline_r2/`); state this.
 
 ---
 
@@ -23,9 +31,9 @@ results. Step 2 of §9 re-selects them on validation data.**
 
 > **Apparent progress on symbolic draft refinement is largely a function of how the
 > drafts were made.** Across three sources under identical machinery, localizability
-> collapses as drafts become more realistic — rule-based degradation 0.776 precision,
-> random corruption 0.689, generator output 0.137 — and measured performance falls with
-> it, +9.69% to +5.93% to +0.00%. Generated drafts are the realistic case, and they are
+> collapses as drafts become more realistic — AUROC 0.74 for rule-based degradation,
+> 0.73 for random corruption, 0.64 for generator output — and measured performance
+> falls with it, +9.98% to +6.35% to +0.00%. Generated drafts are the realistic case, and they are
 > **not locally wrong**: the material the generator wrote cannot be identified per note,
 > per span, by a trained detector, or by the judge's own surprisal. *Localize-then-fix*
 > is the wrong formulation for that class of draft. Where errors genuinely are local,
@@ -53,19 +61,29 @@ obvious fix — use a generator — produces drafts nothing can localize.
 3. **Localizability collapses as drafts become more realistic — and apparent method
    performance falls with it.** Three draft sources, same machinery, three seeds each:
 
-   | source | errors come from | ΔNLL/unit | loc precision | gated vs B3 |
-   |---|---|---|---|---|
-   | D3 rule-based | rules we wrote | 2.97 | 0.776 ± 0.043 | +9.69% ± 0.63 pp |
-   | D1 random | unsystematic noise | 3.94 | 0.689 ± 0.009 | +5.93% ± 0.33 pp |
-   | D2 generated | a real generator | 1.16 | 0.137 ± 0.010 † | +0.00% ± 0.00 pp † |
+   | source | errors come from | ΔNLL/unit | edit rate | AP lift | AUROC | gate flags / P | gated vs B3 |
+   |---|---|---|---|---|---|---|---|
+   | D3 rule-based | rules we wrote | 2.97 | 8.2% | 5.0× | 0.743 ± 0.038 | 1,968 / 0.904 | +9.98% ± 0.30 pp |
+   | D1 random | unsystematic noise | 3.94 | 6.0% | 5.8× | 0.727 ± 0.005 | 1,489 / 0.823 | +6.35% ± 0.48 pp |
+   | D2 generated | a real generator | 1.16 | 7.3% | 1.6× | 0.635 ± 0.003 | **0** / — | +0.00% ± 0.00 pp |
 
-   D1/D3: binary head, `weighting=none` (`d1_binary.json`, `d3_gated.json`). † D2 is
-   **not the same configuration**: 5-class head, `weighting=capped` (`d2_gated.json`);
-   `weighting=none` collapses the D2 head to KEEP everywhere. A binary-head D2 run is
-   §9 step 3. ΔNLL/unit: D1/D3 from `validator_report.json` (n≈1,080); D2 from the
-   `D2-infill T=1.0` row of `d2_report.json` (n=352), the temperature the refiner's
-   drafts actually used. Earlier versions of this table quoted D1 0.728 (the Essen
-   same-corpus run), D3 +9.85% (the τ=0.7 result), and D2 0.90 (the T=0.8 row).
+   Same-corpus (Essen references): D3 4.3× / 0.718 / +7.30%, D1 5.8× / 0.732 / +4.47%,
+   D2 1.8× / 0.654 / +0.00%. Every D1 and D3 cell is 3/3 seeds on both corpora.
+
+   **This is now one configuration end to end**, which the earlier table was not (it
+   gave D2 a different head and weighting). Under it the D2 head **collapses to KEEP**:
+   0 of ~52k positions clear τ on any seed, and argmax flags number 0–16 per seed
+   against D1's ~2,300 — although D2 has *more* true edits (7.3% of positions against
+   6.0%). Same loss, more positives, and the head finds nothing worth flagging. This
+   is cleaner evidence than the old precision 0.137, because nothing about the method
+   differs between the sources.
+
+   D2 is not information-free: AUROC 0.64 and AP lift 1.6–1.8× show a weak ranking
+   signal, the same ~1.5× the earlier measurements found. It is too weak for any
+   position to be worth editing.
+
+   ΔNLL/unit: D1/D3 from `validator_report.json` (n≈1,080); D2 from the `D2-infill
+   T=1.0` row of `d2_report.json` (n=352), the temperature the refiner's drafts used.
 
    **D3 is a negative control, not a result.** Its edits come from the same rule family
    a detector can learn — out-of-scale, unsingable leap, cadential disruption — so it
@@ -75,17 +93,24 @@ obvious fix — use a generator — produces drafts nothing can localize.
    the result is that it is worse in a different way — more realistic-sounding errors,
    less valid as a benchmark. Anyone about to build one needs to know that.
 
-   D3 also earns its place by falsifying the two obvious accounts of the boundary. It is
-   *less* off-manifold than D1 (2.97 against 3.94) and *less* point-like (mean edited run
-   1.50 against 1.05), yet *more* localizable. So neither manifold distance nor edit
-   locality governs on its own. The working hypothesis — held as a hypothesis, since two
+   D3 also bears on the two obvious accounts of the boundary. It is *less* off-manifold
+   than D1 (2.97 against 3.94) and *less* point-like (mean edited run 1.50 against
+   1.05), yet **no less localizable**. **Revised 2026-09-24:** earlier versions said
+   "more localizable", from argmax precision. Threshold-free the two are level (AUROC
+   0.743 vs 0.727 MTC, 0.718 vs 0.732 Essen; AP lift is lower for D3, 5.0× vs 5.8×).
+   D3 wins only in the **confident tail** — gate precision 0.904 against 0.823 — and
+   that is where its larger gated gain comes from. So D3 does not *falsify* manifold
+   distance; it shows that a source 25% less off-manifold is just as localizable, which
+   is evidence against manifold distance as the *sole* governor, not a refutation. The
+   locality account is refuted separately (contribution 4). So neither manifold distance
+   nor edit locality governs on its own. The working hypothesis — held as a hypothesis, since two
    earlier accounts were already falsified — is that what matters is whether the error
    has a **learnable regularity**: off-manifold is necessary but not sufficient, and the
    deviation must also be systematic enough to train a detector for. D3's errors are
    rule-shaped, D1's are unsystematic, D2's are in-distribution by construction.
 
-   **The D1 result stays the headline** (+6.04%, replicated same-corpus, 9/9 size
-   configurations) precisely because random corruption is not something we designed a
+   **The D1 result stays the headline** (+6.35%, replicated same-corpus at +4.47%, 9/9
+   size configurations) precisely because random corruption is not something we designed a
    detector for.
 
 4. **The boundary is not about contiguity.** The obvious alternative account of
@@ -104,8 +129,10 @@ obvious fix — use a generator — produces drafts nothing can localize.
 
    **Precision is flat — +0.019 end to end — so contiguity is not what breaks
    localization.** And the comparison that settles it: D3's span-like band is contiguous
-   in exactly the way D2's infilled spans are, yet holds precision **0.805 against D2's
-   0.137**. What contiguity does cost is *recall*, which halves (0.427 → 0.210) as the
+   in exactly the way D2's infilled spans are, yet holds precision **0.805**, while D2's
+   head under a matched setting flags nothing at all (AUROC 0.64 against D3's 0.74).
+   *These strata were measured at the earlier τ=0.9 / argmax-precision setting; §9 step
+   6 re-runs them under the validation-selected setting, threshold-free.* What contiguity does cost is *recall*, which halves (0.427 → 0.210) as the
    head flags part of a long run and misses the rest — the same recall/precision
    dissociation as contribution 9, and precision is the binding constraint.
 
@@ -125,8 +152,8 @@ obvious fix — use a generator — produces drafts nothing can localize.
    | judge surprisal pooled over spans, zero-shot | 1.2× chance |
    | trained span detector, interior + both boundary states, 3 seeds | 1.6× chance (0.75% ± 0.19% top-1 against 0.48% chance) |
 
-   **The decisive control: the same architecture, size and recipe reaches localization
-   precision 0.68–0.73 on D1** (0.689 MTC, 0.728 same-corpus). The difference is in the drafts, not the method — this is
+   **The decisive control: the same architecture, size, recipe and setting reaches AP
+   lift 5.8× and AUROC 0.73 on D1, against 1.6× and 0.64 on D2** — on both corpora. The difference is in the drafts, not the method — this is
    not a capacity or tuning failure. The span task was also given an unfair advantage
    (candidates restricted to the true span-length range, which a deployed system would
    not know) and still failed.
@@ -155,17 +182,21 @@ obvious fix — use a generator — produces drafts nothing can localize.
 7. **Precision-gated decoding, where errors are local.** Copy by default; hand an event
    to the decoder only when the head's confidence clears τ. **At τ=1 the output is the
    draft verbatim, so the method provably cannot do worse than leaving the draft
-   alone.** +6.04% over copy-input on D1 with the 5-class head (per seed 5.59 / 6.00 /
-   6.52%) and +5.93% with the recommended binary head (5.90 / 5.62 / 6.28%); replicated
-   same-corpus at +5.21% (5.69 / 5.49 / 4.46%) on a 5× larger test set. Report per-seed
-   values, not the pooled Wilcoxon p (4.2e-52), which treats melodies × seeds as
-   independent. On D2 it returns ≈0.00% — it
-   abstains, which is correct given precision 0.137.
+   alone.** **+6.35% over copy-input on D1** (per seed 5.87 / 6.83 / 6.34%; win 23.0%,
+   loss 6.3%), with the binary head and settings chosen on validation; replicated
+   same-corpus at **+4.47%** (4.10 / 4.75 / 4.55%) on a 5× larger test set. A second full
+   run gave +5.99% and +4.55%. Among the positions the gate edits, 82% are true errors.
+   Validation selection over 96 settings found the gain flat — every weighting peaks at
+   6.3–6.5% on validation, 84/96 settings beat copy-input on all seeds — so the result
+   is not a product of tuning. Report per-seed values, not a pooled Wilcoxon p, which
+   treats melodies × seeds as independent. On D2 it returns exactly 0.00% — no position
+   clears τ on any seed, so it abstains, which is correct given AUROC 0.64.
 
 8. **The gain holds across capacity, and the gate bounds the damage.** Nine
    configurations, 2/4/8 layers × d_model 128/256/512, 1.6M to 42.7M parameters (26×),
    three seeds each. **Gated editing beats copy-input in 9/9 configurations on every
-   seed**, +3.78% to +6.99%, mean +5.85%.
+   seed**, +3.78% to +6.99%, mean +5.85%. *(Run at the earlier none / 0.5 / 0.9 setting,
+   which validation ranks 2nd of 96, 0.07 pp behind the selected one; not re-run.)*
 
    Two things in that sweep matter more than the headline. **Localization precision is
    flat across the whole range** — 0.655 to 0.719, correlation with log-parameters
@@ -265,8 +296,8 @@ gets one sentence as motivation, never as a demonstrated result.
   the unfair advantage given to the span task — then let the reader judge.
 - `J` is trained on Essen and scores MTC in the headline numbers (0.1365 nats/token
   domain gap). The same-corpus control rules out the confound: both halves replicate,
-  and D2 precision is identical across corpora (0.137 ± 0.010 MTC, 0.137 ± 0.006
-  Essen). An earlier version claimed the dissociation was *stronger* same-corpus
+  and D2 localization is equally weak on both corpora (AP lift 1.6× MTC, 1.8× Essen;
+  AUROC 0.635 and 0.654). An earlier version claimed the dissociation was *stronger* same-corpus
   (0.220 → 0.137); the 0.220 came from a single-seed surprisal-input run and the claim
   is withdrawn.
 
@@ -275,8 +306,8 @@ gets one sentence as motivation, never as a demonstrated result.
 | objection | answer |
 |---|---|
 | "Your method only works on the synthetic setting you criticise." | Yes — and that is the finding, stated as the title. The boundary is mapped from both sides, and the negative side is measured three independent ways. |
-| "Your detector is just weak / your models are too small." | Three answers. The same architecture, size and recipe reaches precision 0.68–0.73 on D1 — the difference is the drafts. Localization precision is flat from 1.6M to 42.7M parameters (corr with log-params −0.58), so it is information-limited, not capacity-limited. And the span task was given the true span-length prior and still failed. |
-| "Your per-position head just can't represent multi-note edits." | Tested within D3, holding manifold distance roughly fixed: precision 0.825 point-like against 0.805 span-like (+0.019). D3's span-like band is contiguous exactly as D2's infills are and still scores 0.805 against D2's 0.137. Granularity was also varied directly, in the span detector, with the same null. |
+| "Your detector is just weak / your models are too small." | Three answers. The same architecture, size, recipe and setting reaches AP lift 5.8× on D1 against 1.6× on D2 — the difference is the drafts. Localization precision is flat from 1.6M to 42.7M parameters (corr with log-params −0.58), so it is information-limited, not capacity-limited. And the span task was given the true span-length prior and still failed. |
+| "Your per-position head just can't represent multi-note edits." | Tested within D3, holding manifold distance roughly fixed: precision 0.825 point-like against 0.805 span-like (+0.019). D3's span-like band is contiguous exactly as D2's infills are and still scores 0.805, while D2's head under a matched setting flags nothing. Granularity was also varied directly, in the span detector, with the same null. |
 | "Maybe the drafts aren't degraded, so there is nothing to find." | Tested and rejected: precision is flat across degradation bands; judge-certified degraded drafts are no more localizable. |
 | "+6% is small." | It is over *copy-input*. The published +6.3% was over an imitation baseline itself 21.4% worse than copying. |
 | "ΔNLL isn't musical correctness." | Conceded explicitly; calibrated against human variants; see §6. |
@@ -310,14 +341,20 @@ still be ordered by what carries the thesis.
    **D2 training and evaluation data are not judge-filtered** (spec §3.2 made the filter
    mandatory), and **the class weighting was selected on the test set**.
 
-2. **Remove test-set selection** *(reruns)*. `weighting_ablation.py` picks the weighting
+2. ~~**Remove test-set selection**~~ *Done 2026-09-24.* Validation picks none / 0.5 /
+   0.8; the old test-selected none / 0.5 / 0.9 ranks 2nd of 96, 0.07 pp behind, so the
+   earlier selection did not inflate results. Headline re-run twice (`headline/`,
+   `headline_r2/`; the second saves checkpoints, P(edit) and outputs). Found on the way:
+   runs are not bit-reproducible — consider `torch.use_deterministic_algorithms` for
+   anything run from here on. Original description: `weighting_ablation.py` picks the weighting
    by test macro-F1, and α=0.5 and τ=0.9 were chosen after seeing test results. Select
    all three on the validation split, by localization precision for τ and the gated CC
    for α, then rerun the headline gated evaluation (D1, D2, D3; MTC and same-corpus).
    Comes first because every later step inherits these settings.
 
-3. **D2 with a binary head**, three seeds, MTC and same-corpus, with the weighting
-   chosen in step 2. Makes the source comparison one configuration end to end.
+3. ~~**D2 with a binary head**~~ *Done 2026-09-24, inside step 2's headline.* The D2 head
+   collapses to KEEP under the global setting; localization is now compared
+   threshold-free (`scripts/localization_report.py`).
 
 4. **Musical quality of outputs.** Judge NLL, scale conformance and interval distance
    for B3 / B1 / free / gated / oracle outputs on D1, D2, D3. Needed because

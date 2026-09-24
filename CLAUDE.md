@@ -303,6 +303,29 @@ What locality *does* cost is **recall**, which halves (0.427 → 0.210): the hea
 
 So **manifold distance survives where locality does not**, though D3 itself already showed manifold distance is insufficient alone (less off-manifold than D1, more localizable). Learnable regularity remains the working hypothesis. Caveats: one seed, D3 only, and the bands are sized 544/262/188.
 
+### Validation-selected headline (2026-09-24) — supersedes the numbers above
+
+Every headline number above inherited α, τ and the class weighting from looking at test results. `scripts/select_settings.py` now picks **one global setting on D1 validation** (runs with `--eval-splits val` never decode test): **binary head, `weighting=none`, α=0.5, τ=0.8**. The old none / 0.5 / 0.9 ranks 2nd of 96, 0.07 pp behind, so the earlier selection did not inflate anything. The landscape is flat: every weighting peaks at 6.3–6.5%, and 84/96 settings beat copy-input on all seeds.
+
+`scripts/run_headline.sh none 0.5 0.8` applies it to every source and both corpora (`results/refiner/headline_r2/`, canonical; `headline/` is a first run without artifacts). `scripts/headline_report.py` and `scripts/localization_report.py` summarize.
+
+| corpus | source | AP lift | AUROC | gate flags / precision | gated vs B3 |
+|---|---|---|---|---|---|
+| MTC | D3 | 5.0× | 0.743 | 1,968 / 0.904 | +9.98% ± 0.30 |
+| MTC | D1 | 5.8× | 0.727 | 1,489 / 0.823 | **+6.35% ± 0.48** |
+| MTC | D2 | 1.6× | 0.635 | **0** / — | +0.00% |
+| Essen | D3 | 4.3× | 0.718 | 5,972 / 0.865 | +7.30% ± 0.32 |
+| Essen | D1 | 5.8× | 0.732 | 6,366 / 0.788 | +4.47% ± 0.34 |
+| Essen | D2 | 1.8× | 0.654 | **0** / — | +0.00% |
+
+Three things changed in the story:
+
+- **D2's head collapses to KEEP under the global setting**, even though D2 has more true edits than D1 (7.3% vs 6.0% of positions). With nothing about the method differing between sources, this replaces the old D2 precision 0.137, which came from a different head and weighting.
+- **Localization is compared threshold-free** (AP ÷ base rate, AUROC), because argmax precision is undefined for a head that barely flags. D2 keeps a weak ranking signal (AUROC ~0.64) that is too weak to act on.
+- **D3 is not more localizable than D1 threshold-free** — AUROC level, AP lift lower. It wins only in the confident tail (gate precision 0.90 vs 0.82). "D3 falsifies manifold distance" weakens to "evidence against manifold distance as the sole governor".
+
+Runs are **not bit-reproducible** (cuDNN determinism unset): two full runs differ by up to 1.17 pp on a seed, 0.36 pp on a cell mean. `--save-artifacts` saves checkpoints (gitignored, ~23 MB each), per-position P(edit) (committed), and decoded outputs (gitignored, large) — later analyses should read those rather than retrain.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

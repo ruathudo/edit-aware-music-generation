@@ -88,6 +88,11 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=
 
     rows, predicted_edits, actual_edits = [], [], []
     gated = {t: [] for t in gated_thresholds}
+    # Artifacts for analyses that must not need retraining: the head's
+    # per-position P(edit) for threshold-free localization metrics, and the
+    # decoded outputs for scoring musical quality.
+    edit_probs, edit_truth, prob_example = [], [], []
+    free_outputs, gated_outputs = [], {t: [] for t in gated_thresholds}
 
     for source, labels, _, _, batch in loader:
         source = source.to(device)
@@ -95,17 +100,25 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=
         outputs = generate_corrections(model, tokenizer, source, surprisal=surprisal)
 
         if model.edit_head is not None:
-            predictions = model.predict_edits(source, surprisal=surprisal).cpu()
+            with torch.no_grad():
+                logits = model.edit_head(model.encode(source, surprisal=surprisal))
+            predictions = logits.argmax(dim=-1).cpu()
+            p_edit = (1.0 - logits.softmax(dim=-1)[..., 0]).cpu()  # class 0 is KEEP
             truth = binarize_labels(labels) if binary else labels
-            for row, label_row in zip(predictions, truth):
+            binary_truth = binarize_labels(labels)
+            for i, (row, label_row) in enumerate(zip(predictions, truth)):
                 keep = label_row != IGNORE_INDEX
                 predicted_edits.extend(row[keep].tolist())
                 actual_edits.extend(label_row[keep].tolist())
+                edit_probs.extend(p_edit[i][keep].tolist())
+                edit_truth.extend(binary_truth[i][keep].tolist())
+                prob_example.extend([len(rows) + i] * int(keep.sum()))
 
         for output, example in zip(outputs, batch):
             rows.append(
                 sample_metrics(output, example.draft_notes, example.reference.notes)
             )
+            free_outputs.append([list(n) for n in output])
 
         # Gated decoding: copy by default, edit only where the head is confident.
         # Threshold 1.0 reproduces B3 exactly, so this can only improve on it.
@@ -118,6 +131,7 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=
                     gated[threshold].append(
                         sample_metrics(output, example.draft_notes, example.reference.notes)
                     )
+                    gated_outputs[threshold].append([list(n) for n in output])
 
     summary = {
         key: float(np.mean([r[key] for r in rows]))
@@ -126,6 +140,13 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=
     }
     summary["n"] = len(rows)
     summary["costs"] = np.array([r["correction_cost"] for r in rows])
+    summary["artifacts"] = {
+        "edit_probs": np.array(edit_probs, dtype=np.float32),
+        "edit_truth": np.array(edit_truth, dtype=np.int8),
+        "prob_example": np.array(prob_example, dtype=np.int32),
+        "free_outputs": free_outputs,
+        "gated_outputs": {str(t): o for t, o in gated_outputs.items() if o},
+    }
     if predicted_edits:
         summary["edit_scores"] = edit_prediction_scores(
             predicted_edits, actual_edits, n_classes=2 if binary else 5)
@@ -139,6 +160,29 @@ def evaluate(model, dataset, tokenizer, device, batch_size=32, gated_thresholds=
             for t, rs in gated.items() if rs
         }
     return summary
+
+
+def save_artifacts(directory, stem, artifacts, dataset):
+    """Head probabilities as .npz; drafts, references and outputs as JSON.
+
+    Drafts and references are stored alongside the outputs so a later analysis
+    can score them without rebuilding the draft corpus.
+    """
+    if len(artifacts["edit_probs"]):
+        np.savez_compressed(
+            directory / f"probs_{stem}.npz",
+            p_edit=artifacts["edit_probs"], is_edit=artifacts["edit_truth"],
+            example=artifacts["prob_example"],
+        )
+    records = []
+    for i, example in enumerate(dataset.examples):
+        records.append({
+            "draft": [list(n) for n in example.draft_notes],
+            "reference": [list(n) for n in example.reference.notes],
+            "free": artifacts["free_outputs"][i],
+            **{f"gated_{t}": o[i] for t, o in artifacts["gated_outputs"].items()},
+        })
+    (directory / f"outputs_{stem}.json").write_text(json.dumps(records))
 
 
 def train_one(args, alpha, seed, use_head, splits, tokenizer, datasets, device):
@@ -259,6 +303,9 @@ def main():
                         help="which split supplies the test references")
     parser.add_argument("--gated-thresholds", type=float, nargs="*", default=[],
                         help="evaluate gated decoding at these confidence thresholds")
+    parser.add_argument("--save-artifacts", action="store_true",
+                        help="save each model's checkpoint, per-position P(edit), and "
+                             "decoded outputs next to the cost arrays")
     parser.add_argument("--eval-splits", nargs="+", default=["test"], choices=["val", "test"],
                         help="splits to decode and score. Hyperparameter selection runs "
                              "must use 'val' alone, so test results are never seen "
@@ -351,6 +398,10 @@ def main():
                              binary=(args.head_type == "binary"))
                 suffix = "" if split == primary else f"_{split}"
                 np.save(cost_dir / f"costs_{label}{suffix}.npy", m.pop("costs"))
+                artifacts = m.pop("artifacts")
+                if args.save_artifacts:
+                    save_artifacts(cost_dir, f"{label}{suffix}", artifacts,
+                                   datasets[split_index[split]])
                 gated_blocks = m.pop("gated", {})
                 for threshold, block in gated_blocks.items():
                     np.save(cost_dir / f"costs_{label}{suffix}_gated{threshold}.npy",
@@ -358,6 +409,10 @@ def main():
                 if gated_blocks:
                     m["gated"] = gated_blocks
                 by_split[split] = m
+            if args.save_artifacts:
+                torch.save({"state_dict": model.state_dict(), "config": vars(model.config),
+                            "label": label, "args": vars(args)},
+                           cost_dir / f"model_{label}.pt")
             metrics = by_split[primary]
             for split, m in by_split.items():
                 if split != primary:
