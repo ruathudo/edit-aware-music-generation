@@ -212,6 +212,49 @@ obvious fix — use a generator — produces drafts nothing can localize.
    guarantee doing real work, and for a deployable tool the graceful degradation is
    arguably worth more than the 6%.
 
+10. **Gated editing is the only condition that improves both Correction Cost and
+    plausibility — and free decoding shows why CC alone cannot be trusted.** The
+    decoded outputs scored by the judge (`scripts/output_quality.py`; ΔNLL is output
+    minus reference, "recovered" is the share of the draft's ΔNLL removed):
+
+    | MTC | CC vs copy-input | ΔNLL | recovered | on edited melodies |
+    |---|---|---|---|---|
+    | D1 draft (B3) | 0 | +0.298 | — | — |
+    | D1 B1 free | −24.7% | +0.176 | +40.9% | — |
+    | D1 EA gated | **+6.35%** | +0.250 | +16.3% | **+30.1%**, 2.8% made less plausible |
+    | D3 EA gated | +9.98% | +0.166 | +38.8% | +47.5%, 1.4% less plausible |
+    | D2 B1 free | −3.0% | +0.135 | +2.7% | — |
+    | D2 EA gated | +0.00% | +0.139 | 0 | gate never opens |
+
+    Essen replicates every row (D1 gated edited subset +31.1%, 2.8% less plausible;
+    D3 +53.3%, 0.7%; D2 free +5.8%).
+
+    **The CC gain is not bought with plausibility.** Where the gate edits, the judge
+    finds the melody more plausible in 97.6% of cases (MTC D1, seed 0) and removes 30%
+    of the draft's implausibility. The overall +16% is diluted by the half of melodies
+    the gate leaves alone.
+
+    **Free decoding "wins" on plausibility while losing on CC — the dissociation of
+    contribution 2, reproduced on model outputs.** It recovers 41% of the implausibility
+    against gated's 16%, yet is 25% *worse* than copying on CC. It decodes greedily, so
+    it regenerates toward the language model's mode: 14.5% of its outputs are *more*
+    plausible than the reference itself (drafts: 5.2%), and a third of the melodies it
+    changes end up both more plausible and further from the reference. A plausibility-
+    only evaluation would crown free decoding; a CC-only evaluation hides that gated
+    editing improves the music. **Report both; the claim for gated editing is that it is
+    the only condition that beats the draft on both axes.**
+
+    Two smaller findings. D2's implausibility resists even regeneration (free decoding
+    recovers 3–6%), consistent with damage that is contextual rather than located. And
+    gated editing leaves D1's metric misalignment untouched (Δ −0.117 against the
+    draft's −0.119, where free decoding reaches −0.071): the gate acts on pitch errors,
+    matching the head-type finding that duration substitutions are poorly predicted.
+
+    Caveat: the judge is a language model and so shares free decoding's preference for
+    typical continuations; the 14.5%-above-reference figure is itself evidence that ΔNLL
+    rewards mode-seeking. The breakdown percentages (97.6%, 14.5%, a third) are from one
+    seed of MTC D1.
+
 9. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
    ground-truth labels the model removes 49.3% of the draft's error (D1); the real head
    recovers 12.2%. Raising *recall* (judge surprisal, 0.245 → 0.314) made CC *worse*,
@@ -356,7 +399,7 @@ still be ordered by what carries the thesis.
    collapses to KEEP under the global setting; localization is now compared
    threshold-free (`scripts/localization_report.py`).
 
-4. **Musical quality of outputs.** Judge NLL, scale conformance and interval distance
+4. ~~**Musical quality of outputs.**~~ *Done 2026-09-24 — contribution 10, `quality.json`.* Judge NLL, scale conformance and interval distance
    for B3 / B1 / free / gated / oracle outputs on D1, D2, D3. Needed because
    contribution 2 argues CC cannot carry an evaluation, while the positive result is
    currently CC-only. Check whether refiner checkpoints were kept; if not, rerun.

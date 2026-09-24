@@ -326,6 +326,20 @@ Three things changed in the story:
 
 Runs are **not bit-reproducible** (cuDNN determinism unset): two full runs differ by up to 1.17 pp on a seed, 0.36 pp on a cell mean. `--save-artifacts` saves checkpoints (gitignored, ~23 MB each), per-position P(edit) (committed), and decoded outputs (gitignored, large) — later analyses should read those rather than retrain.
 
+### Output quality: the CC gain is not bought with plausibility (2026-09-24)
+
+`scripts/output_quality.py` scores the saved outputs with `J` (same-corpus runs with `judge_ctrl.pth`). ΔNLL is output minus reference; "recovered" is the share of the draft's ΔNLL removed. MTC:
+
+| | CC vs copy | ΔNLL | recovered |
+|---|---|---|---|
+| D1 draft | 0 | +0.298 | — |
+| D1 B1 free (greedy) | −24.7% | +0.176 | +40.9% |
+| D1 EA gated | +6.35% | +0.250 | +16.3% overall, **+30.1% on edited melodies (2.8% made worse)** |
+| D3 EA gated | +9.98% | +0.166 | +47.5% on edited melodies (1.4% worse) |
+| D2 free / gated | −3.0% / 0 | +0.135 / +0.139 | +2.7% / 0 |
+
+Essen replicates. **Gated editing is the only condition better than the draft on both axes.** Free decoding recovers more plausibility but is worse than copying on CC: it decodes greedily toward the LM's mode, 14.5% of its outputs score *more* plausible than the reference, and a third of the melodies it changes become more plausible *and* further from the reference. That is the CC/plausibility dissociation reproduced on outputs, and a warning that ΔNLL rewards mode-seeking. D2's implausibility resists even regeneration (3–6%). The gate leaves D1's metric misalignment untouched — it fixes pitch, not duration.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
