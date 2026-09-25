@@ -7,7 +7,7 @@ when the 5-seed headline lands.
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
 
-Status: §1 and §2 drafted (2026-09-25). Other sections are placeholders.
+Status: §1–§3 drafted (2026-09-25). Other sections are placeholders.
 
 ---
 
@@ -161,7 +161,89 @@ the method's downside by construction.
 
 ## 3. Task, drafts and representation
 
-*(Pending — D1–D4, REST/BAR tokens, aligner, Correction Cost. Budget 0.9 page.)*
+*Budget 0.9 page; this draft is ~760 words plus Table 1. Carries the definitions every
+later section uses. P3 detail (representation measurements) is compressed to one
+sentence.*
+
+**Task.** A *draft* $M_0$ is a monophonic melody that differs from a *reference* $M^*$
+in some notes. A refiner receives $M_0$ alone and outputs a melody $\hat M$; it succeeds
+to the extent that $\hat M$ is closer to $M^*$ than $M_0$ was, without rewriting the
+notes that were already right.
+
+**Corpora and splits.** References come from two collections of monophonic folk song.
+The Essen Folksong Collection [Essen] (8,469 melodies, 54.5 notes on average) supplies
+training data; it is split in half at random, one half for the plausibility judge of §4
+and the other for the generator that writes D2 drafts, so that the judge never scores
+material it could have memorized from the generator's training set. Refiners are trained
+on drafts of the judge's half (3,812 melodies) and validated on a further 423. The test
+set is MTC-ANN, the annotated corpus of the Meertens Tune Collections [MTC]: 360 melodies
+(49.0 notes on average) grouped by folk-song specialists into 26 *tune families* —
+melodies believed to descend from a common ancestor through oral transmission. MTC-ANN
+is seen by no model during training, which makes every main result cross-corpus; a
+same-corpus control, which holds out 20% of Essen as the test set and retrains the judge
+and generator on the rest, is reported in §7.
+
+**Draft sources.** Each test reference yields three drafts per source.
+
+- **D1, random corruption.** One to five operations, drawn as pitch replacement (40%),
+  duration change (30%), deletion (15%) and insertion (15%). Replacement pitches and
+  durations are sampled from the corpus's own marginal distributions, so each edit
+  individually uses plausible material. This is uniform corruption of the kind used to
+  build training data in prior work [McLeod2020], and our main control.
+- **D2, generated.** A span of 2–6 consecutive notes is rewritten by a generator — a
+  three-layer transformer language model trained on the other half of Essen — sampling
+  at temperature 1.0 from the preceding notes only, after which the reference resumes.
+  The splice is not smoothed: a passage that fails to rejoin its continuation is a
+  realistic draft flaw. We use span rewriting rather than free continuation, which
+  changes 89% of a melody and stops describing a draft at all.
+- **D3, rule-based musical degradation.** One to five applications of six rules, each
+  a violation music theory names: an out-of-scale pitch given the annotated key, a leap
+  beyond 14 semitones, a structurally strong note moved off the beat, a disrupted final
+  cadence, a varied rhythm flattened to uniform durations, and a figure collapsed to a
+  repeated pitch.
+- **D4, human variants.** Pairs of melodies from the same tune family (1,012 pairs, at
+  most 40 per family). These are valid alternatives by construction. They are used only
+  to calibrate the judge (§4) — family members differ in metre and length, so they are
+  variants of a tune, not a draft and its revision, and we do not refine them.
+
+**Table 1** *(proposed)*. Draft sources on MTC. Mean Correction Cost is over the test
+drafts (3 per reference); fraction changed is Correction Cost divided by reference length,
+from the validator's scoring sample.
+
+| source | how the draft is made | mean Correction Cost | fraction of notes changed |
+|---|---|---|---|
+| D1 random | 1–5 random edits | 2.98 | 6.7% |
+| D2 generated | 2–6 notes rewritten by a generator | 4.71 | 10.7% |
+| D3 rule-based | 1–5 music-theoretic violations | 4.11 | 9.3% |
+| D4 human variants | a different member of the same tune family | 45.7 | 92.3% |
+
+**Representation.** A melody is a sequence of events, each a pitch (or an explicit rest)
+and a duration in integer ticks at 24 per quarter note, which represents every duration
+in both corpora exactly. Each event becomes two tokens, and a bar token is inserted where
+the annotated metre begins a new bar, which bounds how far a single duration error can
+shift later notes. The vocabulary has 121 tokens: 76 pitches, 40 durations, rest, bar,
+and three special tokens. Bars are structure, not events: an edit never inserts or
+deletes a barline. Onset shifts are not a separate operation; under this encoding they
+are a duration change.
+
+**Alignment and Correction Cost.** Two melodies are aligned by Wagner–Fischer edit
+distance over events, with unit costs for insertion, deletion, pitch substitution and
+duration substitution, so an event differing in both attributes costs 2. *Correction
+Cost* (CC) is the minimal total cost. The same alignment supplies training labels: each
+draft event is labelled *keep* or *edit* (collapsed from five types — keep, pitch
+substitution, duration substitution, insert-before and delete — which §5 shows add
+nothing), and an extra end-of-sequence slot receives labels for notes missing after the
+last draft event.
+
+**Evaluation.** Our primary measure is the relative reduction in mean CC over returning
+the draft unchanged (*copy-input*, B3): $(\overline{\mathrm{CC}}(M_0, M^*) -
+\overline{\mathrm{CC}}(\hat M, M^*)) \,/\, \overline{\mathrm{CC}}(M_0, M^*)$, with means
+taken over the test drafts, so that positive values mean the refiner improved on doing
+nothing. We also report *fidelity*, the CC between output and draft,
+which distinguishes a refiner that edits from one that regenerates; per-melody win and
+loss rates against copy-input; and, in §4, plausibility. Every result is the mean over
+three training seeds [S8] with the seed standard deviation, under one configuration
+selected on validation data (§5).
 
 ## 4. Measuring plausibility
 
