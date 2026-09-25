@@ -2,6 +2,7 @@
 # Headline test runs under ONE globally selected setting (plan step 2).
 #
 #   scripts/run_headline.sh <weighting> <alpha> <tau> [out-dir]
+#   SEEDS="3 4" scripts/run_headline.sh ...   # extra seeds into a separate dir
 #
 # The setting comes from scripts/select_settings.py, which chooses it on D1
 # *validation* data. It is applied unchanged to every draft source and both
@@ -11,7 +12,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 W=$1; A=$2; T=$3; OUT=${4:-results/refiner/headline}
 mkdir -p "$OUT"
-common=(--alphas 0 "$A" --seeds 0 1 2 --head-type binary --weighting "$W"
+SEEDS=${SEEDS:-"0 1 2"}
+# shellcheck disable=SC2206
+seed_list=($SEEDS)
+common=(--alphas 0 "$A" --seeds "${seed_list[@]}" --head-type binary --weighting "$W"
         --per-melody 3 --gated-thresholds "$T" --eval-splits test --save-artifacts)
 
 run() {  # corpus source
