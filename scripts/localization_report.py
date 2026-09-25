@@ -92,6 +92,8 @@ def main():
         if sweep.name in ("headline.json", "localization.json"):
             continue
         blob = json.loads(sweep.read_text())
+        if "config" not in blob:        # a summary file, not a sweep
+            continue
         config = blob["config"]
         (tau,) = config["gated_thresholds"]
         alpha = max(config["alphas"])

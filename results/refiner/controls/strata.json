@@ -1,0 +1,192 @@
+{
+  "degradation": [
+    {
+      "corpus": "MTC",
+      "n_drafts": 5339,
+      "fresh_drafts": true,
+      "tau": 0.5849685847759245,
+      "tau_pairs": 1012,
+      "bands": [
+        {
+          "band": "not degraded (dNLL <= 0)",
+          "n_drafts": 1080,
+          "head_auroc": 0.6401707896555703,
+          "head_auroc_sd": 0.003992132903158855,
+          "head_ap_lift": 1.560887086670094,
+          "head_ap_lift_sd": 0.03944245448852908,
+          "base_rate": 0.07386363636363637,
+          "judge_auroc": 0.6062540771855115,
+          "judge_ap_lift": 1.5947681211855083
+        },
+        {
+          "band": "mild (0 < dNLL <= 0.131)",
+          "n_drafts": 2130,
+          "head_auroc": 0.6147039199657633,
+          "head_auroc_sd": 0.0017464978116178186,
+          "head_ap_lift": 1.457843733776654,
+          "head_ap_lift_sd": 0.01443462617437932,
+          "base_rate": 0.06413651605672502,
+          "judge_auroc": 0.6921427358834334,
+          "judge_ap_lift": 2.5850427963348936
+        },
+        {
+          "band": "moderate (0.131 < dNLL <= tau)",
+          "n_drafts": 1998,
+          "head_auroc": 0.6420819597059639,
+          "head_auroc_sd": 0.011256107218714975,
+          "head_ap_lift": 1.6263646604743172,
+          "head_ap_lift_sd": 0.04804043302703893,
+          "base_rate": 0.0782323515370405,
+          "judge_auroc": 0.7326612717626119,
+          "judge_ap_lift": 3.492087325650168
+        },
+        {
+          "band": "degraded (dNLL > tau=0.585)",
+          "n_drafts": 131,
+          "head_auroc": 0.6560702629568939,
+          "head_auroc_sd": 0.022123950130589893,
+          "head_ap_lift": 1.859142647738784,
+          "head_ap_lift_sd": 0.2190400741143373,
+          "base_rate": 0.08783724788265083,
+          "judge_auroc": 0.775096525280213,
+          "judge_ap_lift": 4.556596685071103
+        }
+      ]
+    },
+    {
+      "corpus": "Essen",
+      "n_drafts": 5057,
+      "fresh_drafts": false,
+      "tau": 0.5026492893695824,
+      "tau_pairs": 1012,
+      "bands": [
+        {
+          "band": "not degraded (dNLL <= 0)",
+          "n_drafts": 937,
+          "head_auroc": 0.6572145711946584,
+          "head_auroc_sd": 0.0029676517457787642,
+          "head_ap_lift": 1.8295311246287462,
+          "head_ap_lift_sd": 0.05068148676436802,
+          "base_rate": 0.058912315899012815,
+          "judge_auroc": 0.5793504480639913,
+          "judge_ap_lift": 1.4412475704812733
+        },
+        {
+          "band": "mild (0 < dNLL <= 0.117)",
+          "n_drafts": 2060,
+          "head_auroc": 0.6429939603335378,
+          "head_auroc_sd": 0.0032297862611992407,
+          "head_ap_lift": 1.670751772443408,
+          "head_ap_lift_sd": 0.033007076246355856,
+          "base_rate": 0.0577815651655925,
+          "judge_auroc": 0.6760105996327458,
+          "judge_ap_lift": 2.3706832181246926
+        },
+        {
+          "band": "moderate (0.117 < dNLL <= tau)",
+          "n_drafts": 1838,
+          "head_auroc": 0.6581450452115255,
+          "head_auroc_sd": 0.008670306136144572,
+          "head_ap_lift": 1.810915461686152,
+          "head_ap_lift_sd": 0.0636644008528379,
+          "base_rate": 0.07563607992718131,
+          "judge_auroc": 0.726487147130895,
+          "judge_ap_lift": 3.6040154948209624
+        },
+        {
+          "band": "degraded (dNLL > tau=0.503)",
+          "n_drafts": 222,
+          "head_auroc": 0.6311275186501459,
+          "head_auroc_sd": 0.0232353959512407,
+          "head_ap_lift": 1.7798225854517769,
+          "head_ap_lift_sd": 0.11628095343165618,
+          "base_rate": 0.08929889298892989,
+          "judge_auroc": 0.7786422148858739,
+          "judge_ap_lift": 4.377039423469195
+        }
+      ]
+    }
+  ],
+  "locality": [
+    {
+      "corpus": "MTC",
+      "n_drafts": 1061,
+      "no_edit_drafts": 0,
+      "bands": [
+        {
+          "band": "point-like (1 event)",
+          "n_drafts": 501,
+          "head_auroc": 0.7999253864349712,
+          "head_auroc_sd": 0.045622437563371636,
+          "head_ap_lift": 10.950784837581406,
+          "head_ap_lift_sd": 2.31009183379503,
+          "base_rate": 0.04577974196872708,
+          "judge_auroc": 0.938250537045943,
+          "judge_ap_lift": 14.409809649625194
+        },
+        {
+          "band": "2 adjacent events",
+          "n_drafts": 227,
+          "head_auroc": 0.7262283474476418,
+          "head_auroc_sd": 0.04045914956343593,
+          "head_ap_lift": 4.44576896914581,
+          "head_ap_lift_sd": 0.8206189686650414,
+          "base_rate": 0.09007491466820337,
+          "judge_auroc": 0.8057413531400357,
+          "judge_ap_lift": 5.192895668892754
+        },
+        {
+          "band": "span-like (3+ events)",
+          "n_drafts": 333,
+          "head_auroc": 0.7135145097646649,
+          "head_auroc_sd": 0.034342802267343854,
+          "head_ap_lift": 3.023212686327292,
+          "head_ap_lift_sd": 0.4877144976317053,
+          "base_rate": 0.13204297034044285,
+          "judge_auroc": 0.7510447114093215,
+          "judge_ap_lift": 3.2859736632104037
+        }
+      ]
+    },
+    {
+      "corpus": "Essen",
+      "n_drafts": 4990,
+      "no_edit_drafts": 0,
+      "bands": [
+        {
+          "band": "point-like (1 event)",
+          "n_drafts": 2340,
+          "head_auroc": 0.7622157418348233,
+          "head_auroc_sd": 0.0038248729080990946,
+          "head_ap_lift": 8.876756805046753,
+          "head_ap_lift_sd": 0.12153378329859166,
+          "base_rate": 0.04089103025373088,
+          "judge_auroc": 0.9154630965249747,
+          "judge_ap_lift": 15.023383067442273
+        },
+        {
+          "band": "2 adjacent events",
+          "n_drafts": 1204,
+          "head_auroc": 0.7031839823630117,
+          "head_auroc_sd": 0.002836671548893948,
+          "head_ap_lift": 3.8347592090930838,
+          "head_ap_lift_sd": 0.024824222598951878,
+          "base_rate": 0.07767627007488523,
+          "judge_auroc": 0.7876354211896838,
+          "judge_ap_lift": 5.437136872026395
+        },
+        {
+          "band": "span-like (3+ events)",
+          "n_drafts": 1446,
+          "head_auroc": 0.701209202713331,
+          "head_auroc_sd": 0.0012224566997372152,
+          "head_ap_lift": 2.719474173790609,
+          "head_ap_lift_sd": 0.03391133773850183,
+          "base_rate": 0.11779563719862228,
+          "judge_auroc": 0.723476356932216,
+          "judge_ap_lift": 3.2152276055161315
+        }
+      ]
+    }
+  ]
+}

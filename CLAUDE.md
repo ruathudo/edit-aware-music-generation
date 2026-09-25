@@ -369,6 +369,14 @@ An **untrained judge beats every trained head**. D2 is **not unlocalizable** —
 
 Combination beats the head by 1.4–2.1 pp, 3/3 seeds seed-matched, on every D1/D3 cell; the judge alone is *worse* than the head (it cannot abstain on a whole melody). The combination loses ~0.4% on D2, where the head abstains. Judge-based gates look optimistic on validation because the two-sided judge was early-stopped on `judge_val`; test numbers are clean.
 
+### Thin controls re-run on 3 seeds (2026-09-25)
+
+`scripts/control_strata.py` re-runs both strata from the headline checkpoints, threshold-free, with the two-sided judge alongside the head. All three earlier conclusions changed:
+
+- **Degradation strata (D2)** — fresh 5,339-draft MTC set + Essen test; τ recomputed per judge with the validator's pair seed (7), giving 0.585 exactly. The head stays flat across bands (AUROC ~0.64), but the **judge climbs to AUROC 0.78 on certified-degraded drafts** (n=131 / 222). "Nothing to find" is partly true: genuinely degraded generated drafts are localizable; they are 2.5–4.4% of D2.
+- **Locality strata (D3)** — AUROC falls with run length (head 0.80 → 0.71, judge 0.94 → 0.75). The earlier "flat" result read argmax precision, the confident tail, which is flat. D3's contiguous band still beats D2 (0.71 vs 0.64), so contiguity explains part of D2's gap, not all.
+- **Surprisal as encoder input** (`results/refiner/controls/mtc_d1_surprisal.json`) — localization improves (AUROC 0.73 → 0.82) with unchanged gate precision, yet gated CC drops +6.35% → +5.14% on 3/3 seeds and free decoding collapses to −61%. The loss is in the decoder, not the gate. Put the judge at the gate, not in the model.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

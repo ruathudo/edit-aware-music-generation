@@ -135,35 +135,35 @@ obvious fix — use a generator — produces drafts nothing can localize.
    size configurations) precisely because random corruption is not something we designed a
    detector for.
 
-4. **The boundary is not about contiguity.** The obvious alternative account of
-   contribution 3 is mechanical rather than epistemic: a per-position head suits isolated
-   changes and is blind to contiguous ones, and D2 happens to replace spans of 2–6 events
-   while D1 alters single notes. Comparing sources cannot decide this, because D1 and D2
-   differ in manifold distance *and* locality at once. D3 can, being uniformly
+4. **Contiguity matters, but it does not account for D2.** *(Revised 2026-09-25, §9
+   step 6 — was "The boundary is not about contiguity".)* The obvious alternative account
+   of contribution 3 is mechanical rather than epistemic: a per-position scorer suits
+   isolated changes and struggles with contiguous ones, and D2 replaces spans of 2–6
+   events while D1 alters single notes. Comparing sources cannot decide this, because D1
+   and D2 differ in manifold distance *and* locality at once. D3 can, being uniformly
    off-manifold but mixed in locality; splitting its own test set by the longest edited
-   run per draft holds the first fixed and varies the second.
+   run per draft holds the first fixed and varies the second
+   (`scripts/control_strata.py`, headline checkpoints, 3 seeds, threshold-free):
 
-   | band | n | loc P | loc R | gated gain (CC) |
-   |---|---|---|---|---|
-   | point-like (1 event) | 544 | **0.825** | 0.427 | +0.441 |
-   | 2 adjacent events | 262 | 0.806 | 0.251 | +0.405 |
-   | span-like (3+ events) | 188 | **0.805** | 0.210 | +0.356 |
+   | D3, MTC (Essen) | drafts | head AUROC | two-sided judge AUROC |
+   |---|---|---|---|
+   | point-like (1 event) | 501 (2,340) | 0.800 ± 0.046 (0.762) | 0.938 (0.915) |
+   | 2 adjacent events | 227 (1,204) | 0.726 ± 0.040 (0.703) | 0.806 (0.788) |
+   | span-like (3+ events) | 333 (1,446) | 0.714 ± 0.034 (0.701) | 0.751 (0.723) |
+   | *D2 overall, for comparison* | 1,064 (5,057) | *0.635 (0.654)* | *0.688 (0.683)* |
 
-   **Precision is flat — +0.019 end to end — so contiguity is not what breaks
-   localization.** And the comparison that settles it: D3's span-like band is contiguous
-   in exactly the way D2's infilled spans are, yet holds precision **0.805**, while D2's
-   head under a matched setting flags nothing at all (AUROC 0.64 against D3's 0.74).
-   *These strata were measured at the earlier τ=0.9 / argmax-precision setting; §9 step
-   6 re-runs them under the validation-selected setting, threshold-free.* What contiguity does cost is *recall*, which halves (0.427 → 0.210) as the
-   head flags part of a long run and misses the rest — the same recall/precision
-   dissociation as contribution 9, and precision is the binding constraint.
+   **Contiguous errors are harder to rank** — AUROC falls 0.09 for the head and 0.19 for
+   the judge from single notes to runs of three or more. The judge's larger drop fits a
+   simple mechanism: when one event is masked, its edited neighbours stay visible as
+   context and make it look consistent. **But D3's span-like band still localizes better
+   than D2** (head 0.714 vs 0.635, judge 0.751 vs 0.688, both corpora), so contiguity
+   explains part of D2's gap and not all of it.
 
-   This is worth reporting as a result and not only as a control. It says the failure is
-   a property of the *drafts*, not an artifact of per-position output granularity — which
-   is the same conclusion the span-detector null reached (contribution 5) from the
-   opposite direction, by changing the granularity and getting nothing. One seed, D3
-   only; runs measured in event space, since each event carries two like-labelled tokens
-   and a token-space run would classify every single-note edit as span-like.
+   The earlier version of this contribution said the opposite — "precision is flat,
+   contiguity is not what breaks localization" — from one seed at τ=0.9, reading argmax
+   precision. That measure is the head's *confident tail*, and it is indeed flat
+   (0.825 → 0.805); the full ranking is not. Report both: gating, which acts only on the
+   confident tail, is insensitive to contiguity; localization as a whole is not.
 
 5. **Generated material is far less localizable, by every method tried.**
    *(Heading revised 2026-09-24 — was "not localizable"; the two-sided judge row below
@@ -184,9 +184,26 @@ obvious fix — use a generator — produces drafts nothing can localize.
    (candidates restricted to the true span-length range, which a deployed system would
    not know) and still failed.
 
-   A tempting alternative explanation was tested and rejected: that most drafts simply
-   are not degraded, so there is nothing to find. Certified-degraded drafts are no more
-   localizable than undegraded ones.
+   **"Most generated drafts are not degraded, so there is nothing to find" — partly
+   true.** *(Revised 2026-09-25, §9 step 6; the earlier version said "tested and
+   rejected" from one seed, n=28 degraded drafts.)* Re-run on 3 seeds with a fresh set
+   of 5,339 MTC drafts plus 5,057 Essen drafts, τ recomputed per judge exactly as the
+   validator does (0.585 MTC; 0.503 for the control judge):
+
+   | D2 band (by judge ΔNLL), MTC (Essen) | drafts | head AUROC | two-sided judge AUROC / lift |
+   |---|---|---|---|
+   | not degraded (ΔNLL ≤ 0) | 1,080 (937) | 0.640 (0.657) | 0.606 / 1.6× (0.579 / 1.4×) |
+   | mild | 2,130 (2,060) | 0.615 (0.643) | 0.692 / 2.6× (0.676 / 2.4×) |
+   | moderate (≤ τ) | 1,998 (1,838) | 0.642 (0.658) | 0.733 / 3.5× (0.726 / 3.6×) |
+   | **degraded (> τ)** | **131 (222)** | 0.656 (0.631) | **0.775 / 4.6× (0.779 / 4.4×)** |
+
+   The **head is flat** across bands, as before — it does not exploit degradation. The
+   **judge climbs steadily**, and on certified-degraded drafts reaches D1-like
+   localization. So where generation produced a genuine error, the error is findable;
+   such drafts are 2.5–4.4% of D2, and the rest is mostly *difference*, not error (M2).
+   Caveat: the bands are defined by the causal judge's ΔNLL and scored by the two-sided
+   judge, trained on the same data, so part of the rise is built in. The head's
+   flatness carries no such link.
 
    Why: the damage is distributed. Around a spliced span the *unchanged* notes also
    become dearer under the judge (+0.0677) alongside the span itself (+0.2162). The
@@ -238,11 +255,26 @@ obvious fix — use a generator — produces drafts nothing can localize.
    guarantee doing real work, and for a deployable tool the graceful degradation is
    arguably worth more than the 6%.
 
-9. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
-   ground-truth labels the model removes 49.3% of the draft's error (D1); the real head
-   recovers 12.2%. Raising *recall* (judge surprisal, 0.245 → 0.314) made CC *worse*,
-   because at precision ~0.68 a third of flagged positions are notes that were already
-   correct. The surprisal comparison is **single-seed** (`D1_surp0.json`); §9 step 6.
+9. **An oracle bound, and where the judge belongs.** Given ground-truth labels the model
+   removes 49.3% of the draft's error (D1); the real head recovers 12.2%.
+
+   *Revised 2026-09-25 (§9 step 6).* Feeding the judge's surprisal to the encoder as an
+   input feature — re-run on 3 seeds under the selected setting
+   (`results/refiner/controls/`):
+
+   | MTC D1 | AUROC | AP lift | gate precision | gated vs B3 | free decoding |
+   |---|---|---|---|---|---|
+   | headline | 0.727 | 5.8× | 0.823 | **+6.35%** | −17.7% |
+   | surprisal input | **0.820** | **7.3×** | 0.819 | +5.14% | −61.0% |
+
+   Worse on all three seeds (−0.25 / −0.56 / −2.83 pp; one seed carries most of it). The
+   direction of the old single-seed claim replicates; **its explanation does not.** The
+   old account was "raising recall adds wrong edits, because precision is binding" —
+   but here localization *improves* and gate precision is *unchanged*. The loss is in the
+   corrections: free decoding collapses from −18% to −61%, so surprisal in the encoder
+   degrades what the decoder writes. With contribution 12 this gives a clean design
+   rule: **use the judge to decide *where* (at the gate: +1.6 pp), not as model input
+   (−1.2 pp).**
 
 10. **Gated editing is the only condition that improves both Correction Cost and
     plausibility — and free decoding shows why CC alone cannot be trusted.** The
@@ -420,7 +452,7 @@ believed. That is more persuasive than omission and costs nothing.
 
 ## 4. Claim discipline
 
-Eight things the evidence does **not** support, each of which was claimed at some point
+Nine things the evidence does **not** support, each of which was claimed at some point
 while this work was being done:
 
 - **Not "where and how".** Binary matches 5-class (seed-matched +0.003 ± 0.011 on MTC,
@@ -440,10 +472,12 @@ while this work was being done:
   alone. Fixed with `weighting=none` on D1.
 - **Not "span-level detection recovers what per-position missed".** It does not: 1.6×
   chance, barely above the untrained judge's 1.2×.
-- **Not "the per-position head is blind to contiguous edits".** Tested within D3, where
-  manifold distance is held roughly fixed: precision is 0.825 on point-like drafts and
-  0.805 on span-like ones, a gap of +0.019. Recall does fall with run length; precision,
-  the quantity gating depends on, does not. Do not explain D2 by span length.
+- **Not "contiguity is irrelevant", and not "D2 is explained by span length".**
+  Contiguous errors are harder to rank (D3 AUROC 0.80 → 0.71), but D3's contiguous band
+  still beats D2. *(Revised 2026-09-25; the earlier bullet claimed contiguity did not
+  matter, from argmax precision.)*
+- **Not "raising recall hurts because precision is binding".** Surprisal input improves
+  localization with unchanged gate precision and still loses — the decoder degrades.
 - **Not "generated drafts cannot be localized".** A zero-shot two-sided judge reaches
   2.7× chance on D2. Say "far less localizable" and give the numbers.
 - **Not "the D3 benchmark is circular" without qualification.** Transfer puts the
@@ -483,8 +517,9 @@ gets one sentence as motivation, never as a demonstrated result.
 |---|---|
 | "Your method only works on the synthetic setting you criticise." | Yes — and that is the finding, stated as the title. The boundary is mapped from both sides, and the negative side is measured three independent ways. |
 | "Your detector is just weak / your models are too small." | Three answers. The same architecture, size, recipe and setting reaches AP lift 5.8× on D1 against 1.6× on D2 — the difference is the drafts. Localization precision is flat from 1.6M to 42.7M parameters (corr with log-params −0.58), so it is information-limited, not capacity-limited. And the span task was given the true span-length prior and still failed. |
-| "Your per-position head just can't represent multi-note edits." | Tested within D3, holding manifold distance roughly fixed: precision 0.825 point-like against 0.805 span-like (+0.019). D3's span-like band is contiguous exactly as D2's infills are and still scores 0.805, while D2's head under a matched setting flags nothing. Granularity was also varied directly, in the span detector, with the same null. |
-| "Maybe the drafts aren't degraded, so there is nothing to find." | Tested and rejected: precision is flat across degradation bands; judge-certified degraded drafts are no more localizable. |
+| "Your per-position head just can't represent multi-note edits." | Partly: within D3, AUROC falls from 0.80 (single notes) to 0.71 (runs of 3+). But D3's contiguous band still beats D2 (0.71 vs 0.64), and gating — which uses only the confident tail — is insensitive to run length. *(Revised 2026-09-25; the earlier answer follows.)* |
+| *(earlier answer)* | Tested within D3, holding manifold distance roughly fixed: precision 0.825 point-like against 0.805 span-like (+0.019). D3's span-like band is contiguous exactly as D2's infills are and still scores 0.805, while D2's head under a matched setting flags nothing. Granularity was also varied directly, in the span detector, with the same null. |
+| "Maybe the drafts aren't degraded, so there is nothing to find." | Partly right, and we say so: the two-sided judge localizes the 2.5–4.4% of generated drafts that are certified-degraded at AUROC 0.78, near D1. The rest are mostly difference, not error. Our trained head does not exploit this (flat across bands, 3 seeds). |
 | "A better detector would find D2's errors." | We built the strongest one available without labels — a two-sided judge seeing both sides of every note — and it reaches 2.7× chance on D2 against 6–7× on corruption. It is also better than every trained head on every source, so D2's gap is not for want of a stronger detector. |
 | "D3 is circular, so why report it?" | It is partly circular, and we measured how much: a D1-trained head reaches +7.25% on D3 against D3's own +9.98%. |
 | "+6% is small." | It is over *copy-input*. The published +6.3% was over an imitation baseline itself 21.4% worse than copying. |
@@ -552,7 +587,8 @@ still be ordered by what carries the thesis.
    labels. Select its threshold on validation exactly as in step 2. If it beats the
    head-gated +6.35% on D1 — or opens a gain on D2 — it becomes the method.
 
-6. **Strengthen thin controls.** Degradation strata: 3 seeds, and enough drafts that
+6. ~~**Strengthen thin controls.**~~ *Done 2026-09-25 — contributions 4, 5 and 9 revised;
+   `scripts/control_strata.py`, `results/refiner/controls/`.* Original: Degradation strata: 3 seeds, and enough drafts that
    the degraded band is not n=28. Locality strata: 3 seeds. Surprisal/recall
    comparison (contribution 9): 3 seeds.
 
