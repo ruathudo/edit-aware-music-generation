@@ -98,7 +98,8 @@ threshold τ is the variants' 95th percentile (0.585).
 
 **C2. Correction Cost cannot tell an error from a valid alternative.** (§4)
 Human variants sit 92% normalized edit distance from each other at +0.038 ΔNLL per unit
-of change; random corruption sits 7% away at +3.94 — ~100× more implausible per unit.
+of change; random corruption sits 7% away at +3.94 — ~100× more implausible per unit
+(rule-based: +3.14, ~80×).
 Per draft, CC and ΔNLL correlate *within* a corruption process (Spearman ρ +0.52 D1,
 +0.47 D3) but the relation vanishes across sources (pooled ρ = −0.06, CI [−0.11,
 −0.01]); the most distant drafts are the most plausible.
@@ -179,7 +180,7 @@ mode-seeking, which the 14.5% itself shows.
 **C8. Detectability follows manifold distance; training adds a source-specific share.**
 (§7)
 The untrained two-sided judge ranks sources D1 > D3 > D2, matching their ΔNLL per unit
-of change (3.94 > 2.97 > 1.16). A trained head adds learned regularity on top, which
+of change (3.94 > 3.14 > 1.04). A trained head adds learned regularity on top, which
 transfer isolates: a D1-trained head reaches +7.25% on D3 against D3's own +9.98%
 (both seeds 0–2), so
 **~2.7 of D3's ~10 points come from learning the injection rules**. D3 is therefore a
@@ -313,7 +314,8 @@ MTC, 3 seeds, validation-selected setting, unless noted. Essen in brackets.
 |---|---|---|
 | D4 variants: ΔNLL mean / median / % positive | +0.054 / +0.031 / 55.0% | validator_report |
 | τ (95th pct of variant ΔNLL) | 0.585 | validator_report |
-| ΔNLL per unit change: D4 / D1 / D3 / D2 (T=1.0) | 0.038 / 3.94 / 2.97 / 1.16 | validator, d2_report |
+| ΔNLL per unit change: D4 / D1 / D3 / D2 (test drafts) | 0.038 / 3.94 / 3.14 / 1.04 | plausibility_table |
+| ΔNLL ≤ 0 / > τ: D4, D1, D3, D2 | 45.0/5.0, 5.2/13.0, 4.2/9.6, 20.5/2.6 % | plausibility_table |
 | Spearman ρ(surface, ΔNLL): D1 / D3 / D2 / D4 / pooled | +.52 / +.47 / +.20 / +.14 / −.06 | decoupling |
 | Gated vs copy-input, 5 seeds: D1 / D3 / D2 | +6.06 ± 0.58 / +9.81 ± 0.46 / 0.00% (+4.25 / +7.38 / 0.00); all D1/D3 cells 5/5 | five_seed_summary |
 | Gated vs copy-input, seeds 0–2 (for matched comparisons) | +6.35 / +9.98 / 0.00% (+4.47 / +7.30 / 0.00) | headline_r2 |

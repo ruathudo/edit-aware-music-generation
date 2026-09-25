@@ -70,9 +70,9 @@ def cluster_bootstrap(surface, delta, cluster, rng):
     return float(np.percentile(stats, 2.5)), float(np.percentile(stats, 97.5))
 
 
-def main():
+def collect():
+    """Per source: (surface change, dNLL, tune family) arrays, scored by `J`."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    rng = np.random.default_rng(0)
     judge = Judge.load("models/judge.pth", device)
     splits = standard_splits()
     every = [m for g in splits.values() for m in g]
@@ -98,6 +98,12 @@ def main():
         # unit for every set keeps the intervals comparable (26 families).
         cluster = np.array([r.tunefamily for _, r in items])
         per[name] = (surface, delta, cluster)
+    return per
+
+
+def main():
+    rng = np.random.default_rng(0)
+    per = collect()
 
     def row(name, surface, delta, cluster):
         lo, hi = cluster_bootstrap(surface, delta, cluster, rng)

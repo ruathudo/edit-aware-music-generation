@@ -7,7 +7,7 @@ comparisons with conditions run on 3 seeds use the matching 3 (see `paper-core.m
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
 
-Status: §1–§3 drafted (2026-09-25). Other sections are placeholders.
+Status: §1–§4 drafted (2026-09-25). Other sections are placeholders.
 
 ---
 
@@ -206,15 +206,15 @@ and generator on the rest, is reported in §7.
   to calibrate the judge (§4) — family members differ in metre and length, so they are
   variants of a tune, not a draft and its revision, and we do not refine them.
 
-**Table 1** *(proposed)*. Draft sources on MTC. Mean Correction Cost is over the test
-drafts (3 per reference); fraction changed is Correction Cost divided by reference length,
-from the validator's scoring sample.
+**Table 1** *(proposed)*. Draft sources on the MTC test set (three drafts per
+reference; D4 is the 1,012 variant pairs). Fraction changed is Correction Cost divided
+by reference length.
 
 | source | how the draft is made | mean Correction Cost | fraction of notes changed |
 |---|---|---|---|
-| D1 random | 1–5 random edits | 2.98 | 6.7% |
-| D2 generated | 2–6 notes rewritten by a generator | 4.71 | 10.7% |
-| D3 rule-based | 1–5 music-theoretic violations | 4.11 | 9.3% |
+| D1 random | 1–5 random edits | 2.98 | 6.6% |
+| D2 generated | 2–6 notes rewritten by a generator | 4.71 | 10.6% |
+| D3 rule-based | 1–5 music-theoretic violations | 4.11 | 9.1% |
 | D4 human variants | a different member of the same tune family | 45.7 | 92.3% |
 
 **Representation.** A melody is a sequence of events, each a pitch (or an explicit rest)
@@ -248,7 +248,78 @@ selected on validation data (§5).
 
 ## 4. Measuring plausibility
 
-*(Pending — C1, C2. Budget 1.0 page.)*
+*Budget 1.0 page; this draft is ~770 words plus Table 2. Carries C1 and C2. All numbers
+from `results/judge/plausibility_table.json`, computed on the drafts of Table 1.*
+
+Edit distance says how far a draft is from its reference, not whether it is worse. To
+ask the second question without a listening study, we use a language model as a judge
+and calibrate it against melodies that are known to be acceptable.
+
+**The judge.** $J$ is a decoder-only transformer language model over the token sequence
+of §3 (four layers, width 256), trained on the judge's half of Essen with early stopping
+on held-out Essen melodies. It shares no training data with the generator that writes D2
+drafts, which is trained on the other half and differs in depth; a judge trained on the
+generator's data could simply recognize its output. $J$ scores a melody by its mean
+per-token negative log-likelihood — per token, because insertions and deletions change
+length — and a draft by its degradation relative to its reference,
+
+$$\Delta\mathrm{NLL}(M_0) = \mathrm{NLL}_J(M_0) - \mathrm{NLL}_J(M^*).$$
+
+Positive values mean the draft is less plausible than its reference. Both melodies are
+given barlines inferred from the reference's metre, so neither benefits from annotation
+the other lacks. Because the difference is paired, the offset between $J$'s training
+corpus and MTC — $J$ fits MTC 0.137 nats per token worse than Essen — cancels; its effect
+on the judge's *sensitivity* does not, and §7 rules it out with a same-corpus replication.
+
+**Calibration on human variants.** A judge that penalized any departure from the
+reference would call every alternative an error, and would be useless for our question.
+We therefore score the D4 pairs: two members of one tune family, each a valid melody in
+its own right. Their ΔNLL has mean +0.054 and median +0.031, and 45.0% of pairs score at
+or below zero — the judge is close to indifferent between variants that differ in 92% of
+their notes. It measures degradation, not difference. We set the degradation threshold
+$\tau$ to the 95th percentile of the variants' ΔNLL, $\tau = 0.585$: a draft above $\tau$
+is less plausible than 95% of human alternatives are. (Resampling which variant pairs are
+drawn moves $\tau$ by about 0.02.)
+
+**Table 2** *(proposed)*. Draft sources under the judge (MTC). *Per unit* is the median
+of ΔNLL divided by the fraction of notes changed; ρ is Spearman's correlation between
+fraction changed and ΔNLL across drafts, with a 95% interval from resampling tune
+families.
+
+| source | fraction changed | ΔNLL mean | ΔNLL per unit | ΔNLL ≤ 0 | ΔNLL > τ | ρ (95% CI) |
+|---|---|---|---|---|---|---|
+| D4 human variants | 92.3% | +0.054 | +0.04 | 45.0% | 5.0% | +0.14 [+0.04, +0.24] |
+| D1 random | 6.6% | +0.298 | +3.94 | 5.2% | 13.0% | +0.52 [+0.46, +0.59] |
+| D3 rule-based | 9.1% | +0.271 | +3.14 | 4.2% | 9.6% | +0.47 [+0.41, +0.52] |
+| D2 generated | 10.6% | +0.139 | +1.04 | 20.5% | 2.6% | +0.20 [+0.11, +0.30] |
+| all pooled | | | | | | −0.06 [−0.11, −0.01] |
+
+**Corruption is damage, but of an unrealistic kind.** A common worry about random
+corruption is that a replaced note may simply produce a valid alternative, so that the
+model learns to undo harmless changes. Table 2 does not support that worry: 95% of D1
+drafts are less plausible than their references. The problem is the opposite one. Random
+and rule-based corruption change 7–9% of a melody at a ΔNLL of about 3–4 per unit of
+change — **80–100× more per unit than a human variant**. Corruption moves a melody a
+short distance *off* the distribution of plausible melodies; human variation moves it a
+long way *along* it. Generated drafts sit between the two, at about 1 nat per unit, and
+are the only synthetic source that is often no worse than its reference (20.5%) and
+rarely clearly degraded (2.6% above $\tau$).
+
+**Edit distance cannot tell an error from an alternative.** Within a single corruption
+process, more change does mean more damage: fraction changed and ΔNLL correlate at
+ρ ≈ 0.5 for D1 and D3, partly by construction, since the number of injected edits drives
+both. Across sources the relation disappears and slightly reverses (ρ = −0.06 pooled): the
+drafts furthest from their references are the most plausible. The contrast is starkest at
+matched distance, though the evidence is thin — the nine variant pairs that differ as
+little as synthetic drafts do have median ΔNLL 0.000, against +0.18 for synthetic drafts
+at the same distance.
+
+Edit distance to a reference is therefore a usable way to rank methods *on one draft
+source*, where it tracks damage. It cannot compare draft sources, and it cannot say
+whether a change was a correction or a valid alternative. We report both measures
+throughout: Correction Cost for comparability with prior work, and ΔNLL for whether the
+music got better. ΔNLL is itself a statistical judgement, not a musician's; we return to
+this limitation in §8.
 
 ## 5. Method
 
