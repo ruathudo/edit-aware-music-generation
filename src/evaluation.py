@@ -252,8 +252,16 @@ def generate_corrections_gated(
     threshold: float = 0.5,
     surprisal: torch.Tensor | None = None,
     device=None,
+    gate_scores: torch.Tensor | None = None,
 ) -> list[Notes]:
     """Copy the draft by default; regenerate only where the head is confident.
+
+    `gate_scores`, if given, replaces the head as the gate: a (B, T) score per
+    source position, read at each event's first token like the head's
+    confidence. An event whose score clears `threshold` is regenerated as a
+    substitution; everything else is copied. The model then serves only as the
+    decoder, so it needs no edit head -- which is what lets an external,
+    label-free scorer (the two-sided judge) drive the edit decisions.
 
     The diagnostics showed localization *precision* is the binding constraint,
     not F1. At D1's precision of 0.68 roughly a third of flagged positions are
@@ -281,9 +289,20 @@ def generate_corrections_gated(
     grammar = Grammar(tokenizer, device)
     memory = model.encode(sources, surprisal=surprisal)
 
-    probabilities = torch.softmax(model.edit_head(memory), dim=-1).cpu()
-    predicted = probabilities.argmax(dim=-1)
-    confidence = 1.0 - probabilities[:, :, KEEP]  # P(this position needs an edit)
+    if gate_scores is None:
+        probabilities = torch.softmax(model.edit_head(memory), dim=-1).cpu()
+        predicted = probabilities.argmax(dim=-1)
+        confidence = 1.0 - probabilities[:, :, KEEP]  # P(this position needs an edit)
+    else:
+        from src.align import SUB_PITCH
+
+        confidence = gate_scores.detach().float().cpu()
+        if confidence.shape != sources.shape:
+            raise ValueError(f"gate_scores {tuple(confidence.shape)} must match "
+                             f"sources {tuple(sources.shape)}")
+        # An external gate says only *whether* to edit, so a flagged event is
+        # handed to the decoder as a substitution, as the binary head's is.
+        predicted = torch.where(confidence >= threshold, SUB_PITCH, KEEP)
 
     # Build each sequence's action tape up front: copy a token, or let the
     # decoder write one. No model calls needed for this part.

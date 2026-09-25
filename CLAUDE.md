@@ -356,6 +356,19 @@ An **untrained judge beats every trained head**. D2 is **not unlocalizable** —
 
 `scripts/run_transfer.sh` (`--test-sources` on `train_refiner.py`): D1→D3 +7.25% (vs D3 in-domain +9.98%), D3→D1 +4.80% (vs +6.35%). So ~2.7 points of D3's gain are learned injection regularity — **D3 is partly, not wholly, circular**. D1→D2 and D3→D2 open the gate and *lose* 1.7–2.0% on all seeds: the no-harm property needs in-distribution training.
 
+### Judge + head gating (2026-09-25)
+
+`generate_corrections_gated(..., gate_scores=...)` lets an external per-position score drive the gate; the model then needs no edit head. `scripts/judge_gate.py select|test` compares gates from the headline checkpoints with the decoder fixed; thresholds and the combination's logistic weights come from D1 validation only. Gated vs copy-input:
+
+| | head τ=0.8 (headline) | judge z≥3 | judge, B1 decoder | **judge + head** |
+|---|---|---|---|---|
+| MTC D1 | +6.35% | +2.81% | +2.43% | **+7.91%** |
+| Essen D1 | +4.47% | +2.86% | +2.43% | **+6.52%** |
+| MTC D3 | +9.98% | +7.96% | +7.29% | **+11.80%** |
+| D2 (MTC / Essen) | 0 / 0 | −0.47 / −1.17 | −0.16 / −1.14 | −0.39 / −0.46 |
+
+Combination beats the head by 1.4–2.1 pp, 3/3 seeds seed-matched, on every D1/D3 cell; the judge alone is *worse* than the head (it cannot abstain on a whole melody). The combination loses ~0.4% on D2, where the head abstains. Judge-based gates look optimistic on validation because the two-sided judge was early-stopped on `judge_val`; test numbers are clean.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

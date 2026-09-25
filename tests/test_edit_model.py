@@ -635,6 +635,52 @@ class TestGatedDecoding(unittest.TestCase):
         self.assertEqual(out[0], notes)
 
 
+class TestExternalGate(unittest.TestCase):
+    """An external scorer (the two-sided judge) can drive the gate instead of
+    the head, and the model then needs no edit head at all."""
+
+    def setUp(self):
+        self.tok = make_tokenizer()
+        torch.manual_seed(0)
+        self.model = EditAwareTransformer(
+            EditModelConfig(
+                vocab_size=len(self.tok), d_model=32, n_heads=2, n_encoder_layers=2,
+                n_decoder_layers=2, d_ff=64, max_len=128, use_edit_head=False,
+            ),
+            pad_id=self.tok.pad_id,
+        ).eval()
+        self.notes = [(60, 24), (62, 24), (64, 12), (65, 48)]
+        self.source = torch.tensor([self.tok.encode(self.notes)])
+
+    def _gated(self, scores, threshold):
+        from src.evaluation import generate_corrections_gated
+
+        return generate_corrections_gated(self.model, self.tok, self.source,
+                                          threshold=threshold, gate_scores=scores)
+
+    def test_works_without_an_edit_head(self):
+        out = self._gated(torch.zeros_like(self.source, dtype=torch.float), 1.0)
+        self.assertEqual(out[0], self.notes)
+
+    def test_only_flagged_events_can_change(self):
+        _, spans = self.tok.encode_with_spans(self.notes)
+        scores = torch.zeros_like(self.source, dtype=torch.float)
+        pitch_at, duration_at = spans[1]
+        scores[0, pitch_at] = scores[0, duration_at] = 5.0
+        out = self._gated(scores, 1.0)[0]
+        self.assertEqual(len(out), len(self.notes))
+        for i in (0, 2, 3):
+            self.assertEqual(out[i], self.notes[i], f"unflagged event {i} changed")
+
+    def test_scores_below_threshold_copy_exactly(self):
+        scores = torch.full(self.source.shape, 0.99)
+        self.assertEqual(self._gated(scores, 1.0)[0], self.notes)
+
+    def test_shape_mismatch_is_rejected(self):
+        with self.assertRaises(ValueError):
+            self._gated(torch.zeros(1, 3), 1.0)
+
+
 class TestBinaryHead(unittest.TestCase):
     """Spec 7's head-type axis. This ablation decides what the paper may claim:
     the five-class head scores INSERT_BEFORE at F1 0.000 and DELETE at 0.107, so

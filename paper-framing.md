@@ -331,6 +331,51 @@ obvious fix — use a generator — produces drafts nothing can localize.
     judges hit the 60-epoch cap still improving, as `J` did — longer training could only
     strengthen them; transfer was run on MTC only.
 
+12. **Adding the label-free judge to the gate raises the gain by 1.4–2.1 points — at a
+    small, consistent cost on generated drafts.** Plan step 5b
+    (`scripts/judge_gate.py`). The decoder is held fixed (the α=0.5 edit-aware model from
+    the headline checkpoints); only the gate changes. Each gate's threshold was chosen on
+    D1 validation only, and the combination's weights (logistic on judge z and head
+    logit) were fitted once, on D1 validation, and applied unchanged everywhere. The head
+    gate at τ=0.8 reproduces the headline exactly on every cell, which validates the new
+    gating path.
+
+    | gated vs copy-input | head (headline, τ=0.8) | judge alone (z≥3) | judge alone, B1 decoder | **judge + head** |
+    |---|---|---|---|---|
+    | MTC D3 | +9.98% | +7.96% | +7.29% | **+11.80%** ± 0.38 |
+    | MTC D1 | +6.35% | +2.81% | +2.43% | **+7.91%** ± 1.12 |
+    | MTC D2 | +0.00% | −0.47% | −0.16% | −0.39% ± 0.07 |
+    | Essen D3 | +7.30% | +6.25% | +6.17% | **+8.71%** ± 0.36 |
+    | Essen D1 | +4.47% | +2.86% | +2.43% | **+6.52%** ± 0.34 |
+    | Essen D2 | +0.00% | −1.17% | −1.14% | −0.46% ± 0.02 |
+
+    Seed-matched, combination minus head: **+1.56 pp (MTC D1), +2.05 (Essen D1), +1.81
+    (MTC D3), +1.42 (Essen D3), 3/3 seeds each**; −0.39 and −0.46 on D2, 0/3.
+
+    - **The two signals are complementary.** The judge's score is standardized within
+      each melody, so it always nominates a "most surprising" note and cannot abstain on
+      a clean melody; the head's probability is absolute and can. Fitted weights are
+      stable across seeds (≈0.92 per judge sd, ≈0.50 per head logit), and the judge
+      carries the larger share.
+    - **The judge alone is worse than the head** despite ranking better (contribution
+      11): at the gate what matters is precision in the confident tail, and the judge's
+      is lower (0.58 vs 0.81 on MTC D1).
+    - **A pipeline with no edit labels anywhere** — judge gate, B1 decoder — beats
+      copy-input on D1 and D3 in both corpora, 3/3 seeds (+2.4% D1, +6–7% D3). Modest,
+      but it is the variant that applies to drafts nobody has labelled.
+    - **The cost: the judge opens the gate on D2** (621 flags per seed, precision 0.44)
+      and loses 0.4–0.5%, where the head alone abstains. Even at 0.44 precision the
+      regenerated notes do not recover the reference. The combination buys ~1.5–2 points
+      on off-manifold drafts with ~0.4 on generated ones; a deployment that cannot tell
+      its drafts apart has to weigh that.
+
+    Caveat — **validation optimism for judge-based gates.** Validation gains shrank on
+    test for every judge-based condition (combination +9.84% → +7.91% / +6.52%; judge
+    alone +5.33% → +2.8%) but not for the head (+6.09% → +6.37%). The two-sided judge was
+    early-stopped on `judge_val`, the references the validation drafts are built from, so
+    its scores are slightly better on validation than on test. Test numbers are clean
+    (test was never used); the selected thresholds may be slightly off-optimum.
+
 ## 3. Framing moves
 
 **M1 — The boundary is the paper, not the method.** Lead with the validator and the
@@ -494,7 +539,7 @@ still be ordered by what carries the thesis.
    zero-shot judge does not favour it, the gap is the learnable injection regularity,
    quantified. This is the test the "learnable regularity" hypothesis currently lacks.
 
-5b. *(Proposed 2026-09-24, not started — needs a decision.)* **Judge-gated editing.** Gate
+5b. ~~**Judge-gated editing.**~~ *Done 2026-09-25 — contribution 12.* Original: Gate
    on the untrained two-sided judge's per-note score, alone and combined with the
    trained head. It localizes better than every head (contribution 11) and needs no
    labels. Select its threshold on validation exactly as in step 2. If it beats the
