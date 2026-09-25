@@ -1,5 +1,8 @@
 # Paper framing plan
 
+> **Superseded for drafting by `paper-core.md` (2026-09-25).** This file is the revision
+> log: it records how each claim was measured, revised or withdrawn. Draft from the core.
+
 Companion to `edit-aware-revision-spec.md`. The spec says what to *build*; this says
 what to *claim*, and which measurement backs each claim.
 
@@ -628,7 +631,8 @@ still be ordered by what carries the thesis.
 
 8. **5 seeds on the headline** (seed 0 was an outlier once).
 
-9. **Framing rewrite.** The three-point "trend" is not monotone on the paper's own
+9. ~~**Framing rewrite.**~~ *Done 2026-09-25 — superseded by `paper-core.md`, which is now
+   the file to draft from; this file stays as the revision log.* Original: The three-point "trend" is not monotone on the paper's own
    realism measure (ΔNLL/unit orders D1 > D3 > D2; precision orders D3 > D1 > D2), so
    present D1-vs-D2 as the contrast and D3 as the regularity control. "Not locally
    wrong" conflicts with the D2 oracle (+21.5% lift given locations) — use "leave no
