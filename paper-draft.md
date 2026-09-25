@@ -7,7 +7,7 @@ comparisons with conditions run on 3 seeds use the matching 3 (see `paper-core.m
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
 
-Status: §1–§4 drafted (2026-09-25). Other sections are placeholders.
+Status: §1–§5 drafted (2026-09-25). Other sections are placeholders.
 
 ---
 
@@ -323,8 +323,66 @@ this limitation in §8.
 
 ## 5. Method
 
-*(Pending — encoder–decoder, edit head, gated decoding, τ=1 guarantee; head-type
-ablation in one sentence. Budget 0.8 page.)*
+*Budget 0.8 page; this draft is ~640 words. Carries the method behind C5–C6, the
+selection protocol, and the head-type ablation (P3) in one sentence.*
+
+**Refiner.** The refiner is an encoder–decoder transformer (three encoder and three
+decoder layers, width 256, four heads; 5.86M parameters). The encoder reads the draft;
+the decoder writes the refined melody autoregressively, trained with teacher forcing on
+the reference. We use an encoder–decoder rather than a decoder-only model for two
+reasons: deciding whether a note is wrong requires seeing the notes after it, and drafts
+and references differ in length whenever a note has been inserted or deleted, so they
+cannot be aligned position by position.
+
+**Edit head.** A linear layer on the encoder's output predicts, at every draft event,
+whether that event needs editing, supervised by the alignment labels of §3. The model is
+trained on
+
+$$\mathcal{L} = \mathcal{L}_{\text{gen}} + \alpha\,\mathcal{L}_{\text{edit}},$$
+
+where $\mathcal{L}_{\text{gen}}$ is cross-entropy over the reference's tokens and
+$\mathcal{L}_{\text{edit}}$ is cross-entropy over the keep/edit labels at the draft's
+positions. The head adds 514 parameters. A five-way head that also predicts the edit's
+type performs no better than this binary one (a seed-matched difference of
++0.10 ± 0.36 points in improvement over the draft, measured at τ = 0.9), and never
+predicts an insertion correctly, so we use the binary head throughout.
+
+**Gated decoding.** Free decoding — letting the decoder rewrite the whole melody — is the
+standard way to use such a model, and it is where the problem lies: most of a draft is
+already right, and each note the decoder rewrites is another chance to get one wrong. We
+instead make copying the default. For each draft event, the head gives a probability
+$p$ that the event needs editing. If $p < \tau$, the event is copied verbatim; if
+$p \geq \tau$, the decoder writes a replacement event in its place, conditioned on
+everything decoded so far. Bar tokens are always copied. Decoding is greedy, under a mask
+that enforces the alternation of pitch and duration tokens.
+
+This construction has a useful property. With a threshold no probability can reach, the
+gate never opens and the output *is* the draft: gated decoding contains copy-input as a
+special case, so its worst setting is doing nothing. Lowering $\tau$ trades coverage for
+risk, exactly as in selective classification [Geifman2017], and the head's precision in
+its confident range — not its overall accuracy — decides whether each additional edit
+helps. In this form the gate substitutes events; it neither inserts nor deletes, which
+limits what it can repair (§8).
+
+**Baselines.** B1 is the same encoder–decoder without a head ($\alpha = 0$), decoded
+freely: plain sequence-to-sequence imitation. B2 keeps the head but trains with
+$\alpha = 0$, so it has exactly the refiner's parameters and differs only in the loss;
+since the head is 0.009% of the model, parameter count is not a confound in any case. B3
+returns the draft unchanged. We also report the edit-aware model decoded freely, which
+separates what the loss changes from what the gate changes.
+
+**One setting, chosen on validation.** The loss weight $\alpha$, the threshold $\tau$ and
+the class weighting of $\mathcal{L}_{\text{edit}}$ interact, and choosing them by looking
+at test results would inflate every number that follows. We therefore select them once,
+on D1 validation drafts only, over a grid of four class weightings, four values of
+$\alpha$ and six of $\tau$ (96 settings, three seeds each), by lowest mean gated Correction
+Cost. The chosen setting — no class weighting, $\alpha = 0.5$, $\tau = 0.8$ — is then
+applied unchanged to every draft source and both corpora. The landscape is flat: every
+class weighting reaches within 0.2 points of the best, and 84 of the 96 settings improve
+on copy-input for every seed, so no result below depends on a lucky choice. Models are
+trained with AdamW (learning rate $3 \times 10^{-4}$, batch 32) for up to 40 epochs with
+early stopping on validation loss. Runs are not bit-reproducible on GPU; two complete
+re-runs of the main experiment differ by at most 0.36 points in any cell mean.
 
 ## 6. Results I: where localize-then-fix works
 

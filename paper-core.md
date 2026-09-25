@@ -244,7 +244,8 @@ insensitive to run length.
 ### P3 — appendix, first to cut
 
 - **Head-type ablation.** A five-class head (where *and* how) matches a binary one
-  (seed-matched +0.003 ± 0.011); INSERT_BEFORE F1 0.000. Justifies the binary head. One
+  (seed-matched +0.10 ± 0.36 points of gain over copy-input — equivalently +0.003 ± 0.011
+  in Correction Cost — at τ=0.9); INSERT_BEFORE F1 0.000. Justifies the binary head. One
   sentence in §5 suffices.
 - **Size ablation table** (9 configurations × 3 seeds).
 - **Span-level detector** (1.6× chance) — one row in the C3 discussion is enough.
@@ -303,7 +304,7 @@ Also avoid: any human-in-the-loop or user-utility claim beyond one motivating se
 
 Data-size ablation; mixed-source training; D3→D4 transfer (D4 is a calibration control,
 not a refinement target); weighted CC variant; per-operation CC breakdown; scale-matched
-B2 (the head is 1,285 parameters, 0.02%, so parameter matching is moot); the judge
+B2 (the binary head is 514 parameters, 0.009%, so parameter matching is moot); the judge
 degradation filter on D2 (L6); human-in-the-loop framing.
 
 ## 9. Canonical numbers
