@@ -377,6 +377,10 @@ Combination beats the head by 1.4–2.1 pp, 3/3 seeds seed-matched, on every D1/
 - **Locality strata (D3)** — AUROC falls with run length (head 0.80 → 0.71, judge 0.94 → 0.75). The earlier "flat" result read argmax precision, the confident tail, which is flat. D3's contiguous band still beats D2 (0.71 vs 0.64), so contiguity explains part of D2's gap, not all.
 - **Surprisal as encoder input** (`results/refiner/controls/mtc_d1_surprisal.json`) — localization improves (AUROC 0.73 → 0.82) with unchanged gate precision, yet gated CC drops +6.35% → +5.14% on 3/3 seeds and free decoding collapses to −61%. The loss is in the decoder, not the gate. Put the judge at the gate, not in the model.
 
+### Decoupling statistic (2026-09-25)
+
+`scripts/decoupling.py` — per-draft Spearman ρ between surface change (CC / reference length) and ΔNLL, MTC, CI by bootstrapping tune families: D1 **+0.52**, D3 **+0.47**, D2 +0.20, D4 +0.14, **all pooled −0.06** [−0.11, −0.01]. "Near-orthogonal" was too strong: within a corruption process CC tracks damage (partly by construction — edit count drives both); across sources the relation vanishes and slightly inverts. Claim: CC can rank methods on one draft source, but cannot compare sources or tell an error from a valid alternative. Matched-distance comparison is thin (9 human pairs inside the synthetic range: median ΔNLL 0.000 vs +0.184).
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

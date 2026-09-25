@@ -57,11 +57,37 @@ obvious fix — use a generator — produces drafts nothing can localize.
    +0.031, 55.0% positive — a coin flip; `validator_report.json`, n=1,012 pairs), so the judge measures degradation rather than
    novelty.
 
-2. **Correction Cost and musical plausibility are near-orthogonal.** Human variants of
-   one tune sit ~92% normalized edit distance apart at +0.038 ΔNLL per unit of change;
-   synthetic corruption sits ~7% away at +3.94 — roughly 100× more implausible per unit
-   changed. Corruption moves a melody *off* the data manifold; real variation moves it a
-   long way *along* it.
+2. **Correction Cost is not a measure of musical plausibility: coupled within a
+   corruption process, decoupled across sources.** *(Revised 2026-09-25, §9 step 7 —
+   was "near-orthogonal", which rested on two cluster means.)* Human variants of one tune
+   sit ~92% normalized edit distance apart at +0.038 ΔNLL per unit of change; synthetic
+   corruption sits ~7% away at +3.94 — roughly 100× more implausible per unit changed.
+   Corruption moves a melody *off* the data manifold; real variation moves it a long way
+   *along* it.
+
+   Per draft, Spearman ρ between surface change and ΔNLL (`scripts/decoupling.py`; MTC,
+   scored by `J`; 95% CI by bootstrapping tune families, since drafts and pairs from one
+   family are not independent):
+
+   | set | n | ρ | 95% CI |
+   |---|---|---|---|
+   | D1 random | 1,080 | **+0.52** | [+0.46, +0.59] |
+   | D3 rule-based | 1,061 | **+0.47** | [+0.41, +0.52] |
+   | D2 generated | 1,064 | +0.20 | [+0.11, +0.30] |
+   | D4 human variants | 1,012 | +0.14 | [+0.04, +0.25] |
+   | **all sources pooled** | 4,217 | **−0.06** | [−0.11, −0.01] |
+
+   **Within one corruption process, more change means more damage** (ρ ≈ 0.5) — partly by
+   construction, since the number of injected edits drives both. **Across sources the
+   relation vanishes and slightly inverts:** the drafts furthest from their reference,
+   human variants, are the most plausible. At matched distance the contrast is stark but
+   thin — the 9 human pairs within the synthetic drafts' range (surface ≤ 0.20) have
+   median ΔNLL 0.000 against +0.184 for synthetic drafts.
+
+   So the defensible claim is narrower than "orthogonal": **CC can rank methods on a fixed
+   draft source, but cannot compare across draft sources, and cannot distinguish an error
+   from a valid alternative.** That is exactly the use the paper's evaluation needs to
+   warn against, and it is why contribution 10 reports plausibility alongside CC.
 
 3. **Localizability collapses as drafts become more realistic — and apparent method
    performance falls with it.** Three draft sources, same machinery, three seeds each:
@@ -452,7 +478,7 @@ believed. That is more persuasive than omission and costs nothing.
 
 ## 4. Claim discipline
 
-Nine things the evidence does **not** support, each of which was claimed at some point
+Ten things the evidence does **not** support, each of which was claimed at some point
 while this work was being done:
 
 - **Not "where and how".** Binary matches 5-class (seed-matched +0.003 ± 0.011 on MTC,
@@ -476,6 +502,8 @@ while this work was being done:
   Contiguous errors are harder to rank (D3 AUROC 0.80 → 0.71), but D3's contiguous band
   still beats D2. *(Revised 2026-09-25; the earlier bullet claimed contiguity did not
   matter, from argmax precision.)*
+- **Not "CC and plausibility are orthogonal".** Within a corruption source they
+  correlate (ρ ≈ 0.5); only across sources do they decouple (ρ = −0.06).
 - **Not "raising recall hurts because precision is binding".** Surprisal input improves
   localization with unchanged gate precision and still loses — the decoder degrades.
 - **Not "generated drafts cannot be localized".** A zero-shot two-sided judge reaches
@@ -523,6 +551,7 @@ gets one sentence as motivation, never as a demonstrated result.
 | "A better detector would find D2's errors." | We built the strongest one available without labels — a two-sided judge seeing both sides of every note — and it reaches 2.7× chance on D2 against 6–7× on corruption. It is also better than every trained head on every source, so D2's gap is not for want of a stronger detector. |
 | "D3 is circular, so why report it?" | It is partly circular, and we measured how much: a D1-trained head reaches +7.25% on D3 against D3's own +9.98%. |
 | "+6% is small." | It is over *copy-input*. The published +6.3% was over an imitation baseline itself 21.4% worse than copying. |
+| "Your own table shows CC tracks plausibility (ρ ≈ 0.5)." | Within one corruption process, yes — more injected edits, more damage. Across sources it vanishes (ρ = −0.06), and the most distant drafts are the most plausible. CC ranks methods on one source; it cannot compare sources or tell error from alternative. |
 | "ΔNLL isn't musical correctness." | Conceded explicitly; calibrated against human variants; see §6. |
 | "Thin evaluation." | 3 seeds with mean ± std, B1/B2/B3, fidelity, edit-F1, paired stats with bootstrap CI and Wilcoxon, same-corpus control, size ablation. |
 
@@ -592,7 +621,8 @@ still be ordered by what carries the thesis.
    the degraded band is not n=28. Locality strata: 3 seeds. Surprisal/recall
    comparison (contribution 9): 3 seeds.
 
-7. **Decoupling statistic.** "Near-orthogonal" currently rests on two clusters, not a
+7. ~~**Decoupling statistic.**~~ *Done 2026-09-25 — contribution 2 revised;
+   `results/judge/decoupling.json`.* Original: "Near-orthogonal" currently rests on two clusters, not a
    correlation. Compute rank correlation between CC and ΔNLL within and across
    sources, or retreat to "decoupled".
 
