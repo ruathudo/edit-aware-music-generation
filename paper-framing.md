@@ -33,11 +33,16 @@ seed and 0.36 pp on a cell mean (`headline/` vs `headline_r2/`); state this.
 > drafts were made.** Across three sources under identical machinery, localizability
 > collapses as drafts become more realistic — AUROC 0.74 for rule-based degradation,
 > 0.73 for random corruption, 0.64 for generator output — and measured performance
-> falls with it, +9.98% to +6.35% to +0.00%. Generated drafts are the realistic case, and they are
-> **not locally wrong**: the material the generator wrote cannot be identified per note,
-> per span, by a trained detector, or by the judge's own surprisal. *Localize-then-fix*
-> is the wrong formulation for that class of draft. Where errors genuinely are local,
+> falls with it, +9.98% to +6.35% to +0.00%. Generated drafts are the realistic case, and they
+> leave **little local trace**: the best detector we have — an untrained two-sided judge —
+> finds generator-written notes at 2.7× chance, against 6–7× for corruption, and no
+> trained detector does better. *Localize-then-fix* is the wrong formulation for that
+> class of draft. Where errors genuinely are local,
 > the same machinery works and precision-gated editing beats copy-input by 6%.
+>
+> *Revised 2026-09-24 (§9 step 5): "not locally wrong / cannot be identified" is too
+> strong. A two-sided judge localizes D2 at 2.7× chance (AUROC 0.69) — far below D1 and
+> D3, but not nothing. The thesis is a large gap, not an absence.*
 
 The paper's subject is therefore **the domain of validity of the localize-then-fix
 formulation**, mapped from both sides. That subsumes the ISMIR reviewers' P1 objection
@@ -93,6 +98,13 @@ obvious fix — use a generator — produces drafts nothing can localize.
    the result is that it is worse in a different way — more realistic-sounding errors,
    less valid as a benchmark. Anyone about to build one needs to know that.
 
+   *Revised 2026-09-24:* the circularity is **partial and now measured**, not total. D3's
+   errors are genuinely implausible notes — an untrained judge finds them nearly as
+   well as D1's — and a head trained on D1 alone reaches +7.25% on D3. Of D3's +9.98%,
+   about **2.7 points** come from learning the injection rules. So the warning becomes:
+   rule-based degradation inflates a benchmark by roughly a quarter of its reported gain,
+   and only a transfer test reveals how much.
+
    D3 also bears on the two obvious accounts of the boundary. It is *less* off-manifold
    than D1 (2.97 against 3.94) and *less* point-like (mean edited run 1.50 against
    1.05), yet **no less localizable**. **Revised 2026-09-24:** earlier versions said
@@ -108,6 +120,16 @@ obvious fix — use a generator — produces drafts nothing can localize.
    has a **learnable regularity**: off-manifold is necessary but not sufficient, and the
    deviation must also be systematic enough to train a detector for. D3's errors are
    rule-shaped, D1's are unsystematic, D2's are in-distribution by construction.
+
+   **Resolved by §9 step 5 (2026-09-24): both accounts hold, and they separate.** A
+   detector that never saw a label or a rule — the untrained two-sided judge — ranks
+   the sources **exactly in manifold-distance order**: D1 (ΔNLL/unit 3.94) AP lift
+   6.2× / 7.0× (MTC / Essen), D3 (2.97) 5.9× / 6.1×, D2 (1.16) 2.7× / 2.7×. So what is
+   detectable *in principle* is governed by how far off-manifold the error is. A trained
+   head adds a source-specific component on top — **learnable regularity** — and that
+   is exactly what fails to transfer (contribution 11). D3's lead over D1 appears only
+   with training, and only in-domain. Three sources is a thin basis for "monotone"; state
+   it as consistent with, not proof of.
 
    **The D1 result stays the headline** (+6.35%, replicated same-corpus at +4.47%, 9/9
    size configurations) precisely because random corruption is not something we designed a
@@ -143,14 +165,18 @@ obvious fix — use a generator — produces drafts nothing can localize.
    only; runs measured in event space, since each event carries two like-labelled tokens
    and a token-space run would classify every single-note edit as span-like.
 
-5. **Generated material is not localizable, at any granularity tried.** Three
-   independent measurements on D2-infill drafts:
+5. **Generated material is far less localizable, by every method tried.**
+   *(Heading revised 2026-09-24 — was "not localizable"; the two-sided judge row below
+   is why.)* Measurements on D2-infill drafts:
 
    | method | result |
    |---|---|
    | per-position edit head | ~1.5× chance, **flat across degradation bands** (1.56× on ΔNLL ≤ 0, 1.66× on judge-certified degraded) |
    | judge surprisal pooled over spans, zero-shot | 1.2× chance |
    | trained span detector, interior + both boundary states, 3 seeds | 1.6× chance (0.75% ± 0.19% top-1 against 0.48% chance) |
+   | causal judge, per note, zero-shot | 1.4× AP lift, AUROC 0.56 |
+   | **two-sided judge, per note, zero-shot** | **2.7× AP lift, AUROC 0.69** (both corpora) — the best detector found, and still less than half D1's 6.2–7.0× |
+   | heads trained on D1 or D3, transferred | 1.3–1.4×, AUROC 0.58 |
 
    **The decisive control: the same architecture, size, recipe and setting reaches AP
    lift 5.8× and AUROC 0.73 on D1, against 1.6× and 0.64 on D2** — on both corpora. The difference is in the drafts, not the method — this is
@@ -212,6 +238,12 @@ obvious fix — use a generator — produces drafts nothing can localize.
    guarantee doing real work, and for a deployable tool the graceful degradation is
    arguably worth more than the 6%.
 
+9. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
+   ground-truth labels the model removes 49.3% of the draft's error (D1); the real head
+   recovers 12.2%. Raising *recall* (judge surprisal, 0.245 → 0.314) made CC *worse*,
+   because at precision ~0.68 a third of flagged positions are notes that were already
+   correct. The surprisal comparison is **single-seed** (`D1_surp0.json`); §9 step 6.
+
 10. **Gated editing is the only condition that improves both Correction Cost and
     plausibility — and free decoding shows why CC alone cannot be trusted.** The
     decoded outputs scored by the judge (`scripts/output_quality.py`; ΔNLL is output
@@ -255,11 +287,49 @@ obvious fix — use a generator — produces drafts nothing can localize.
     rewards mode-seeking. The breakdown percentages (97.6%, 14.5%, a third) are from one
     seed of MTC D1.
 
-9. **Precision, not recall, is the binding constraint — with an oracle bound.** Given
-   ground-truth labels the model removes 49.3% of the draft's error (D1); the real head
-   recovers 12.2%. Raising *recall* (judge surprisal, 0.245 → 0.314) made CC *worse*,
-   because at precision ~0.68 a third of flagged positions are notes that were already
-   correct. The surprisal comparison is **single-seed** (`D1_surp0.json`); §9 step 6.
+11. **An untrained two-sided judge localizes better than any trained head — and
+    transfer separates what is detectable from what is learned.** Zero-shot scorers
+    never see a label or a corruption rule (`scripts/zero_shot_localization.py`; AP
+    lift / AUROC on the same positions as the head, labels checked against its saved
+    arrays; same-corpus rows use judges retrained without the Essen test slice):
+
+    | MTC (Essen) | causal judge | two-sided judge | trained head (in-domain) |
+    |---|---|---|---|
+    | D3 | 4.7× / 0.768 (5.1× / 0.756) | **5.9× / 0.812** (6.1× / 0.790) | 5.0× / 0.743 (4.3× / 0.718) |
+    | D1 | 4.1× / 0.775 (4.9× / 0.774) | **6.2× / 0.838** (7.0× / 0.831) | 5.8× / 0.727 (5.8× / 0.732) |
+    | D2 | 1.4× / 0.561 (1.4× / 0.564) | **2.7× / 0.688** (2.7× / 0.683) | 1.6× / 0.635 (1.8× / 0.654) |
+
+    The two-sided judge wins on every source and both corpora. The comparison favours
+    the head, not the judge: within-melody standardization — which the zero-shot scores
+    use — *lowers* the head's numbers (D1 AUROC 0.727 → 0.701), so the head is shown at
+    its best. Two-sided context matters most on D2 (1.4× → 2.7×), confirming that a
+    generated span's damage lies partly in how it fails to rejoin what follows, which a
+    causal judge charges to the wrong notes.
+
+    **Transfer (MTC, 3 seeds, validation-selected setting):**
+
+    | train → test | AP lift | AUROC | gate precision | gated vs B3 | in-domain on that test set |
+    |---|---|---|---|---|---|
+    | D1 → D3 | 4.5× | 0.697 | 0.861 | **+7.25%** (7.30 / 6.95 / 7.51) | D3: +9.98% |
+    | D3 → D1 | 4.0× | 0.649 | 0.778 | +4.80% (3.57 / 5.81 / 5.03) | D1: +6.35% |
+    | D1 → D2 | 1.4× | 0.580 | 0.269 | **−1.71%** (−1.94 / −1.52 / −1.68) | D2: +0.00% |
+    | D3 → D2 | 1.3× | 0.577 | 0.211 | **−2.01%** (−2.89 / −1.30 / −1.84) | D2: +0.00% |
+
+    Read together:
+    - **Detectability follows manifold distance.** The rule-free judge orders D1 > D3 >
+      D2, matching ΔNLL/unit (3.94 > 2.97 > 1.16).
+    - **Training adds a source-specific share, and D3's is larger.** The D1-trained head
+      keeps 90% of D3's in-domain AP lift on D3; the D3-trained head keeps 69% of D1's
+      on D1. The in-domain minus transferred gated gain — **2.7 points on D3**, 1.6 on
+      D1 — is the part that is learned regularity rather than plausibility. That is the
+      quantified form of the circularity warning.
+    - **Mis-transferred heads do harm on D2** (M3).
+    - **An obvious next method:** gate on the two-sided judge instead of, or with, the
+      trained head. It needs no labels, which is what real drafts lack. Not yet tested.
+
+    Caveats: each judge is a single trained model (heads are 3 seeds); both two-sided
+    judges hit the 60-epoch cap still improving, as `J` did — longer training could only
+    strengthen them; transfer was run on MTC only.
 
 ## 3. Framing moves
 
@@ -278,11 +348,17 @@ confidently warranted" is a *feature* for a creative tool, where a wrong edit is
 than no edit. With the τ=1 guarantee, bounded downside plus abstention is a deployable
 property and more honest than claiming uniform improvement.
 
+*Qualified 2026-09-24:* abstention is only as good as the head's calibration on the
+drafts it meets. Heads trained on D1 or D3 and applied to D2 **open** the gate (348 and
+293 positions, precision 0.27 and 0.21) and make drafts **worse**: −1.71% and −2.01%
+against copy-input, 3/3 seeds each. D2's own head correctly abstains. The τ=1 guarantee
+is real, but at a working τ the no-harm property requires in-distribution training.
+
 **M4 — Say plainly what the field should stop doing.** Two warnings, in order of how
-easy they are to walk into. Rule-based degradation produces a circular benchmark: the
-detector learns the injection rules, and the resulting number says nothing about musical
-error. Generator-infilled drafts avoid that but are unlocalizable, so they are not a
-drop-in fix either. Anyone wanting realistic drafts needs a different task formulation
+easy they are to walk into. Rule-based degradation produces a partly circular benchmark:
+the detector learns the injection rules, and a transfer test shows about a quarter of
+the reported gain (2.7 of 10 points) comes from that. Generator-infilled drafts avoid it
+but are barely localizable, so they are not a drop-in fix either. Anyone wanting realistic drafts needs a different task formulation
 (holistic rewriting, span-free) or human-annotated error locations.
 
 **M5 — Report the number you distrust.** D3 gives the paper's best result and is in the
@@ -292,7 +368,7 @@ believed. That is more persuasive than omission and costs nothing.
 
 ## 4. Claim discipline
 
-Five things the evidence does **not** support, each of which was claimed at some point
+Eight things the evidence does **not** support, each of which was claimed at some point
 while this work was being done:
 
 - **Not "where and how".** Binary matches 5-class (seed-matched +0.003 ± 0.011 on MTC,
@@ -316,6 +392,11 @@ while this work was being done:
   manifold distance is held roughly fixed: precision is 0.825 on point-like drafts and
   0.805 on span-like ones, a gap of +0.019. Recall does fall with run length; precision,
   the quantity gating depends on, does not. Do not explain D2 by span length.
+- **Not "generated drafts cannot be localized".** A zero-shot two-sided judge reaches
+  2.7× chance on D2. Say "far less localizable" and give the numbers.
+- **Not "the D3 benchmark is circular" without qualification.** Transfer puts the
+  rule-learned share at ~2.7 of D3's ~10 points; the rest is genuine implausibility.
+- **Not "gating cannot hurt".** Only at τ=1. Mis-transferred heads lose 1.7–2.0% on D2.
 
 ## 5. Title (closes P2)
 
@@ -352,6 +433,8 @@ gets one sentence as motivation, never as a demonstrated result.
 | "Your detector is just weak / your models are too small." | Three answers. The same architecture, size, recipe and setting reaches AP lift 5.8× on D1 against 1.6× on D2 — the difference is the drafts. Localization precision is flat from 1.6M to 42.7M parameters (corr with log-params −0.58), so it is information-limited, not capacity-limited. And the span task was given the true span-length prior and still failed. |
 | "Your per-position head just can't represent multi-note edits." | Tested within D3, holding manifold distance roughly fixed: precision 0.825 point-like against 0.805 span-like (+0.019). D3's span-like band is contiguous exactly as D2's infills are and still scores 0.805, while D2's head under a matched setting flags nothing. Granularity was also varied directly, in the span detector, with the same null. |
 | "Maybe the drafts aren't degraded, so there is nothing to find." | Tested and rejected: precision is flat across degradation bands; judge-certified degraded drafts are no more localizable. |
+| "A better detector would find D2's errors." | We built the strongest one available without labels — a two-sided judge seeing both sides of every note — and it reaches 2.7× chance on D2 against 6–7× on corruption. It is also better than every trained head on every source, so D2's gap is not for want of a stronger detector. |
+| "D3 is circular, so why report it?" | It is partly circular, and we measured how much: a D1-trained head reaches +7.25% on D3 against D3's own +9.98%. |
 | "+6% is small." | It is over *copy-input*. The published +6.3% was over an imitation baseline itself 21.4% worse than copying. |
 | "ΔNLL isn't musical correctness." | Conceded explicitly; calibrated against human variants; see §6. |
 | "Thin evaluation." | 3 seeds with mean ± std, B1/B2/B3, fidelity, edit-F1, paired stats with bootstrap CI and Wilcoxon, same-corpus control, size ablation. |
@@ -404,11 +487,18 @@ still be ordered by what carries the thesis.
    contribution 2 argues CC cannot carry an evaluation, while the positive result is
    currently CC-only. Check whether refiner checkpoints were kept; if not, rerun.
 
-5. **Measure circularity rather than assert it.** (a) Zero-shot judge localization on
+5. ~~**Measure circularity rather than assert it.**~~ *Done 2026-09-24 — contribution
+   11; extended with a two-sided judge (`src/masked_judge.py`).* Original: (a) Zero-shot judge localization on
    D1 and D3 — the judge never saw either corruption rule. (b) Transfer: train on D1,
    test on D3, and the reverse. If D3's advantage disappears under transfer while the
    zero-shot judge does not favour it, the gap is the learnable injection regularity,
    quantified. This is the test the "learnable regularity" hypothesis currently lacks.
+
+5b. *(Proposed 2026-09-24, not started — needs a decision.)* **Judge-gated editing.** Gate
+   on the untrained two-sided judge's per-note score, alone and combined with the
+   trained head. It localizes better than every head (contribution 11) and needs no
+   labels. Select its threshold on validation exactly as in step 2. If it beats the
+   head-gated +6.35% on D1 — or opens a gain on D2 — it becomes the method.
 
 6. **Strengthen thin controls.** Degradation strata: 3 seeds, and enough drafts that
    the degraded band is not n=28. Locality strata: 3 seeds. Surprisal/recall

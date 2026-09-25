@@ -102,7 +102,9 @@ def main():
         if not per_seed:
             continue
         row = {"corpus": "Essen" if config.get("essen_test") else "MTC",
-               "source": config["sources"][0], "tau": tau, "n_seeds": len(per_seed),
+               "source": (config["sources"][0] if not config.get("test_sources")
+                          else f"{config['sources'][0]}->{config['test_sources'][0]}"),
+               "tau": tau, "n_seeds": len(per_seed),
                "per_seed": per_seed}
         for key in per_seed[0]:
             vals = [m[key] for m in per_seed]

@@ -303,6 +303,10 @@ def main():
                         help="which split supplies the test references")
     parser.add_argument("--gated-thresholds", type=float, nargs="*", default=[],
                         help="evaluate gated decoding at these confidence thresholds")
+    parser.add_argument("--test-sources", nargs="*", default=None,
+                        help="draft sources for the test set, if different from --sources. "
+                             "Train and validation keep --sources, so this measures "
+                             "transfer: does a head trained on one corruption find another?")
     parser.add_argument("--save-artifacts", action="store_true",
                         help="save each model's checkpoint, per-position P(edit), and "
                              "decoded outputs next to the cost arrays")
@@ -345,7 +349,8 @@ def main():
 
     train_drafts = make_drafts(train_refs, tokenizer, priors, generator, args, 100, "train")
     val_drafts = make_drafts(val_refs, tokenizer, priors, generator, args, 200, "val")
-    test_drafts = make_drafts(test_refs, tokenizer, priors, generator, args, 300, "test")
+    test_args = argparse.Namespace(**{**vars(args), "sources": args.test_sources or args.sources})
+    test_drafts = make_drafts(test_refs, tokenizer, priors, generator, test_args, 300, "test")
 
     datasets = (
         RefinementDataset(train_drafts, tokenizer),

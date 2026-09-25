@@ -340,6 +340,22 @@ Runs are **not bit-reproducible** (cuDNN determinism unset): two full runs diffe
 
 Essen replicates. **Gated editing is the only condition better than the draft on both axes.** Free decoding recovers more plausibility but is worse than copying on CC: it decodes greedily toward the LM's mode, 14.5% of its outputs score *more* plausible than the reference, and a third of the melodies it changes become more plausible *and* further from the reference. That is the CC/plausibility dissociation reproduced on outputs, and a warning that ΔNLL rewards mode-seeking. D2's implausibility resists even regeneration (3–6%). The gate leaves D1's metric misalignment untouched — it fixes pitch, not duration.
 
+### Zero-shot and transfer localization (2026-09-24)
+
+`src/masked_judge.py` is a **two-sided judge**: same size and training half as `J`, but whole events (pitch + duration) are masked and predicted from both sides, so a note is scored as −log p(note | everything else). `J` is causal and charges a note that breaks what follows to the *following* notes. Trained by `scripts/train_masked_judge.py` (`models/masked_judge.pth`, `masked_judge_ctrl.pth` for the same-corpus control; it drops melodies over 1,024 tokens, as `J`'s dataset does).
+
+`scripts/zero_shot_localization.py` — AP lift / AUROC, same positions as the refiner head, MTC (Essen):
+
+| | causal `J` | two-sided judge | trained head |
+|---|---|---|---|
+| D3 | 4.7× / 0.768 | **5.9× / 0.812** (6.1× / 0.790) | 5.0× / 0.743 |
+| D1 | 4.1× / 0.775 | **6.2× / 0.838** (7.0× / 0.831) | 5.8× / 0.727 |
+| D2 | 1.4× / 0.561 | **2.7× / 0.688** (2.7× / 0.683) | 1.6× / 0.635 |
+
+An **untrained judge beats every trained head**. D2 is **not unlocalizable** — 2.7× chance — but far behind; "not locally wrong" must soften to "little local trace". The rule-free ordering D1 > D3 > D2 matches manifold distance.
+
+`scripts/run_transfer.sh` (`--test-sources` on `train_refiner.py`): D1→D3 +7.25% (vs D3 in-domain +9.98%), D3→D1 +4.80% (vs +6.35%). So ~2.7 points of D3's gain are learned injection regularity — **D3 is partly, not wholly, circular**. D1→D2 and D3→D2 open the gate and *lose* 1.7–2.0% on all seeds: the no-harm property needs in-distribution training.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
