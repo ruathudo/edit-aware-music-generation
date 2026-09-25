@@ -7,7 +7,7 @@ comparisons with conditions run on 3 seeds use the matching 3 (see `paper-core.m
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
 
-Status: §1–§5 drafted (2026-09-25). Other sections are placeholders.
+Status: §1–§6 drafted (2026-09-25). Other sections are placeholders.
 
 ---
 
@@ -386,7 +386,89 @@ re-runs of the main experiment differ by at most 0.36 points in any cell mean.
 
 ## 6. Results I: where localize-then-fix works
 
-*(Pending — C5, C6, C7, C11, C12; D3 as a control. Budget 1.3 pages.)*
+*Budget 1.3 pages; this draft is ~900 words plus Tables 3–4. Carries C5–C7, C11, C12,
+and D3 as a control. Table 3 is 5 seeds (`headline_r2` + `headline_s34`); Table 4 is
+seeds 0–2, matching the output-quality scoring.*
+
+**Table 3** *(proposed)*. Improvement in mean Correction Cost over returning the draft
+(copy-input), in percent; mean ± standard deviation over five seeds. Positive is better.
+The last row gives how many seeds improve on copy-input.
+
+| | D1 MTC | D1 Essen | D3 MTC | D3 Essen | D2 MTC | D2 Essen |
+|---|---|---|---|---|---|---|
+| B1 imitation, free decoding | −24.9 ± 11.6 | −92.2 ± 7.1 | +3.9 ± 1.9 | −22.3 ± 5.3 | −3.6 ± 1.3 | −27.1 ± 4.2 |
+| B2 head, α = 0, free | −18.8 ± 6.8 | −90.1 ± 9.6 | +5.3 ± 3.0 | −21.8 ± 4.9 | −5.7 ± 1.1 | −26.1 ± 3.5 |
+| edit-aware, free decoding | −17.8 ± 4.6 | −92.4 ± 10.8 | +4.0 ± 1.2 | −22.7 ± 4.2 | −4.2 ± 2.1 | −25.6 ± 5.4 |
+| **edit-aware, gated** | **+6.06 ± 0.58** | **+4.25 ± 0.46** | **+9.81 ± 0.46** | **+7.38 ± 0.27** | 0.00 ± 0.00 | 0.00 ± 0.00 |
+| gated: seeds > copy-input | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 (abstains) | 0/5 (abstains) |
+
+**Gated editing improves drafts where errors are local.** On random corruption, gated
+decoding reduces Correction Cost by 6.06% relative to the draft on MTC and by 4.25% in
+the same-corpus setting, on every one of five seeds (Table 3). It improves 22.4% of
+melodies and worsens 6.5%, leaving the rest untouched, and it changes about 1.5% of
+notes, a third as many as free decoding. Of the events the gate hands to the decoder,
+82% were genuinely wrong. The same setting, chosen on D1 validation data, transfers
+unchanged to the other sources.
+
+**Free decoding is worse than doing nothing.** Every freely decoded model is worse than
+returning the draft on random corruption, on every seed: the imitation baseline B1 by
+25% on MTC, and by more than 90% in the same-corpus setting. It rewrites notes that
+were right. The one exception is MTC D3, discussed below. The
+edit-aware loss does not rescue free decoding: with the head trained ($\alpha = 0.5$)
+or present but untrained (B2), free decoding stays within the seed noise of B1 on every
+cell. The gain in the last row comes from making copying the default, not from the
+auxiliary loss alone; the loss's contribution is a head confident enough to gate with.
+
+This also explains how an edit-aware objective can appear to work when it does not.
+Measured only against B1, an auxiliary edit loss can look like a clear gain — in a
+preliminary sweep on generated drafts, +6.3% over B1 on three of three seeds — while its
+output is nearly identical to the draft (0.0009 notes changed per note) and no better
+than copying it. The model had learned to copy. Without a copy-input baseline and a
+fidelity measure, that is invisible; we report both throughout.
+
+**How much is left.** An oracle that is told which events are wrong, and lets the same
+decoder rewrite exactly those, removes 49.3% of the draft's Correction Cost on D1
+(single run). Gated editing recovers about 12% of that headroom. The gap lies mainly in
+localization: given the right positions, the same decoder's replacements remove most of
+the error.
+
+**Table 4** *(proposed)*. Plausibility of outputs on MTC (seeds 0–2). *Recovered* is the
+share of the draft's ΔNLL that the output removes; for gated editing, the share over the
+melodies the gate actually changed, and how many of those it made less plausible, is in
+brackets.
+
+| | D1: CC vs copy | D1: ΔNLL recovered | D3: CC vs copy | D3: ΔNLL recovered |
+|---|---|---|---|---|
+| draft (copy-input) | 0 | — (ΔNLL +0.298) | 0 | — (ΔNLL +0.271) |
+| B1, free decoding | −24.7% | +40.9% | +4.3% | +48.8% |
+| edit-aware, free | −17.7% | +42.5% | +3.7% | +51.0% |
+| **edit-aware, gated** | **+6.35%** | +16.3% [+30.1%; 2.8% worse] | **+9.98%** | +38.8% [+47.5%; 1.4% worse] |
+
+**Better music, not only closer to the reference.** A Correction Cost gain could come
+from edits the judge finds implausible. It does not: on the melodies it changes, gated
+editing removes 30% of the draft's implausibility on D1 and 48% on D3, and makes fewer
+than 3% of them less plausible (Table 4). The overall figures are lower only because the
+gate leaves most melodies alone. Free decoding recovers *more* plausibility — 41% on
+D1 — while being 25% worse than copying on Correction Cost. The two measures disagree
+because free decoding is greedy and drifts toward the model's most typical continuation:
+14.5% of its D1 outputs score as more plausible than the reference itself (5.2% of
+drafts do), and a third of the melodies it changes end up both more plausible and
+further from the reference (one seed). This is the dissociation of §4 again, now in
+model outputs. An evaluation on plausibility alone would prefer free decoding; one on
+Correction Cost alone would hide that gated editing improves the music. Gated editing is
+the only system that improves on the draft on both.
+
+**D3 is easier, and partly for a bad reason.** Gated editing's largest gains are on
+rule-based degradation — 9.81% on MTC and 7.38% same-corpus, every seed — and D3 is the
+only source on which free decoding also beats copying on MTC. This should not be read as
+the method working better on more musical errors. A refiner trained on D1 alone reaches
++7.25% on D3 drafts (seeds 0–2) against +9.98% for one trained on D3 itself: about 2.7
+points of D3's gain come from learning the six rules that produced it, not from detecting
+implausible music. §7 separates the two.
+
+**Generated drafts.** On D2 the gate never opens: the output equals the draft on every
+seed, and gated editing neither helps nor harms. Free decoding, by contrast, loses 3.6%
+and 27.1%. §7 shows why abstaining is the right response.
 
 ## 7. Results II: where it does not
 
