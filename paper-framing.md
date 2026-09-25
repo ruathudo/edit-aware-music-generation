@@ -369,6 +369,13 @@ obvious fix — use a generator — produces drafts nothing can localize.
       on off-manifold drafts with ~0.4 on generated ones; a deployment that cannot tell
       its drafts apart has to weigh that.
 
+    **Decision (2026-09-25): the head gate is the paper's method; the combination is an
+    extension.** The thesis is about where localize-then-fix applies, and the head's
+    correct abstention on D2 is some of the cleanest evidence for it. So the headline
+    stays head-gated (+6.35% MTC D1); judge + head is reported as "+1.4–2.1 points
+    available where drafts are known to be off-manifold, at ~0.4% risk on generated
+    drafts", and as the natural next step. Do not lead with +7.91%.
+
     Caveat — **validation optimism for judge-based gates.** Validation gains shrank on
     test for every judge-based condition (combination +9.84% → +7.91% / +6.52%; judge
     alone +5.33% → +2.8%) but not for the head (+6.09% → +6.37%). The two-sided judge was
