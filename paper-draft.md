@@ -1,8 +1,8 @@
 # Paper draft
 
 Written section by section from `paper-core.md` (claims, tiers, canonical numbers). Each
-section notes the claims it carries and its page budget. Numbers marked **[S8]** update
-when the 5-seed headline lands.
+section notes the claims it carries and its page budget. Headline numbers are 5 seeds;
+comparisons with conditions run on 3 seeds use the matching 3 (see `paper-core.md`).
 
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
@@ -68,8 +68,8 @@ works, provided copying is the default. A plain sequence-to-sequence refiner is 
 gate each note — it is copied unless the model is confident it needs changing, the reject
 option of selective classification [Chow1970, Geifman2017] applied per note. At the
 strictest threshold the output is the draft itself, so the method's floor is the draft
-by construction. On random corruption, gated editing improves on the draft by 6.35%
-[S8] in edit distance, and it is the only system we test that improves on the draft in
+by construction. On random corruption, gated editing improves on the draft by 6.1%
+in edit distance on every one of five seeds, and it is the only system we test that improves on the draft in
 both edit distance *and* judged plausibility (§6). On generated drafts it declines to
 edit — which, given the evidence above, is the correct behaviour rather than a failure.
 
@@ -242,7 +242,8 @@ taken over the test drafts, so that positive values mean the refiner improved on
 nothing. We also report *fidelity*, the CC between output and draft,
 which distinguishes a refiner that edits from one that regenerates; per-melody win and
 loss rates against copy-input; and, in §4, plausibility. Every result is the mean over
-three training seeds [S8] with the seed standard deviation, under one configuration
+five training seeds for the headline and three for secondary comparisons, with the seed
+standard deviation, under one configuration
 selected on validation data (§5).
 
 ## 4. Measuring plausibility

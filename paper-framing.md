@@ -629,7 +629,7 @@ still be ordered by what carries the thesis.
    correlation. Compute rank correlation between CC and ΔNLL within and across
    sources, or retreat to "decoupled".
 
-8. **5 seeds on the headline** (seed 0 was an outlier once).
+8. ~~**5 seeds on the headline**~~ *Done 2026-09-25, head gate only:* D1 +6.06% ± 0.58, 5/5 seeds (was +6.35% on 3); Essen +4.25%; D3 +9.81% / +7.38%; D2 abstains on all 5. (Original: seed 0 was an outlier once.)
 
 9. ~~**Framing rewrite.**~~ *Done 2026-09-25 — superseded by `paper-core.md`, which is now
    the file to draft from; this file stays as the revision log.* Original: The three-point "trend" is not monotone on the paper's own

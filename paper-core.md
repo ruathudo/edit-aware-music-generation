@@ -19,8 +19,11 @@ pointers. Never cut a P1 claim's *caveat* to save space.
 
 **Numbers.** Canonical values are listed in §9. All are MTC-ANN references, 3 seeds,
 with the one setting chosen on D1 validation (binary head, `weighting=none`, α=0.5,
-τ=0.8), unless stated otherwise. Figures marked **[S8]** will be updated to 5 seeds when
-step 8 runs; the framing does not depend on them.
+τ=0.8), unless stated otherwise. **Headline figures are 5 seeds** (step 8, 2026-09-25,
+`results/refiner/headline_s34/five_seed_summary.json`). Comparisons against conditions
+that were run on seeds 0–2 only — transfer, the judge + head gate, output quality,
+surprisal input — use the matching 3-seed values, so every comparison stays
+seed-matched.
 
 ---
 
@@ -111,9 +114,11 @@ Under one configuration for every source, localization of edited positions
 
 | | trained head | untrained two-sided judge |
 |---|---|---|
-| D1 random | 5.8× / 0.727 | 6.2× / 0.838 |
-| D3 rule-based | 5.0× / 0.743 | 5.9× / 0.812 |
-| **D2 generated** | **1.6× / 0.635** | **2.7× / 0.688** |
+| D1 random | 5.8× / 0.724 | 6.2× / 0.838 |
+| D3 rule-based | 4.6× / 0.726 | 5.9× / 0.812 |
+| **D2 generated** | **1.6× / 0.636** | **2.7× / 0.688** |
+
+(Trained head: 5 seeds. Judge: one trained model.)
 
 Essen replicates every row. The D2 head collapses to KEEP — 0 positions clear τ on any
 seed — although D2 has *more* true edits (7.3% of positions) than D1 (6.0%). A span
@@ -137,9 +142,10 @@ the same data, so part of the rise is built in. The head's flatness has no such 
 **C5. Precision-gated editing improves drafts where errors are local.** (§5, §6)
 Copy each event by default; regenerate it only when the head's P(edit) ≥ τ. At τ=1 the
 output is the draft verbatim, so the method's floor is copy-input by construction.
-- D1: **+6.35% over copy-input** [S8] (per seed 5.87 / 6.83 / 6.34; win 23.0%, loss 6.3%);
-  same-corpus **+4.47%**. Of the edits it makes, 82% are true errors.
-- It beats the imitation baseline B1 by a wide margin: B1 is 24.7% *worse* than copying.
+- D1: **+6.06% ± 0.58 over copy-input**, 5/5 seeds (5.87 / 6.83 / 6.34 / 5.28 / 5.96);
+  same-corpus **+4.25% ± 0.46**, 5/5. Of the edits it makes, 82% are true errors; it
+  improves 23.0% of melodies and worsens 6.3% (seeds 0–2).
+- It beats the imitation baseline B1 by a wide margin: B1 is 24.9% *worse* than copying.
 - Settings chosen on validation only; the gain is flat across them (every class
   weighting peaks at 6.3–6.5%; 84/96 settings beat copy-input on all seeds).
 *Source:* `results/refiner/headline_r2/`, `results/refiner/select/selection.json`.
@@ -174,7 +180,8 @@ mode-seeking, which the 14.5% itself shows.
 (§7)
 The untrained two-sided judge ranks sources D1 > D3 > D2, matching their ΔNLL per unit
 of change (3.94 > 2.97 > 1.16). A trained head adds learned regularity on top, which
-transfer isolates: a D1-trained head reaches +7.25% on D3 against D3's own +9.98%, so
+transfer isolates: a D1-trained head reaches +7.25% on D3 against D3's own +9.98%
+(both seeds 0–2), so
 **~2.7 of D3's ~10 points come from learning the injection rules**. D3 is therefore a
 partly circular benchmark — report it, as a control, with that number in the caption.
 *Source:* `zero_shot_*.json`, `results/refiner/transfer/`.
@@ -195,8 +202,8 @@ partly circular benchmark — report it, as a control, with that number in the c
 early-stopped on the validation references); test numbers are clean.
 
 **C10. An untrained judge localizes better than every trained head.** (§7)
-Two-sided judge vs trained head, AUROC: D1 0.838 vs 0.727, D3 0.812 vs 0.743, D2 0.688
-vs 0.635, both corpora. The head is shown at its best (standardizing its scores lowers
+Two-sided judge vs trained head (5 seeds), AUROC: D1 0.838 vs 0.724, D3 0.812 vs
+0.726, D2 0.688 vs 0.636, both corpora. The head is shown at its best (standardizing its scores lowers
 them). A note's plausibility given both sides is a stronger error signal than anything
 the supervised head learned.
 *Caveat:* each judge is one trained model; heads are 3 seeds.
@@ -208,7 +215,7 @@ the generated spans are *correctable* once located — the bottleneck is finding
 *Source:* `results/refiner/diagnostics_{D1,D2infill}.json` (single run, same test sets).
 
 **C12. The imitation baseline converges to copying.** (§6)
-Plain seq2seq refinement is worse than copying the draft (−24.7% on D1). Adding an
+Plain seq2seq refinement is worse than copying the draft (−24.9% on D1, 5 seeds). Adding an
 edit-aware auxiliary loss on D2 improves on it by 6.3% (α=1.0, 3/3 seeds) — but at that
 optimum fidelity is 0.0009 per note and CC equals copy-input's (4.726 vs 4.709): the gain
 is convergence to copying. **Always report a copy-input baseline and fidelity.**
@@ -308,10 +315,11 @@ MTC, 3 seeds, validation-selected setting, unless noted. Essen in brackets.
 | τ (95th pct of variant ΔNLL) | 0.585 | validator_report |
 | ΔNLL per unit change: D4 / D1 / D3 / D2 (T=1.0) | 0.038 / 3.94 / 2.97 / 1.16 | validator, d2_report |
 | Spearman ρ(surface, ΔNLL): D1 / D3 / D2 / D4 / pooled | +.52 / +.47 / +.20 / +.14 / −.06 | decoupling |
-| Gated vs copy-input: D1 / D3 / D2 | +6.35% [S8] / +9.98% / 0.00% (+4.47 / +7.30 / 0.00) | headline_r2 |
-| B1 (imitation) vs copy-input, D1 | −24.7% | headline_r2 |
+| Gated vs copy-input, 5 seeds: D1 / D3 / D2 | +6.06 ± 0.58 / +9.81 ± 0.46 / 0.00% (+4.25 / +7.38 / 0.00); all D1/D3 cells 5/5 | five_seed_summary |
+| Gated vs copy-input, seeds 0–2 (for matched comparisons) | +6.35 / +9.98 / 0.00% (+4.47 / +7.30 / 0.00) | headline_r2 |
+| B1 (imitation) vs copy-input, D1 | −24.9% (5 seeds) | five_seed_summary |
 | Gate precision D1 / D3 | 0.823 / 0.904 | localization |
-| Head AP lift / AUROC: D1 / D3 / D2 | 5.8× .727 / 5.0× .743 / 1.6× .635 | localization |
+| Head AP lift / AUROC, 5 seeds: D1 / D3 / D2 | 5.8× .724 / 4.6× .726 / 1.6× .636 | five_seed_summary |
 | Two-sided judge AP lift / AUROC: D1 / D3 / D2 | 6.2× .838 / 5.9× .812 / 2.7× .688 | zero_shot_mtc |
 | Degraded D2: fraction / judge AUROC | 2.5% (4.4%) / .775 (.779) | controls/strata |
 | Transfer: D1→D3 / D3→D1 / D1→D2 / D3→D2 | +7.25 / +4.80 / −1.71 / −2.01% | transfer |
@@ -323,7 +331,7 @@ MTC, 3 seeds, validation-selected setting, unless noted. Essen in brackets.
 
 ## 10. Open items before and during drafting
 
-- **Step 8** — 5 seeds on the head-gate headline, when the user says go. Updates [S8].
+- ~~**Step 8**~~ — done 2026-09-25: D1 +6.06% (5/5 seeds), from +6.35% on 3.
 - **Step 10** — related work. Position against MDT (its degradation-*detection* task is
   exactly where C8's circularity measurement applies — word carefully), RefinPaint
   (where-to-edit), sequence-editing models (LaserTagger / EditNTS / copy mechanisms),

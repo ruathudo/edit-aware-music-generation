@@ -381,6 +381,10 @@ Combination beats the head by 1.4–2.1 pp, 3/3 seeds seed-matched, on every D1/
 
 `scripts/decoupling.py` — per-draft Spearman ρ between surface change (CC / reference length) and ΔNLL, MTC, CI by bootstrapping tune families: D1 **+0.52**, D3 **+0.47**, D2 +0.20, D4 +0.14, **all pooled −0.06** [−0.11, −0.01]. "Near-orthogonal" was too strong: within a corruption process CC tracks damage (partly by construction — edit count drives both); across sources the relation vanishes and slightly inverts. Claim: CC can rank methods on one draft source, but cannot compare sources or tell an error from a valid alternative. Matched-distance comparison is thin (9 human pairs inside the synthetic range: median ΔNLL 0.000 vs +0.184).
 
+### Five-seed headline (2026-09-25)
+
+Seeds 3–4 (`SEEDS="3 4" scripts/run_headline.sh none 0.5 0.8 results/refiner/headline_s34`) merged with seeds 0–2 in `headline_s34/five_seed_summary.json`. Head-gated vs copy-input: **MTC D1 +6.06% ± 0.58**, D3 +9.81%, D2 0.00%; Essen D1 +4.25%, D3 +7.38%, D2 0.00%. Every D1/D3 cell positive on 5/5 seeds; D2 abstains on all 5; B1 −24.9%. Headline figures quote 5 seeds; comparisons with conditions run only on seeds 0–2 (transfer, judge + head gate, quality, surprisal) use the matching 3-seed values.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.
