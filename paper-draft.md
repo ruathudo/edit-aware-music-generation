@@ -7,7 +7,7 @@ when the 5-seed headline lands.
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
 
-Status: §2 drafted (2026-09-25). Other sections are placeholders.
+Status: §1 and §2 drafted (2026-09-25). Other sections are placeholders.
 
 ---
 
@@ -17,8 +17,85 @@ Status: §2 drafted (2026-09-25). Other sections are placeholders.
 
 ## 1. Introduction
 
-*(Pending — carries the thesis and C1–C7 in one paragraph each at most; Figure 1.
-Budget 1.0 page.)*
+*Budget 1.0 page; this draft is ~820 words. Carries the thesis and C1–C7; P2 claims
+appear only as pointers.*
+
+Generative models of symbolic music now produce plausible melodies on demand, but a
+draft is rarely final. Someone — a composer, or a second model — has to decide which
+notes to change and which to keep. This *refinement* problem differs from generation in
+one important respect: most of the draft is already right, and a system that rewrites it
+wholesale has not refined anything. The natural formulation is therefore
+*localize-then-fix*: find the notes that are wrong, and change only those. Recent work
+has pursued exactly this, with models that locate and correct degradations in symbolic
+excerpts [McLeod2020] and feedback models that pick out the weak notes of a composition
+for resampling [Ramoneda2024].
+
+The standard recipe for training and evaluating such systems rests on two assumptions.
+Training data is made by *corrupting* clean melodies — replacing, shifting, deleting or
+inserting notes — and a model learns to undo the damage. Evaluation measures the edit
+distance between the model's output and the original melody. The first assumption is
+that synthetic corruption resembles the errors real drafts contain; the second, that
+edit distance to a reference measures improvement. This paper tests both, and finds
+that each holds only on one side of a boundary that matters.
+
+**Edit distance cannot tell an error from an alternative.** We train an independent
+melody language model as a plausibility judge and calibrate it against human-authored
+variants of the same folk tune — valid alternatives by construction. The judge scores
+them as neither better nor worse than one another, as it should. But the variants sit
+92% of the way apart in normalized edit distance, while synthetic corruption sits 7%
+away and is roughly 100× more implausible per unit of change. Across draft sources,
+distance and plausibility are unrelated; the drafts furthest from their references are
+the most plausible. Edit distance can rank methods on a single draft source, but it
+cannot compare sources, and it cannot say whether a change was a correction (§4).
+
+**Generated drafts leave little local trace.** We then compare three draft sources
+under one model, one training recipe and one setting chosen on validation data: random
+corruption, rule-based musical degradation, and spans rewritten by a trained generator.
+The errors in corrupted drafts are readily found: a per-note detector ranks them at
+5.8× chance, and an untrained two-sided judge — which scores each note given everything
+around it — at 6–7×. Generator-written material is another matter. The best detector we
+built, that same untrained judge, finds it at 2.7× chance; the trained detector finds
+almost nothing and flags no position confidently enough to act on. The reason is not
+that the detectors are weak — the untrained judge outperforms every trained one — but
+that most generated drafts are not wrong. Only 2.5–4.4% are measurably worse than their
+reference, and on those the judge's localization approaches that for corruption. The
+rest are *different*, and edit labels derived from a reference mistake difference for
+error (§7).
+
+**A method that respects the boundary.** Where errors are local, localize-then-fix
+works, provided copying is the default. A plain sequence-to-sequence refiner is 25%
+*worse* than simply returning the draft: it rewrites notes that were right. We instead
+gate each note — it is copied unless the model is confident it needs changing, the reject
+option of selective classification [Chow1970, Geifman2017] applied per note. At the
+strictest threshold the output is the draft itself, so the method's floor is the draft
+by construction. On random corruption, gated editing improves on the draft by 6.35%
+[S8] in edit distance, and it is the only system we test that improves on the draft in
+both edit distance *and* judged plausibility (§6). On generated drafts it declines to
+edit — which, given the evidence above, is the correct behaviour rather than a failure.
+
+In summary, we make three contributions:
+
+1. **A measurement.** A plausibility judge calibrated on human variants, and evidence
+   that edit distance to a reference — the field's standard metric — cannot distinguish
+   an error from a valid alternative, and should be reported alongside plausibility.
+2. **A boundary.** A controlled comparison of random, rule-based and generated drafts
+   showing that localize-then-fix applies where errors leave a local trace and not where
+   a generator wrote the draft, with evidence from trained and untrained detectors,
+   transfer between sources, and a same-corpus replication. It also measures how much of
+   a rule-based benchmark's score comes from learning its own rules.
+3. **A method.** Precision-gated editing, whose downside is bounded by construction,
+   which improves drafts where errors are local and abstains where they are not.
+
+Our experiments use monophonic folk melodies from the Meertens Tune Collections [MTC]
+and the Essen Folksong Collection [Essen]. Plausibility is judged by a language model,
+not by listeners; we treat this as the central limitation and return to it in §8.
+
+**Figure 1** *(proposed)*. Three draft sources ordered by how far their changes move a
+melody off the data distribution (judged implausibility per unit of change). Left axis:
+how well an untrained two-sided judge localizes the changed notes (AUROC). Right axis:
+gated editing's improvement over the draft. Corruption (random, rule-based) is
+localizable and improvable; generator-written drafts are neither, and the method
+abstains.
 
 ## 2. Related Work
 
