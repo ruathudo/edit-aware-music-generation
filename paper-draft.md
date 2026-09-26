@@ -112,12 +112,15 @@ Our experiments use monophonic folk melodies from the Meertens Tune Collections 
 and the Essen Folksong Collection [Essen]. Plausibility is judged by a language model,
 not by listeners; we treat this as the central limitation and return to it in §8.
 
-**Figure 1** *(proposed)*. Three draft sources ordered by how far their changes move a
-melody off the data distribution (judged implausibility per unit of change). Left axis:
-how well an untrained two-sided judge localizes the changed notes (AUROC). Right axis:
-gated editing's improvement over the draft. Corruption (random, rule-based) is
-localizable and improvable; generator-written drafts are neither, and the method
-abstains.
+**Figure 1** (`figures/figure1.pdf`, `scripts/figure1.py`). Three draft sources placed by
+how far their changes move a melody off the data distribution: the judge's median
+implausibility per unit of change (Table 2); the dashed line marks human variants of the
+same tune. (a) How well the changed notes are localized (AUROC; 0.5 is chance) by an
+untrained two-sided judge and by the trained edit head (Table 5). (b) Gated editing's
+improvement in Correction Cost over returning the draft unchanged (Table 3). MTC; error
+bars are ±1 s.d. over five seeds, mostly smaller than the markers. Corruption, random or
+rule-based, is localizable and improvable; generator-written drafts sit nearer the human
+variants, are localized far less well, and the gate abstains.
 
 ## 2. Related Work
 
