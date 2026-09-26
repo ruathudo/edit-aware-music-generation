@@ -244,7 +244,11 @@ Within D3, AUROC falls with run length (head 0.80 → 0.71; judge 0.94 → 0.75)
 because masked neighbours stay visible as corrupted context. But D3's contiguous band
 still beats D2 (0.71 vs 0.64). Gating, which uses only the confident tail, is
 insensitive to run length.
-*Source:* `results/refiner/controls/strata.json`.
+*Run-length matched (2026-09-27):* runs of 3+, judge D2 0.68 vs D3 0.75 (Essen 0.68 vs
+0.72), head 0.64 vs 0.71; drafts with no two adjacent changes, judge D2 0.75 vs D1 0.84,
+D3 0.94 (Essen 0.73 / 0.83 / 0.92). D2 is worse at every matched run length.
+*Source:* `results/refiner/controls/strata.json`, `locality_all_sources.json`
+(`scripts/locality_all_sources.py`).
 
 **C14. The confound checks.** (§7, one paragraph)
 - Same-corpus control (judge, generator and references all Essen): both halves

@@ -24,7 +24,7 @@ We test both halves of that recipe on monophonic folk melodies. Using a melody l
 model, calibrated against human variants of the same tune, as a plausibility judge, we
 show that edit distance cannot tell an error from a valid alternative: human variants
 differ in 92% of their notes yet are judged equally plausible, while synthetic corruption
-is 80–100 times more implausible per unit of change. Comparing random, rule-based and
+is two orders of magnitude more implausible per unit of change. Comparing random, rule-based and
 generator-written drafts under a single configuration, we find that localize-then-fix
 works where errors leave a local trace, and not where a generator wrote the draft. The
 strongest detector we built — an untrained judge that scores each note given everything
@@ -33,7 +33,7 @@ and the gap persists when drafts are matched for how much they degrade the melod
 generated damage is real, but diffuse. A
 precision-gated refiner, which copies each note unless it is confident the note is wrong,
 improves randomly corrupted drafts by 6.1% over leaving them unchanged on every seed, is
-the only system tested that improves both edit distance and plausibility, and abstains
+the only system tested that improves them in both edit distance and plausibility, and abstains
 on generated drafts, where a plain sequence-to-sequence refiner does harm. A transfer
 test further shows that about a quarter of the gain on a synthetic benchmark, random or
 rule-based alike, does not survive a change of corruption process.
@@ -66,9 +66,9 @@ melody language model as a plausibility judge and calibrate it against human-aut
 variants of the same folk tune — valid alternatives by construction. The judge scores
 them as neither better nor worse than one another, as it should. But the variants sit
 92% of the way apart in normalized edit distance, while synthetic corruption sits 7%
-away and is roughly 100× more implausible per unit of change. Across draft sources,
-distance and plausibility are unrelated; the drafts furthest from their references are
-the most plausible. Edit distance can rank methods on a single draft source, but it
+away and is two orders of magnitude more implausible per unit of change. Across draft
+sources, distance and plausibility are unrelated; the melodies furthest from their
+references — the human variants — are the most plausible. Edit distance can rank methods on a single draft source, but it
 cannot compare sources, and it cannot say whether a change was a correction (§4).
 
 **Generated drafts leave little local trace.** We then compare three draft sources
@@ -93,9 +93,11 @@ gate each note — it is copied unless the model is confident it needs changing,
 option of selective classification [Chow1970, Geifman2017] applied per note. At the
 strictest threshold the output is the draft itself, so the method's floor is the draft
 by construction. On random corruption, gated editing improves on the draft by 6.1%
-in edit distance on every one of five seeds, and it is the only system we test that improves on the draft in
-both edit distance *and* judged plausibility (§6). On generated drafts it declines to
-edit — which, given the evidence above, is the correct behaviour rather than a failure.
+in edit distance on every one of five seeds, and it is the only system we test that
+improves these drafts in both edit distance *and* judged plausibility (§6). On generated
+drafts it declines to edit. That forgoes nothing any gate we tried could recover —
+every alternative gate makes these drafts worse (§7, §8) — and it is safe where free
+decoding does harm.
 
 In summary, we make three contributions:
 
@@ -308,7 +310,8 @@ or below zero — the judge is close to indifferent between variants that differ
 their notes. It measures degradation, not difference. We set the degradation threshold
 $\tau$ to the 95th percentile of the variants' ΔNLL, $\tau = 0.585$: a draft above $\tau$
 is less plausible than 95% of human alternatives are. (Resampling which variant pairs are
-drawn moves $\tau$ by about 0.02.)
+drawn moves $\tau$ by about 0.02.) Because the variant pairs come from the test corpus,
+$\tau$ is used only to band drafts for analysis, never to train or select a model.
 
 **Table 2** *(proposed)*. Draft sources under the judge (MTC). *Per unit* is the median
 of ΔNLL divided by the fraction of notes changed; ρ is Spearman's correlation between
@@ -328,7 +331,8 @@ corruption is that a replaced note may simply produce a valid alternative, so th
 model learns to undo harmless changes. Table 2 does not support that worry: 95% of D1
 drafts are less plausible than their references. The problem is the opposite one. Random
 and rule-based corruption change 7–9% of a melody at a ΔNLL of about 3–4 per unit of
-change — **80–100× more per unit than a human variant**. Corruption moves a melody a
+change — **two orders of magnitude more per unit than a human variant** (whose median
+is near zero, so the exact ratio is unstable). Corruption moves a melody a
 short distance *off* the distribution of plausible melodies; human variation moves it a
 long way *along* it. Generated drafts sit between the two, at about 1 nat per unit:
 most (79.5%) are less plausible than their reference, but a fifth are not, and few clear
@@ -341,7 +345,7 @@ $\tau$ to certify degradation, never to declare a draft error-free.
 process, more change does mean more damage: fraction changed and ΔNLL correlate at
 ρ ≈ 0.5 for D1 and D3, partly by construction, since the number of injected edits drives
 both. Across sources the relation disappears and slightly reverses (ρ = −0.06 pooled): the
-drafts furthest from their references are the most plausible. The contrast is starkest at
+melodies furthest from their references, the human variants, are the most plausible. The contrast is starkest at
 matched distance, though the evidence is thin — the nine variant pairs that differ as
 little as synthetic drafts do have median ΔNLL 0.000, against +0.18 for synthetic drafts
 at the same distance.
@@ -458,11 +462,11 @@ output is nearly identical to the draft (0.0009 notes changed per note) and no b
 than copying it. The model had learned to copy. Without a copy-input baseline and a
 fidelity measure, that is invisible; we report both throughout.
 
-**How much is left.** An oracle that is told which events are wrong, and lets the same
-decoder rewrite exactly those, removes 49.3% of the draft's Correction Cost on D1
-(single run). Gated editing recovers about 12% of that headroom. The gap lies mainly in
-localization: given the right positions, the same decoder's replacements remove most of
-the error.
+**How much is left.** An oracle — a model of the same architecture, trained and tested
+with the true edit positions given as input — removes 49.3% of the draft's Correction
+Cost on D1 (a single run, under an earlier configuration). Gated editing's 6.1% is about
+an eighth of that headroom. The gap lies mainly in localization: given the right
+positions, a decoder of this size removes about half of the error.
 
 **Table 4** *(proposed)*. Plausibility of outputs on MTC (seeds 0–2). *Recovered* is the
 share of the draft's ΔNLL that the output removes; for gated editing, the share over the
@@ -487,8 +491,9 @@ because free decoding is greedy and drifts toward the model's most typical conti
 drafts do), and a third of the melodies it changes end up both more plausible and
 further from the reference (one seed). This is the dissociation of §4 again, now in
 model outputs. An evaluation on plausibility alone would prefer free decoding; one on
-Correction Cost alone would hide that gated editing improves the music. Gated editing is
-the only system that improves on the draft on both.
+Correction Cost alone would hide that gated editing improves the music. On random
+corruption, gated editing is the only system that improves on the draft on both; on MTC
+D3, where every system beats copying, free decoding does too.
 
 **D3 is easier, but its in-domain gain overstates it.** Gated editing's largest gains are
 on rule-based degradation — 9.81% on MTC and 7.38% same-corpus, every seed — and D3 is
@@ -538,12 +543,12 @@ training data as $J$, which scores each note given every other note in the melod
 outperforms the trained head on every source and both corpora. The comparison favours
 the head: standardizing its scores within each melody, as the judge's are, lowers its
 AUROC. Even this judge reaches only 2.7× chance on D2, against 6–7× on corruption. Two
-further controls point the same way. Localization precision is flat across a 26-fold
-range of model sizes (1.6M to 42.7M parameters, at the earlier τ = 0.9), so capacity is
-not the constraint. And
-given the true positions, the decoder removes 21.5% of a generated draft's Correction
-Cost (single run): generated spans are correctable once found. Finding them is the
-problem.
+further controls bear on this, less directly. On random corruption, localization
+precision is flat across a 26-fold range of model sizes (1.6M to 42.7M parameters, at the
+earlier τ = 0.9); we did not repeat the ablation on D2, so it shows only that capacity is
+not what limits the head where localization works. And given the true positions, the
+oracle model removes 21.5% of a generated draft's Correction Cost (single run):
+generated spans are correctable once found. Finding them is the problem.
 
 **Not less damage, but diffuse damage.** One explanation would make the result
 uninteresting: generated drafts may simply carry less damage than corrupted ones (mean
@@ -605,13 +610,16 @@ about implausible music. Transfer also bounds the gate's safety. Heads trained o
 2.0% on every seed. Abstention on generated drafts is the behaviour of a head trained on
 them; it is not guaranteed for a head trained on something else.
 
-**Contiguity explains part of the gap, not all of it.** Generated changes come in runs
-of 2–6 notes, while random corruption mostly alters single notes, and contiguous errors
-are harder to rank: within D3, the head's AUROC falls from 0.80 for isolated changes to
-0.71 for runs of three or more, and the judge's from 0.94 to 0.75, plausibly because
-corrupted neighbours stay visible as context. But D3's runs of three or more are still
-localized better than D2 (0.71 against 0.64 for the head; 0.75 against 0.69 for the
-judge), so contiguity does not account for D2.
+**Contiguity costs localization, but does not explain D2.** Generated changes come in
+runs of 2–6 notes, while random corruption mostly alters single notes, and contiguous
+errors are harder to rank: within D3, the judge's AUROC falls from 0.94 for isolated
+changes to 0.75 for runs of three or more (Essen: 0.92 to 0.72), plausibly because
+corrupted neighbours stay visible as context. At matched run length, however, generated
+changes are still localized worse. For runs of three or more the judge reaches 0.68 on
+D2 against 0.75 on D3 (Essen: 0.68 against 0.72), and the trained head 0.64 against
+0.71. In drafts where no two changed notes are adjacent, so that contiguity cannot
+matter, the judge reaches 0.75 on D2 against 0.84 on D1 and 0.94 on D3 (Essen: 0.73,
+0.83, 0.92).
 
 **Confounds.** The main results are cross-corpus — the judge and generator are trained on
 Essen and tested on MTC — but every result above replicates when judge, generator and
@@ -644,8 +652,9 @@ generated drafts the judge opens a gate the head keeps shut, and results fall by
 drafts is part of the paper's evidence — and report the combination as the natural next
 step for drafts known to contain local errors. Two notes of caution: the judge was
 early-stopped on the melodies our validation drafts are made from, so judge-based gates
-looked better on validation (+9.8%) than on test; and a variant that uses no edit labels
-anywhere — the judge as gate, the imitation model as decoder — still improves on the draft
+looked better on validation (+9.8%) than on test; and a variant trained without edit
+labels — the judge as gate, the imitation model as decoder, with only the gate's
+threshold chosen on validation — still improves on the draft
 (+2.4% on D1, +6–7% on D3, every seed), which is the setting that would apply to drafts
 nobody has labelled.
 
@@ -672,6 +681,12 @@ as music.
 language model, calibrated against human variants but not validated by listeners; it
 also rewards typical continuations, as free decoding's outputs show (§6). Every
 plausibility claim here is a claim about this judge.
+*The judge and the refiners share training data.* The judge is kept independent of the
+generator, but the refiners are trained on drafts of the judge's half of Essen, so the
+judge is predisposed to find their output plausible. This mostly flatters free decoding,
+which rewrites many notes toward what both models learned. Gated editing changes few
+notes and is less exposed, but its plausibility gains may be inflated too, to a smaller
+degree.
 *Two corpora, one texture.* Both collections are monophonic European folk song. Whether
 the boundary falls in the same place for polyphony, other styles, or larger generators
 is open.
@@ -715,10 +730,12 @@ correction; it should be reported beside a plausibility measure, and beside the 
 simply returning the draft. And a benchmark built from synthetic errors rewards
 learning how they were made; a transfer test measures by how much.
 
-Refining generated music will likely need a different starting point: supervision that
-does not equate difference with error — plausibility-driven revision, or error locations
-marked by musicians. The judge-and-head gate of §8, which already improves corrupted
-drafts further and needs no labels in one variant, is a first step in that direction.
+Refining generated music will likely need a different starting point: a formulation
+that does not assume the damage lies at the notes that differ from a reference —
+revision scored by plausibility over whole passages, or error locations marked by
+musicians. The judge-and-head gate of §8 is not that step: it improves corrupted drafts
+further, and one variant needs no edit labels in training, but on generated drafts it
+too does harm.
 
 ---
 

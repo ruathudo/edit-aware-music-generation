@@ -1,0 +1,236 @@
+[
+  {
+    "corpus": "mtc",
+    "source": "D1",
+    "bands": [
+      {
+        "band": "1 event",
+        "n_drafts": 934,
+        "head_auroc": 0.7221836214707983,
+        "head_auroc_sd": 0.0055042186194522785,
+        "head_ap_lift": 6.0353907441696615,
+        "head_ap_lift_sd": 0.11488105472172648,
+        "base_rate": 0.05524654239326518,
+        "judge_auroc": 0.8385748033067657,
+        "judge_ap_lift": 6.454876676588562
+      },
+      {
+        "band": "2 adjacent",
+        "n_drafts": 139,
+        "head_auroc": 0.7442979827530517,
+        "head_auroc_sd": 0.00331916812336605,
+        "head_ap_lift": 4.779750817926373,
+        "head_ap_lift_sd": 0.04910320815711573,
+        "base_rate": 0.09049185343838445,
+        "judge_auroc": 0.8466668609904684,
+        "judge_ap_lift": 5.357817694898817
+      },
+      {
+        "band": "3+ adjacent",
+        "n_drafts": 7,
+        "head_auroc": 0.7135483457296743,
+        "head_auroc_sd": 0.02518818216081626,
+        "head_ap_lift": 3.3316792178188797,
+        "head_ap_lift_sd": 0.29024404557076006,
+        "base_rate": 0.09135399673735727,
+        "judge_auroc": 0.72557065914337,
+        "judge_ap_lift": 3.361055446982653
+      }
+    ]
+  },
+  {
+    "corpus": "mtc",
+    "source": "D2-infill",
+    "bands": [
+      {
+        "band": "1 event",
+        "n_drafts": 121,
+        "head_auroc": 0.6014654592913591,
+        "head_auroc_sd": 0.01067219715174577,
+        "head_ap_lift": 1.3947882160622767,
+        "head_ap_lift_sd": 0.048631225135293416,
+        "base_rate": 0.029487285678787375,
+        "judge_auroc": 0.745677317026159,
+        "judge_ap_lift": 4.246707432920231
+      },
+      {
+        "band": "2 adjacent",
+        "n_drafts": 277,
+        "head_auroc": 0.6163295138096392,
+        "head_auroc_sd": 0.002223160149387875,
+        "head_ap_lift": 1.525153331100745,
+        "head_ap_lift_sd": 0.04283269605844625,
+        "base_rate": 0.05046020573903628,
+        "judge_auroc": 0.7146165016540417,
+        "judge_ap_lift": 3.217084656424863
+      },
+      {
+        "band": "3+ adjacent",
+        "n_drafts": 666,
+        "head_auroc": 0.6417844931232702,
+        "head_auroc_sd": 0.0023468430436857928,
+        "head_ap_lift": 1.65185267525653,
+        "head_ap_lift_sd": 0.03267134600661627,
+        "base_rate": 0.08995937318630295,
+        "judge_auroc": 0.6798816275013266,
+        "judge_ap_lift": 2.4833957170154837
+      }
+    ]
+  },
+  {
+    "corpus": "mtc",
+    "source": "D3",
+    "bands": [
+      {
+        "band": "1 event",
+        "n_drafts": 501,
+        "head_auroc": 0.7999253864349712,
+        "head_auroc_sd": 0.045622437563371636,
+        "head_ap_lift": 10.950784837581406,
+        "head_ap_lift_sd": 2.31009183379503,
+        "base_rate": 0.04577974196872708,
+        "judge_auroc": 0.938250537045943,
+        "judge_ap_lift": 14.409809649625194
+      },
+      {
+        "band": "2 adjacent",
+        "n_drafts": 227,
+        "head_auroc": 0.7262283474476418,
+        "head_auroc_sd": 0.04045914956343593,
+        "head_ap_lift": 4.44576896914581,
+        "head_ap_lift_sd": 0.8206189686650414,
+        "base_rate": 0.09007491466820337,
+        "judge_auroc": 0.8057413531400357,
+        "judge_ap_lift": 5.192895668892754
+      },
+      {
+        "band": "3+ adjacent",
+        "n_drafts": 333,
+        "head_auroc": 0.7135145097646649,
+        "head_auroc_sd": 0.034342802267343854,
+        "head_ap_lift": 3.023212686327292,
+        "head_ap_lift_sd": 0.4877144976317053,
+        "base_rate": 0.13204297034044285,
+        "judge_auroc": 0.7510447114093215,
+        "judge_ap_lift": 3.2859736632104037
+      }
+    ]
+  },
+  {
+    "corpus": "essen",
+    "source": "D1",
+    "bands": [
+      {
+        "band": "1 event",
+        "n_drafts": 4310,
+        "head_auroc": 0.7248975553641569,
+        "head_auroc_sd": 0.025377050051143147,
+        "head_ap_lift": 6.100238215833631,
+        "head_ap_lift_sd": 0.9550033972330066,
+        "base_rate": 0.04862759643916914,
+        "judge_auroc": 0.8311139698290787,
+        "judge_ap_lift": 7.520079262683984
+      },
+      {
+        "band": "2 adjacent",
+        "n_drafts": 720,
+        "head_auroc": 0.735562296155441,
+        "head_auroc_sd": 0.031148733695044412,
+        "head_ap_lift": 4.278019545026986,
+        "head_ap_lift_sd": 0.5855517246554682,
+        "base_rate": 0.09106377806812312,
+        "judge_auroc": 0.8392243896411399,
+        "judge_ap_lift": 5.311709587417088
+      },
+      {
+        "band": "3+ adjacent",
+        "n_drafts": 50,
+        "head_auroc": 0.7350351860242373,
+        "head_auroc_sd": 0.042705981196539025,
+        "head_ap_lift": 3.3641235830853033,
+        "head_ap_lift_sd": 0.4602536543705282,
+        "base_rate": 0.12775579423403052,
+        "judge_auroc": 0.8339259803050029,
+        "judge_ap_lift": 3.9992573119075945
+      }
+    ]
+  },
+  {
+    "corpus": "essen",
+    "source": "D2-infill",
+    "bands": [
+      {
+        "band": "1 event",
+        "n_drafts": 483,
+        "head_auroc": 0.63076898906739,
+        "head_auroc_sd": 0.008356092306819354,
+        "head_ap_lift": 1.6681912272846222,
+        "head_ap_lift_sd": 0.06719783552672169,
+        "base_rate": 0.02988917271758151,
+        "judge_auroc": 0.7276836717241747,
+        "judge_ap_lift": 4.3430684834163875
+      },
+      {
+        "band": "2 adjacent",
+        "n_drafts": 1399,
+        "head_auroc": 0.6474228517971536,
+        "head_auroc_sd": 0.0060737904105048705,
+        "head_ap_lift": 1.7860645352642046,
+        "head_ap_lift_sd": 0.04706398154883224,
+        "base_rate": 0.04564833726625553,
+        "judge_auroc": 0.6984739910277733,
+        "judge_ap_lift": 3.173501723583985
+      },
+      {
+        "band": "3+ adjacent",
+        "n_drafts": 3175,
+        "head_auroc": 0.6603240609856785,
+        "head_auroc_sd": 0.005542358403830141,
+        "head_ap_lift": 1.8208008953086448,
+        "head_ap_lift_sd": 0.048543074484619635,
+        "base_rate": 0.07840108964805849,
+        "judge_auroc": 0.6772789477159875,
+        "judge_ap_lift": 2.5538901543681116
+      }
+    ]
+  },
+  {
+    "corpus": "essen",
+    "source": "D3",
+    "bands": [
+      {
+        "band": "1 event",
+        "n_drafts": 2340,
+        "head_auroc": 0.7622157418348233,
+        "head_auroc_sd": 0.0038248729080990946,
+        "head_ap_lift": 8.876756805046753,
+        "head_ap_lift_sd": 0.12153378329859166,
+        "base_rate": 0.04089103025373088,
+        "judge_auroc": 0.9154630965249747,
+        "judge_ap_lift": 15.023383067442273
+      },
+      {
+        "band": "2 adjacent",
+        "n_drafts": 1204,
+        "head_auroc": 0.7031839823630117,
+        "head_auroc_sd": 0.002836671548893948,
+        "head_ap_lift": 3.8347592090930838,
+        "head_ap_lift_sd": 0.024824222598951878,
+        "base_rate": 0.07767627007488523,
+        "judge_auroc": 0.7876354211896838,
+        "judge_ap_lift": 5.437136872026395
+      },
+      {
+        "band": "3+ adjacent",
+        "n_drafts": 1446,
+        "head_auroc": 0.701209202713331,
+        "head_auroc_sd": 0.0012224566997372152,
+        "head_ap_lift": 2.719474173790609,
+        "head_ap_lift_sd": 0.03391133773850183,
+        "base_rate": 0.11779563719862228,
+        "judge_auroc": 0.723476356932216,
+        "judge_ap_lift": 3.2152276055161315
+      }
+    ]
+  }
+]

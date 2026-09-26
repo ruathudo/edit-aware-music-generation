@@ -65,14 +65,14 @@ Two ways out:
 - **Keep the D3 claim:** you'd need an asymmetry argument, e.g. normalizing by how
   different the sources are. With 24% vs 27% I don't think one exists.
 
-### A4. "The only system that improves both CC and plausibility" is false on D3 — **high**
+### A4. "The only system that improves both CC and plausibility" is false on D3 — **high** — ✅ done
 
 Table 4: B1 free decoding on D3 gives CC **+4.3%** and ΔNLL recovered **+48.8%**. Both
 positive. §6's closing sentence ("Gated editing is the only system that improves on the
 draft on both") and the Abstract's sentence (whose scope is ambiguous) must be limited to
 D1.
 
-### A5. The oracle is not "the same decoder", and 49% is not "most" — **medium**
+### A5. The oracle is not "the same decoder", and 49% is not "most" — **medium** — ✅ done
 
 `scripts/diagnostics.py`'s oracle is a *separately trained* model with ground-truth
 labels fed at the encoder input. It was also trained under the pre-selection
@@ -82,7 +82,7 @@ given the true positions as input", and "about half". The ~12% headroom figure m
 that single oracle run with the 5-seed gated number; say so, or use paper-core's ~13%
 consistently.
 
-### A6. The judge is not independent of the refiner — **medium**
+### A6. The judge is not independent of the refiner — **medium** — ✅ done
 
 §4 argues carefully that `J` must not share training data with the generator. But the
 refiners are trained on drafts of **the judge's half** of Essen (§3). The decoder learns
@@ -93,7 +93,7 @@ Limitations. Better: note that the gated edits are few, so they are less exposed
 free decoding. The confound then *favours* free decoding, and the "gated improves both"
 conclusion survives it.
 
-### A7. "Abstention is the correct behaviour" overclaims — **medium**
+### A7. "Abstention is the correct behaviour" overclaims — **medium** — ✅ softened to "safe", tied to the alternative gates; the D2 τ sweep is folded into B2
 
 The gate stays shut on D2 because the D2-trained head's confidence never reaches 0.8.
 That is the designed safety behaviour, not a judgement that nothing could be fixed: the
@@ -103,14 +103,14 @@ defend "right", add the evidence: **show that no threshold beats copy-input on D
 (sweep τ on D2 validation, or plot risk–coverage). Without it, a reviewer can say the
 selection just happened to land above D2's confidence range.
 
-### A8. The §9 closing contradicts §8 — **medium**
+### A8. The §9 closing contradicts §8 — **medium** — ✅ done
 
 §9 calls the judge + head gate "a first step" toward refining generated music. §8 reports
 that it *loses* 0.4–0.5% on generated drafts, and the judge-only gate loses 0.5–1.2%.
 Either drop the sentence or say what it is a first step toward: label-free refinement of
 *locally damaged* drafts.
 
-### A9. "Drafts furthest from their references are the most plausible" names the wrong thing — **low**
+### A9. "Drafts furthest from their references are the most plausible" names the wrong thing — **low** — ✅ done
 
 The pooled ρ = −0.06 is driven by D4, which §3 says are *not* drafts. It's a between-group
 composition effect. §1 and §4 should say "the melodies furthest from their references
@@ -118,7 +118,7 @@ composition effect. §1 and §4 should say "the melodies furthest from their ref
 denominator is a median near zero (0.038, with 45% of pairs negative), so the ratio is
 fragile. "Two orders of magnitude" is safer, or report the difference.
 
-### A10. Smaller logic points
+### A10. Smaller logic points — ✅ done
 
 - **Model-size ablation (§7)** was run on D1, under τ = 0.9. It shows capacity doesn't
   limit D1 localization; for D2 it is only suggestive. Say so, or cut it from the D2
