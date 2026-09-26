@@ -385,6 +385,27 @@ Combination beats the head by 1.4–2.1 pp, 3/3 seeds seed-matched, on every D1/
 
 Seeds 3–4 (`SEEDS="3 4" scripts/run_headline.sh none 0.5 0.8 results/refiner/headline_s34`) merged with seeds 0–2 in `headline_s34/five_seed_summary.json`. Head-gated vs copy-input: **MTC D1 +6.06% ± 0.58**, D3 +9.81%, D2 0.00%; Essen D1 +4.25%, D3 +7.38%, D2 0.00%. Every D1/D3 cell positive on 5/5 seeds; D2 abstains on all 5; B1 −24.9%. Headline figures quote 5 seeds; comparisons with conditions run only on seeds 0–2 (transfer, judge + head gate, quality, surprisal) use the matching 3-seed values.
 
+### Matched-degradation strata (2026-09-27) — C4 revised
+
+`scripts/matched_strata.py` bands D1, D2 and D3 at the *same absolute* ΔNLL cut-points
+(`results/refiner/controls/matched_strata.json`). Two-sided judge AUROC, MTC (Essen):
+
+| ΔNLL band | D1 | D3 | D2 |
+|---|---|---|---|
+| ≤ 0 | .753 (.722) | .638 (.618) | .606 (.579) |
+| 0–0.1 | .830 (.826) | .774 (.740) | .684 (.670) |
+| 0.2–0.4 | .855 (.837) | .825 (.816) | .730 (.724) |
+| > τ | .861 (.855) | .850 (.838) | .775 (.779) |
+
+D2 is below D1 in every band on both corpora, by 0.08–0.16, while changing *more* notes
+per band. **"Most generated drafts are different, not wrong" is retracted**: it rested on
+only 2.5–4.4% of D2 clearing τ, but only 13.0% of D1 clears it either — τ comes from
+variants differing in 92% of notes, so it is a conservative bar for any synthetic draft.
+The claim now is that generated damage is **diffuse, not small**. Also revised: the
+transfer loss is symmetric (D1→D3 −27%, D3→D1 −24%), so it measures source-specific
+learning in every synthetic benchmark, not D3's rules in particular. `paper-core.md`
+C4/C8 and must-not-claim #8/#11 carry both revisions.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

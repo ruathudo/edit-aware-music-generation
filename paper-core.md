@@ -35,8 +35,9 @@ seed-matched.
 > that improves both edit distance and musical plausibility. On drafts written by a
 > generator, every detector we built — trained or untrained, per note or per span —
 > localizes the generated material at no better than 2.7× chance, against 6–7× for
-> corruption. Where a generated draft is genuinely worse, the damage *can* be found;
-> most generated drafts are simply different, not wrong.
+> corruption. Generated drafts are worse than their references, but the damage is
+> diffuse: at *matched* degradation, generated changes are still localized far less well
+> than corrupted ones, in every band and on both corpora.
 
 Three things the paper therefore contributes, in one line each:
 
@@ -129,16 +130,24 @@ detector (1.6× chance top-1) and heads transferred from D1/D3 (1.3–1.4×) do 
 *Caveat:* this is an absence of evidence across the detectors tried, not impossibility.
 State the detectors, and that the strongest is untrained.
 
-**C4. Most generated drafts are different, not wrong.** (§7)
-Only 2.5–4.4% of D2 drafts are certified-degraded (ΔNLL > τ). On those, the two-sided
-judge localizes at AUROC 0.78 / 4.5× — near D1 — while the head stays flat (~0.64)
-across every degradation band. So where a generator makes a genuine error, it is
-findable; the rest is divergence that edit labels mislabel as error ("difference is not
-error").
-*Source:* `results/refiner/controls/strata.json` (fresh 5,339-draft MTC set + 5,057
-Essen; n = 131 / 222 degraded).
-*Caveat:* bands are defined by `J`'s ΔNLL and scored by the two-sided judge, trained on
-the same data, so part of the rise is built in. The head's flatness has no such link.
+**C4. Generated damage is diffuse, not merely small.** (§7) *Revised 2026-09-27.*
+Banding every source at the same absolute ΔNLL cut-points, the two-sided judge localizes
+D2 below D1 in every band on both corpora, by 0.08–0.16 AUROC (e.g. 0 < ΔNLL ≤ 0.1:
+D1 0.830, D3 0.774, D2 0.684 on MTC), although D2 changes more notes per band. D1 is
+flat at 0.83–0.86 once ΔNLL > 0; D2 climbs slowly and its most-degraded band (0.775 /
+0.779) stays below D1's least-degraded positive band. Mechanism: unchanged notes after a
+rewritten span also lose plausibility (+0.07/token vs +0.22 within), so damage lies at
+the seam, partly on notes labelled correct.
+*Source:* `results/refiner/controls/matched_strata.json` (`scripts/matched_strata.py`;
+~5,300 fresh MTC drafts per source, Essen test drafts). D2 rows reproduce `strata.json`.
+*Why revised:* the old C4 ("most generated drafts are different, not wrong") rested on
+only 2.5–4.4% of D2 clearing τ — but only 13.0% of D1 and 9.6% of D3 clear it too. τ comes
+from variants differing in 92% of notes, and ΔNLL is a per-token mean, so it is a
+conservative bar for any synthetic draft. 79.5% of D2 drafts are worse than their
+reference. The D2-only banding could not separate "too little damage" from "diffuse
+damage", since high-ΔNLL drafts are easier for any surprisal localizer.
+*Caveat:* D3 is not uniformly above D2 — on Essen D3's 0–0.1 band (0.740) is below D2's
+> τ band (0.779). State the strict comparison against D1 only.
 
 **C5. Precision-gated editing improves drafts where errors are local.** (§5, §6)
 Copy each event by default; regenerate it only when the head's P(edit) ≥ τ. At τ=1 the
@@ -183,8 +192,12 @@ The untrained two-sided judge ranks sources D1 > D3 > D2, matching their ΔNLL p
 of change (3.94 > 3.14 > 1.04). A trained head adds learned regularity on top, which
 transfer isolates: a D1-trained head reaches +7.25% on D3 against D3's own +9.98%
 (both seeds 0–2), so
-**~2.7 of D3's ~10 points come from learning the injection rules**. D3 is therefore a
-partly circular benchmark — report it, as a control, with that number in the caption.
+~2.7 of D3's ~10 points do not transfer. *Revised 2026-09-27:* the loss is symmetric —
+a D3-trained head reaches +4.80% on D1 against D1's own +6.35% (24% vs 27%). So transfer
+measures source-specific learning for *every* synthetic benchmark, not D3's rules in
+particular. Claim: ~a quarter of in-domain gain is specific to the corruption process,
+random or rule-based alike. D3 is also intrinsically easier: a D1-trained head gains more
+on D3 (+7.25%) than on D1 itself.
 *Source:* `zero_shot_*.json`, `results/refiner/transfer/`.
 *Caveat:* three sources is a thin basis for "follows"; say "consistent with".
 
@@ -266,9 +279,14 @@ insensitive to run length.
 5. "Gating cannot hurt" → only at τ=1 (C6 caveat).
 6. "CC and plausibility are orthogonal" → coupled within a source, decoupled across (C2).
 7. "Contiguity is irrelevant" / "D2 is explained by span length" → neither (C13).
-8. "D3 is circular" without qualification → ~2.7 of ~10 points (C8).
+8. "D3 is circular" / "a quarter of D3's gain is learning its rules" → the transfer
+   loss is symmetric (24% D3→D1, 27% D1→D3); it is a property of synthetic benchmarks
+   in general (C8).
 9. "Raising recall hurts because precision is binding" → the decoder degrades (C9).
 10. "Edit-awareness hurts on random corruption" → an artifact of class weighting.
+11. "Most generated drafts are different, not wrong" → at matched degradation D2 is
+   still far less localizable; the damage is diffuse, not absent (C4). Do not use τ
+   exceedance as evidence that a draft is error-free.
 
 Also avoid: any human-in-the-loop or user-utility claim beyond one motivating sentence;
 "reproduces the published result" (C12 framing note).
@@ -284,8 +302,8 @@ Also avoid: any human-in-the-loop or user-utility claim beyond one motivating se
   control rules out a confound, not the sensitivity.
 - **L5.** Runs are not bit-reproducible (C5 caveat); results are reported over seeds and
   one full re-run.
-- **L6.** D2 drafts are not filtered by the judge; C4 is the argument for why filtering
-  would not change the localizability conclusion.
+- **L6.** D2 drafts are not filtered by the judge; C4 (matched strata) is the argument
+  for why filtering would not change the localizability conclusion.
 
 ## 7. Anticipated objections (short form)
 
@@ -294,7 +312,7 @@ Also avoid: any human-in-the-loop or user-utility claim beyond one motivating se
 | Your method only works on synthetic corruption. | Yes; that is the finding, mapped from both sides (C3, C6). |
 | A better detector would find D2's errors. | The strongest we built is untrained, beats every trained head, and reaches 2.7× on D2 vs 6–7× elsewhere (C3, C10). |
 | Models too small / badly tuned. | Same machinery gets 5.8× on D1; flat across 26× parameters and 96 settings (C5, C14). |
-| D2 drafts aren't really degraded. | Mostly true, and the point (C4). |
+| D2 drafts just carry less damage. | At matched ΔNLL they are still far less localizable than D1, on both corpora (C4). |
 | +6% is small. | It is over copy-input, which the imitation baseline loses to by 25% (C5, C12). |
 | CC tracks plausibility in your own table. | Within a source; not across (C2). |
 | ΔNLL isn't musical correctness. | Conceded; calibrated on human variants (C1, L1). |

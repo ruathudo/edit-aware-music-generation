@@ -29,13 +29,14 @@ generator-written drafts under a single configuration, we find that localize-the
 works where errors leave a local trace, and not where a generator wrote the draft. The
 strongest detector we built — an untrained judge that scores each note given everything
 around it — finds corrupted notes at 6–7 times chance but generated ones at 2.7 times,
-and most generated drafts are not measurably worse than their references at all. A
+and the gap persists when drafts are matched for how much they degrade the melody:
+generated damage is real, but diffuse. A
 precision-gated refiner, which copies each note unless it is confident the note is wrong,
 improves randomly corrupted drafts by 6.1% over leaving them unchanged on every seed, is
 the only system tested that improves both edit distance and plausibility, and abstains
 on generated drafts, where a plain sequence-to-sequence refiner does harm. A transfer
-test further shows that about a quarter of a rule-based benchmark's gain comes from
-learning the rules that generated it.
+test further shows that about a quarter of the gain on a synthetic benchmark, random or
+rule-based alike, does not survive a change of corruption process.
 
 ## 1. Introduction
 
@@ -77,12 +78,13 @@ The errors in corrupted drafts are readily found: a per-note detector ranks them
 5.8× chance, and an untrained two-sided judge — which scores each note given everything
 around it — at 6–7×. Generator-written material is another matter. The best detector we
 built, that same untrained judge, finds it at 2.7× chance; the trained detector finds
-almost nothing and flags no position confidently enough to act on. The reason is not
-that the detectors are weak — the untrained judge outperforms every trained one — but
-that most generated drafts are not wrong. Only 2.5–4.4% are measurably worse than their
-reference, and on those the judge's localization approaches that for corruption. The
-rest are *different*, and edit labels derived from a reference mistake difference for
-error (§7; Figure 1).
+nothing confidently enough to act on. Generated drafts are not simply less damaged: most
+are less plausible than their references, and when corrupted and generated drafts are
+compared at *matched* degradation, generated changes are still localized far less well,
+in every band and on both corpora. Their damage is real but diffuse — spread across notes
+that each look plausible, and partly onto the unchanged notes around them — so labels
+derived from the reference point at notes the draft gives little reason to suspect
+(§7; Figure 1).
 
 **A method that respects the boundary.** Where errors are local, localize-then-fix
 works, provided copying is the default. A plain sequence-to-sequence refiner is 25%
@@ -103,8 +105,9 @@ In summary, we make three contributions:
 2. **A boundary.** A controlled comparison of random, rule-based and generated drafts
    showing that localize-then-fix applies where errors leave a local trace and not where
    a generator wrote the draft, with evidence from trained and untrained detectors,
-   transfer between sources, and a same-corpus replication. It also measures how much of
-   a rule-based benchmark's score comes from learning its own rules.
+   transfer between sources, and a same-corpus replication. Transfer also shows that
+   about a quarter of a synthetic benchmark's in-domain score is specific to the process
+   that generated its errors.
 3. **A method.** Precision-gated editing, whose downside is bounded by construction,
    which improves drafts where errors are local and abstains where they are not.
 
@@ -119,8 +122,9 @@ same tune. (a) How well the changed notes are localized (AUROC; 0.5 is chance) b
 untrained two-sided judge and by the trained edit head (Table 5). (b) Gated editing's
 improvement in Correction Cost over returning the draft unchanged (Table 3). MTC; error
 bars are ±1 s.d. over five seeds, mostly smaller than the markers. Corruption, random or
-rule-based, is localizable and improvable; generator-written drafts sit nearer the human
-variants, are localized far less well, and the gate abstains.
+rule-based, is localizable and improvable. Generator-written drafts are a third as
+implausible per unit of change as corruption, though still far more than human variants;
+they are localized far less well, and the gate abstains.
 
 ## 2. Related Work
 
@@ -132,9 +136,9 @@ edit-model list in ¶2 to two citations, then the evaluation sentence in ¶4.*
 poses four tasks of increasing difficulty — detecting, classifying, locating and
 correcting the error — aimed at post-processing automatic transcription. Our random
 (D1) and music-theoretic (D3) draft sources belong to this family. What we add is a
-measurement of how much a detector trained on such data learns the injection process
-itself rather than musical error: under transfer, roughly a quarter of our rule-based
-benchmark's gain comes from learning its rules (§7). RefinPaint [Ramoneda2024] is closest
+measurement of how much a detector trained on such data learns the corruption process
+itself rather than musical error: under transfer between sources, about a quarter of the
+in-domain gain does not carry over, for random and rule-based corruption alike (§7). RefinPaint [Ramoneda2024] is closest
 in method: a feedback model identifies the weaker elements of a composition and guides
 an inpainting model to resample them, addressing where and how to modify a piece given
 its context. We ask the prior question of *when* such localization is possible, and
@@ -326,9 +330,12 @@ drafts are less plausible than their references. The problem is the opposite one
 and rule-based corruption change 7–9% of a melody at a ΔNLL of about 3–4 per unit of
 change — **80–100× more per unit than a human variant**. Corruption moves a melody a
 short distance *off* the distribution of plausible melodies; human variation moves it a
-long way *along* it. Generated drafts sit between the two, at about 1 nat per unit, and
-are the only synthetic source that is often no worse than its reference (20.5%) and
-rarely clearly degraded (2.6% above $\tau$).
+long way *along* it. Generated drafts sit between the two, at about 1 nat per unit:
+most (79.5%) are less plausible than their reference, but a fifth are not, and few clear
+$\tau$. That last figure should not be over-read. $\tau$ is calibrated on variants that
+differ in 92% of their notes, and ΔNLL is a per-token mean, so it is a conservative bar
+for drafts that change a tenth as much: only 13.0% of D1 drafts clear it either. We use
+$\tau$ to certify degradation, never to declare a draft error-free.
 
 **Edit distance cannot tell an error from an alternative.** Within a single corruption
 process, more change does mean more damage: fraction changed and ΔNLL correlate at
@@ -483,13 +490,12 @@ model outputs. An evaluation on plausibility alone would prefer free decoding; o
 Correction Cost alone would hide that gated editing improves the music. Gated editing is
 the only system that improves on the draft on both.
 
-**D3 is easier, and partly for a bad reason.** Gated editing's largest gains are on
-rule-based degradation — 9.81% on MTC and 7.38% same-corpus, every seed — and D3 is the
-only source on which free decoding also beats copying on MTC. This should not be read as
-the method working better on more musical errors. A refiner trained on D1 alone reaches
-+7.25% on D3 drafts (seeds 0–2) against +9.98% for one trained on D3 itself: about 2.7
-points of D3's gain come from learning the six rules that produced it, not from detecting
-implausible music. §7 separates the two.
+**D3 is easier, but its in-domain gain overstates it.** Gated editing's largest gains are
+on rule-based degradation — 9.81% on MTC and 7.38% same-corpus, every seed — and D3 is
+the only source on which free decoding also beats copying on MTC. Part of this is
+intrinsic: a refiner trained only on random corruption improves D3 drafts by more than
+it improves the drafts it was trained on. Part is not: about a quarter of the in-domain
+gain disappears under transfer, as it does for D1 (§7).
 
 **Generated drafts.** On D2 the gate never opens: the output equals the draft on every
 seed, and gated editing neither helps nor harms. Free decoding, by contrast, loses 3.6%
@@ -539,45 +545,62 @@ given the true positions, the decoder removes 21.5% of a generated draft's Corre
 Cost (single run): generated spans are correctable once found. Finding them is the
 problem.
 
-**Most generated drafts are different, not wrong.** Table 2 showed that only 2.6% of D2
-drafts are measurably worse than their references. If localization failed because most
-drafts contain no error to find, it should succeed on the few that do. Table 6 tests
-this on a fresh set of 5,339 generated MTC drafts and on 5,057 Essen drafts, banded by
-the judge's ΔNLL.
+**Not less damage, but diffuse damage.** One explanation would make the result
+uninteresting: generated drafts may simply carry less damage than corrupted ones (mean
+ΔNLL 0.14 against 0.30), and damage of any kind may be findable once there is enough of
+it. Banding D2 alone cannot test this, since any surprisal-based localizer finds
+high-ΔNLL drafts easier almost by construction. Table 6 therefore bands *every* source at
+the same absolute ΔNLL cut-points, on fresh sets of about 5,300 MTC drafts per source
+and on the Essen test drafts, so that corrupted and generated drafts are compared at
+matched degradation.
 
-**Table 6** *(proposed)*. Localization of generated (D2) drafts by degradation band,
-AUROC, MTC (Essen in brackets); τ is the threshold of §4.
+**Table 6** *(proposed)*. Localization at matched degradation: AUROC of the untrained
+two-sided judge for the notes that differ from the reference, with drafts banded by the
+causal judge's ΔNLL at the same cut-points for every source. MTC (Essen in brackets);
+τ is the threshold of §4 (0.585 for MTC, 0.503 for the same-corpus judge).
 
-| band | drafts | trained head | two-sided judge (AP lift) |
+| ΔNLL band | D1 random | D3 rule-based | D2 generated |
 |---|---|---|---|
-| ΔNLL ≤ 0 (no worse than reference) | 1,080 (937) | .640 (.657) | .606, 1.6× (.579, 1.4×) |
-| 0 < ΔNLL ≤ median | 2,130 (2,060) | .615 (.643) | .692, 2.6× (.676, 2.4×) |
-| median < ΔNLL ≤ τ | 1,998 (1,838) | .642 (.658) | .733, 3.5× (.726, 3.6×) |
-| **ΔNLL > τ (degraded)** | **131 (222)** | .656 (.631) | **.775, 4.6× (.779, 4.4×)** |
+| ≤ 0 | .753 (.722) | .638 (.618) | .606 (.579) |
+| 0 – 0.1 | .830 (.826) | .774 (.740) | .684 (.670) |
+| 0.1 – 0.2 | .844 (.834) | .807 (.801) | .727 (.728) |
+| 0.2 – 0.4 | .855 (.837) | .825 (.816) | .730 (.724) |
+| 0.4 – τ | .845 (.831) | .838 (.831) | .748 (.738) |
+| > τ | .861 (.855) | .850 (.838) | .775 (.779) |
 
-The judge's localization rises steadily with degradation, and on certified-degraded
-drafts it approaches its performance on corruption. Where a generator produces a genuine
-error, the error can be found. Such drafts are rare, and for the rest the reference-
-derived labels mark notes that are *different* rather than wrong — a supervision target
-that nothing can learn to predict from the draft. (The trained head does not exploit the
-effect; it is flat across bands. Part of the judge's rise is built in, since the bands
-are defined by a related model.) Why two-sided context matters here is visible in how
-generated damage is distributed: after a rewritten span, the *unchanged* notes that
-follow also become less plausible under the causal judge (+0.07 per token, against +0.22
-within the span). A span that fails to rejoin its continuation is charged, by a causal
-model, to the wrong notes; a two-sided judge doubles D2 localization, from 1.4× to 2.7×.
+The explanation fails. In every band and on both corpora, generated changes are
+localized worse than corrupted ones — by 0.08–0.16 AUROC against D1 — although D2 drafts
+change *more* notes than D1 drafts in the same band (8.8–13.1% against 3.9–9.4% on MTC).
+Even D2's most-degraded band is localized below the least-degraded positive band of
+random corruption. For random corruption, localization is nearly flat once a draft is
+worse at all (0.83–0.86); for generated drafts it climbs slowly with damage and never
+reaches that level.
+The same damage, written by a generator, leaves less trace on the notes that were
+changed. (The trained D2 head varies little across bands, 0.62–0.67; the gradient is
+the judge's.)
+
+Where the trace goes is visible in how generated damage is distributed. After a
+rewritten span, the *unchanged* notes that follow also become less plausible under the
+causal judge (+0.07 per token, against +0.22 within the span). The span's own notes are
+individually plausible; what is implausible is how the span meets its context, and the
+cost of that falls partly on notes the reference-derived labels call correct. A causal
+model charges it to the wrong notes; a two-sided judge, which sees both sides of the
+seam, doubles D2 localization, from 1.4× to 2.7×, but cannot recover what was spread
+beyond the changed notes.
 
 **What is detectable, and what is learned.** Across the three sources, the untrained
 judge's localization follows how far the changes move a melody off the data
 distribution: D1 (ΔNLL of 3.94 per unit of change) > D3 (3.14) > D2 (1.04), and the judge
 ranks the sources in this order on both corpora — consistent with, though three points
-cannot establish, manifold distance governing what is detectable in principle. Trained heads add a source-specific component
-on top, which transfer isolates (seeds 0–2). A head trained on D1 reaches +7.25% on D3
-drafts, against +9.98% for a head trained on D3 itself; in the other direction, a D3 head
-reaches +4.80% on D1 against +6.35%. So about 2.7 of D3's 10 points are learned
-regularity — the six injection rules — rather than musical implausibility: our
-rule-based benchmark inflates its own reported gain by roughly a quarter, and only a
-transfer test reveals it. Transfer also bounds the gate's safety. Heads trained on D1 or D3 and applied to D2
+cannot establish, manifold distance governing what is detectable in principle. Trained
+heads add a source-specific component on top, which transfer isolates (seeds 0–2). A
+head trained on D1 reaches +7.25% on D3 drafts, against +9.98% for a head trained on D3
+itself; in the other direction, a D3 head reaches +4.80% on D1 against +6.35%. The loss is
+about a quarter in both directions (27% and 24%). Rule-based corruption is therefore not
+unusually circular: *every* synthetic benchmark we built rewards learning its own
+corruption process by about a quarter of its in-domain score, and an in-domain number
+alone cannot show how much. The component that transfers is what the refiner learned
+about implausible music. Transfer also bounds the gate's safety. Heads trained on D1 or D3 and applied to D2
 *do* open the gate, at a precision of 0.27 and 0.21, and make drafts worse by 1.7% and
 2.0% on every seed. Abstention on generated drafts is the behaviour of a head trained on
 them; it is not guaranteed for a head trained on something else.
@@ -631,12 +654,14 @@ nobody has labelled.
 baseline can look successful while copying its input (§6).
 *Report plausibility alongside edit distance.* The two disagree across draft sources
 (§4) and across systems (§6); either alone would have led us to a wrong conclusion.
-*Test rule-based benchmarks by transfer.* A detector trained on rule-generated errors
-partly learns the rules; comparing in-domain performance with transfer from unstructured
-corruption measures how much (§7).
-*Do not expect localize-then-fix to carry over to generated drafts.* Most differences
-between a generated draft and its reference are not errors, and labels derived from the
-reference cannot distinguish the two. Refining generated music likely needs either a
+*Test synthetic benchmarks by transfer.* A detector trained on synthetic errors partly
+learns the process that made them — here about a quarter of its in-domain gain, whether
+that process was random or rule-based. Training on one corruption process and testing on
+another measures how much (§7).
+*Do not expect localize-then-fix to carry over to generated drafts.* Generated drafts
+are worse than their references, but not at the notes that differ from them: the damage
+is diffuse, and labels derived from the reference point at notes the draft gives little
+reason to suspect, even at matched degradation (Table 6). Refining generated music likely needs either a
 formulation that does not start from per-note error labels — holistic revision scored
 by plausibility, for example — or error locations annotated by people. The same hazard
 applies wherever edit supervision is derived from a reference, in text and code as well
@@ -652,16 +677,19 @@ the boundary falls in the same place for polyphony, other styles, or larger gene
 is open.
 *The negative result is bounded by the detectors tried.* We tested trained per-note and
 per-span detectors, transfer from other sources, and two untrained judges, the strongest
-of which we could build without labels. A stronger detector may exist; the degradation
-bands of Table 6 suggest it would still find little in drafts that are not degraded.
+of which we could build without labels. A stronger detector may exist. Table 6 bounds
+what it could gain from damage alone: at matched degradation the same judge localizes
+corruption far better, so the shortfall is in where the damage lies, not how much of it
+there is.
 *The gate only substitutes.* Gated decoding replaces events but never inserts or deletes
 them, although 30% of random-corruption operations are insertions or deletions; and it
 repairs pitch far more than rhythm — metric misalignment in D1 drafts is essentially
 unchanged by gating, while free decoding reduces it. Both bound what the method can
 recover.
 *Generated drafts are unfiltered.* We did not restrict D2 to drafts the judge certifies
-as degraded; Table 6 is the argument that doing so would not change the localizability
-conclusion, but it would change D2's error distribution.
+as degraded. Table 6 suggests filtering would not change the conclusion — D2's most
+degraded band is still localized below every positive band of random corruption — but it
+would change D2's error distribution.
 *Runs are not bit-reproducible* on GPU. We report five seeds for the headline and a full
 second run of the main experiment, which differs by at most 0.36 points per cell.
 
@@ -674,17 +702,18 @@ tested on, it works. We have argued that this is largely a property of those dra
 Synthetic corruption, random or rule-based, damages a melody in a way that is unusual
 enough to be found note by note, and a refiner that copies by default and edits only
 where it is confident improves such drafts on every seed, without making the music less
-plausible. Drafts written by a generator are different in kind. Their departures from the
-reference are mostly not errors, and the few that are are found far better by an
-untrained judge that reads each note in context than by any model trained on
-reference-derived labels. On such drafts the right behaviour for a localize-then-fix system is
-to decline to act, and a gated refiner does.
+plausible. Drafts written by a generator are different in kind. They are worse than
+their references, but their damage is diffuse: at the same level of degradation, the
+notes a generator changed are far harder to find than the notes corruption changed,
+because the implausibility lies in how a rewritten passage meets its context rather than
+in any note of it. On such drafts the safe behaviour for a localize-then-fix system is to
+decline to act, and a gated refiner does.
 
 Two measurement lessons carry beyond this setting. Edit distance to a reference ranks
 methods on one kind of draft but cannot compare kinds, or say whether a change was a
 correction; it should be reported beside a plausibility measure, and beside the score of
-simply returning the draft. And a benchmark built from rules rewards learning the rules;
-a transfer test measures by how much.
+simply returning the draft. And a benchmark built from synthetic errors rewards
+learning how they were made; a transfer test measures by how much.
 
 Refining generated music will likely need a different starting point: supervision that
 does not equate difference with error — plausibility-driven revision, or error locations
