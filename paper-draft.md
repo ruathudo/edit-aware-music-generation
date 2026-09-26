@@ -7,7 +7,7 @@ comparisons with conditions run on 3 seeds use the matching 3 (see `paper-core.m
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
 
-Status: §1–§6 drafted (2026-09-25). Other sections are placeholders.
+Status: §1–§7 drafted (2026-09-26). Other sections are placeholders.
 
 ---
 
@@ -472,7 +472,104 @@ and 27.1%. §7 shows why abstaining is the right response.
 
 ## 7. Results II: where it does not
 
-*(Pending — C3, C4, C8, C10, C13, C14. Budget 1.3 pages.)*
+*Budget 1.3 pages; this draft is ~930 words plus Tables 5–6. Carries C3, C4, C8, C10,
+C13, C14. Trained heads are 5 seeds; judges are one trained model each; transfer and
+strata are seeds 0–2.*
+
+On generated drafts the gate never opens. This section asks why: whether the generated
+material can be found at all, whether a better detector would find it, and what
+distinguishes the drafts that can be corrected from those that cannot.
+
+**Table 5** *(proposed)*. Localization of the notes that differ from the reference,
+MTC (Essen in brackets). Each cell gives AP lift — average precision divided by the base
+rate of edited positions, so 1.0× is chance — and AUROC. The judges are never trained on
+edit labels.
+
+| detector | D1 random (6.0% edited) | D3 rule-based (8.2%) | D2 generated (7.3%) |
+|---|---|---|---|
+| trained head | 5.8× / .724 (5.6× / .727) | 4.6× / .726 (4.3× / .717) | 1.6× / .636 (1.8× / .658) |
+| causal judge, untrained | 4.1× / .775 (4.9× / .774) | 4.7× / .768 (5.1× / .756) | 1.4× / .561 (1.4× / .564) |
+| two-sided judge, untrained | **6.2× / .838** (7.0× / .831) | **5.9× / .812** (6.1× / .790) | **2.7× / .688** (2.7× / .683) |
+
+**Generated drafts leave little local trace.** Corrupted notes are readily found: the
+trained head ranks them at 4.6–5.8× chance (Table 5). Generator-written notes are not.
+The head trained on D2 localizes them at 1.6× chance and, at the selected setting, never
+becomes confident enough to open the gate — although D2 drafts contain *more* changed
+positions than D1 drafts do (7.3% against 6.0%). The same loss, more positive examples,
+and the head finds nothing worth acting on. Other detectors do no better: a span-level
+detector trained to find the rewritten span directly reaches 1.6× chance at top-1 even
+when told the span's length range, and heads trained on D1 or D3 localize D2's changes at
+1.3–1.4×.
+
+**It is not for want of a detector.** The strongest localizer we built was not trained
+on edits at all. A two-sided judge — a masked language model of the same size and
+training data as $J$, which scores each note given every other note in the melody —
+outperforms the trained head on every source and both corpora. The comparison favours
+the head: standardizing its scores within each melody, as the judge's are, lowers its
+AUROC. Even this judge reaches only 2.7× chance on D2, against 6–7× on corruption. Two
+further controls point the same way. Localization precision is flat across a 26-fold
+range of model sizes (1.6M to 42.7M parameters, at the earlier τ = 0.9), so capacity is
+not the constraint. And
+given the true positions, the decoder removes 21.5% of a generated draft's Correction
+Cost (single run): generated spans are correctable once found. Finding them is the
+problem.
+
+**Most generated drafts are different, not wrong.** Table 2 showed that only 2.6% of D2
+drafts are measurably worse than their references. If localization failed because most
+drafts contain no error to find, it should succeed on the few that do. Table 6 tests
+this on a fresh set of 5,339 generated MTC drafts and on 5,057 Essen drafts, banded by
+the judge's ΔNLL.
+
+**Table 6** *(proposed)*. Localization of generated (D2) drafts by degradation band,
+AUROC, MTC (Essen in brackets); τ is the threshold of §4.
+
+| band | drafts | trained head | two-sided judge (AP lift) |
+|---|---|---|---|
+| ΔNLL ≤ 0 (no worse than reference) | 1,080 (937) | .640 (.657) | .606, 1.6× (.579, 1.4×) |
+| 0 < ΔNLL ≤ median | 2,130 (2,060) | .615 (.643) | .692, 2.6× (.676, 2.4×) |
+| median < ΔNLL ≤ τ | 1,998 (1,838) | .642 (.658) | .733, 3.5× (.726, 3.6×) |
+| **ΔNLL > τ (degraded)** | **131 (222)** | .656 (.631) | **.775, 4.6× (.779, 4.4×)** |
+
+The judge's localization rises steadily with degradation, and on certified-degraded
+drafts it approaches its performance on corruption. Where a generator produces a genuine
+error, the error can be found. Such drafts are rare, and for the rest the reference-
+derived labels mark notes that are *different* rather than wrong — a supervision target
+that nothing can learn to predict from the draft. (The trained head does not exploit the
+effect; it is flat across bands. Part of the judge's rise is built in, since the bands
+are defined by a related model.) Why two-sided context matters here is visible in how
+generated damage is distributed: after a rewritten span, the *unchanged* notes that
+follow also become less plausible under the causal judge (+0.07 per token, against +0.22
+within the span). A span that fails to rejoin its continuation is charged, by a causal
+model, to the wrong notes; a two-sided judge doubles D2 localization, from 1.4× to 2.7×.
+
+**What is detectable, and what is learned.** Across the three sources, the untrained
+judge's localization follows how far the changes move a melody off the data
+distribution: D1 (ΔNLL of 3.94 per unit of change) > D3 (3.14) > D2 (1.04), and the judge
+ranks the sources in this order on both corpora — consistent with, though three points
+cannot establish, manifold distance governing what is detectable in principle. Trained heads add a source-specific component
+on top, which transfer isolates (seeds 0–2). A head trained on D1 reaches +7.25% on D3
+drafts, against +9.98% for a head trained on D3 itself; in the other direction, a D3 head
+reaches +4.80% on D1 against +6.35%. So about 2.7 of D3's 10 points are learned
+regularity — the six injection rules — rather than musical implausibility: our
+rule-based benchmark inflates its own reported gain by roughly a quarter, and only a
+transfer test reveals it. Transfer also bounds the gate's safety. Heads trained on D1 or D3 and applied to D2
+*do* open the gate, at a precision of 0.27 and 0.21, and make drafts worse by 1.7% and
+2.0% on every seed. Abstention on generated drafts is the behaviour of a head trained on
+them; it is not guaranteed for a head trained on something else.
+
+**Contiguity explains part of the gap, not all of it.** Generated changes come in runs
+of 2–6 notes, while random corruption mostly alters single notes, and contiguous errors
+are harder to rank: within D3, the head's AUROC falls from 0.80 for isolated changes to
+0.71 for runs of three or more, and the judge's from 0.94 to 0.75, plausibly because
+corrupted neighbours stay visible as context. But D3's runs of three or more are still
+localized better than D2 (0.71 against 0.64 for the head; 0.75 against 0.69 for the
+judge), so contiguity does not account for D2.
+
+**Confounds.** The main results are cross-corpus — the judge and generator are trained on
+Essen and tested on MTC — but every result above replicates when judge, generator and
+test melodies all come from Essen (the Essen columns of Table 3 and the bracketed
+values of Tables 5 and 6). The selected setting is not fragile (§5), and gated editing
+beats copy-input on D1 in all nine model sizes tested.
 
 ## 8. Discussion and limitations
 
