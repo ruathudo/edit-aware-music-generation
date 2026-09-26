@@ -7,13 +7,35 @@ comparisons with conditions run on 3 seeds use the matching 3 (see `paper-core.m
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
 
-Status: §1–§8 drafted (2026-09-26). Other sections are placeholders.
+Status: full draft, all sections (2026-09-26). Consistency pass done: no must-not-claim
+statement; superseded numbers absent; 3-seed figures only in seed-matched contexts; all
+table, figure and section references resolve.
 
 ---
 
 ## Abstract
 
-*(Written last.)*
+*~235 words.*
+
+Refining a draft melody — changing the few notes that are wrong and keeping the rest —
+is naturally framed as *localize-then-fix*, and such systems are typically trained on
+synthetically corrupted melodies and evaluated by their edit distance to the original.
+We test both halves of that recipe on monophonic folk melodies. Using a melody language
+model, calibrated against human variants of the same tune, as a plausibility judge, we
+show that edit distance cannot tell an error from a valid alternative: human variants
+differ in 92% of their notes yet are judged equally plausible, while synthetic corruption
+is 80–100 times more implausible per unit of change. Comparing random, rule-based and
+generator-written drafts under a single configuration, we find that localize-then-fix
+works where errors leave a local trace, and not where a generator wrote the draft. The
+strongest detector we built — an untrained judge that scores each note given everything
+around it — finds corrupted notes at 6–7 times chance but generated ones at 2.7 times,
+and most generated drafts are not measurably worse than their references at all. A
+precision-gated refiner, which copies each note unless it is confident the note is wrong,
+improves randomly corrupted drafts by 6.1% over leaving them unchanged on every seed, is
+the only system tested that improves both edit distance and plausibility, and abstains
+on generated drafts, where a plain sequence-to-sequence refiner does harm. A transfer
+test further shows that about a quarter of a rule-based benchmark's gain comes from
+learning the rules that generated it.
 
 ## 1. Introduction
 
@@ -60,7 +82,7 @@ that the detectors are weak — the untrained judge outperforms every trained on
 that most generated drafts are not wrong. Only 2.5–4.4% are measurably worse than their
 reference, and on those the judge's localization approaches that for corruption. The
 rest are *different*, and edit labels derived from a reference mistake difference for
-error (§7).
+error (§7; Figure 1).
 
 **A method that respects the boundary.** Where errors are local, localize-then-fix
 works, provided copying is the default. A plain sequence-to-sequence refiner is 25%
@@ -642,7 +664,29 @@ second run of the main experiment, which differs by at most 0.36 points per cell
 
 ## 9. Conclusion
 
-*(Pending. Budget 0.3 page.)*
+*~250 words.*
+
+Localize-then-fix is the natural way to refine a draft, and on the drafts it is usually
+tested on, it works. We have argued that this is largely a property of those drafts.
+Synthetic corruption, random or rule-based, damages a melody in a way that is unusual
+enough to be found note by note, and a refiner that copies by default and edits only
+where it is confident improves such drafts on every seed, without making the music less
+plausible. Drafts written by a generator are different in kind. Their departures from the
+reference are mostly not errors, and the few that are are found far better by an
+untrained judge that reads each note in context than by any model trained on
+reference-derived labels. On such drafts the right behaviour for a localize-then-fix system is
+to decline to act, and a gated refiner does.
+
+Two measurement lessons carry beyond this setting. Edit distance to a reference ranks
+methods on one kind of draft but cannot compare kinds, or say whether a change was a
+correction; it should be reported beside a plausibility measure, and beside the score of
+simply returning the draft. And a benchmark built from rules rewards learning the rules;
+a transfer test measures by how much.
+
+Refining generated music will likely need a different starting point: supervision that
+does not equate difference with error — plausibility-driven revision, or error locations
+marked by musicians. The judge-and-head gate of §8, which already improves corrupted
+drafts further and needs no labels in one variant, is a first step in that direction.
 
 ---
 
