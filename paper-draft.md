@@ -7,7 +7,7 @@ comparisons with conditions run on 3 seeds use the matching 3 (see `paper-core.m
 **Working title:** Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix
 Work for Symbolic Music Refinement?
 
-Status: §1–§7 drafted (2026-09-26). Other sections are placeholders.
+Status: §1–§8 drafted (2026-09-26). Other sections are placeholders.
 
 ---
 
@@ -573,7 +573,72 @@ beats copy-input on D1 in all nine model sizes tested.
 
 ## 8. Discussion and limitations
 
-*(Pending — C9; limitations L1–L6. Budget 0.8 page.)*
+*This draft is ~740 words (budget was 0.8 page; the length limit has been relaxed).
+Carries C9, the recommendations that follow from C2–C8, and limitations L1–L6.
+Judge-gate and surprisal figures are seeds 0–2, matched against the head gate on the
+same seeds (+6.35% on MTC D1).*
+
+**Where the judge belongs.** The untrained two-sided judge localizes better than any
+trained head (Table 5), which suggests using it directly. How it is used matters.
+*As an input feature* — the judge's per-note surprisal fed to the refiner's encoder — it
+improves localization (AUROC 0.73 → 0.82 on D1) yet makes gated editing *worse*
+(+6.35% → +5.14%, three of three seeds) and collapses free decoding (−17.7% → −61.0%): the
+loss is in what the decoder writes, not in where it looks. *As the gate on its own*, it is
+worse than the trained head (+2.8% on D1), because its scores are standardized within
+each melody: it always nominates some note as the most surprising, and so cannot decline
+to edit a melody that has nothing wrong with it. The head's probability is absolute, and
+can. *Combined at the gate* — a two-feature logistic model of judge surprise and head
+confidence, fitted once on D1 validation data — the two are complementary, and gated
+editing improves by a further 1.4 to 2.1 points on every D1 and D3 cell on every seed
+(MTC D1 +7.91%, D3 +11.80%; Essen D1 +6.52%, D3 +8.71%). The combination has a cost: on
+generated drafts the judge opens a gate the head keeps shut, and results fall by
+0.4–0.5%. We therefore keep the head alone as the method — its abstention on generated
+drafts is part of the paper's evidence — and report the combination as the natural next
+step for drafts known to contain local errors. Two notes of caution: the judge was
+early-stopped on the melodies our validation drafts are made from, so judge-based gates
+looked better on validation (+9.8%) than on test; and a variant that uses no edit labels
+anywhere — the judge as gate, the imitation model as decoder — still improves on the draft
+(+2.4% on D1, +6–7% on D3, every seed), which is the setting that would apply to drafts
+nobody has labelled.
+
+**What this means for refinement research.** Four recommendations follow.
+*Report copy-input and fidelity.* A refiner measured only against another learned
+baseline can look successful while copying its input (§6).
+*Report plausibility alongside edit distance.* The two disagree across draft sources
+(§4) and across systems (§6); either alone would have led us to a wrong conclusion.
+*Test rule-based benchmarks by transfer.* A detector trained on rule-generated errors
+partly learns the rules; comparing in-domain performance with transfer from unstructured
+corruption measures how much (§7).
+*Do not expect localize-then-fix to carry over to generated drafts.* Most differences
+between a generated draft and its reference are not errors, and labels derived from the
+reference cannot distinguish the two. Refining generated music likely needs either a
+formulation that does not start from per-note error labels — holistic revision scored
+by plausibility, for example — or error locations annotated by people. The same hazard
+applies wherever edit supervision is derived from a reference, in text and code as well
+as music.
+
+**Limitations.**
+*Plausibility is a model's judgement.* ΔNLL is statistical implausibility under a small
+language model, calibrated against human variants but not validated by listeners; it
+also rewards typical continuations, as free decoding's outputs show (§6). Every
+plausibility claim here is a claim about this judge.
+*Two corpora, one texture.* Both collections are monophonic European folk song. Whether
+the boundary falls in the same place for polyphony, other styles, or larger generators
+is open.
+*The negative result is bounded by the detectors tried.* We tested trained per-note and
+per-span detectors, transfer from other sources, and two untrained judges, the strongest
+of which we could build without labels. A stronger detector may exist; the degradation
+bands of Table 6 suggest it would still find little in drafts that are not degraded.
+*The gate only substitutes.* Gated decoding replaces events but never inserts or deletes
+them, although 30% of random-corruption operations are insertions or deletions; and it
+repairs pitch far more than rhythm — metric misalignment in D1 drafts is essentially
+unchanged by gating, while free decoding reduces it. Both bound what the method can
+recover.
+*Generated drafts are unfiltered.* We did not restrict D2 to drafts the judge certifies
+as degraded; Table 6 is the argument that doing so would not change the localizability
+conclusion, but it would change D2's error distribution.
+*Runs are not bit-reproducible* on GPU. We report five seeds for the headline and a full
+second run of the main experiment, which differs by at most 0.36 points per cell.
 
 ## 9. Conclusion
 
