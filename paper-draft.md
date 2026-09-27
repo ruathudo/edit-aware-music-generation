@@ -78,23 +78,15 @@ cannot compare sources, and it cannot say whether a change was a correction (§4
 **The better the generator, the less trace it leaves.** We then compare three draft
 sources under one model, one training recipe and one setting chosen on validation data:
 random corruption, rule-based musical degradation, and spans rewritten by a trained
-generator.
-The errors in corrupted drafts are readily found: a per-note detector ranks them at
-5.8× chance, and an untrained two-sided judge — which scores each note given everything
-around it — at 6–7×. Generator-written material is another matter. The best detector we
-built, that same untrained judge, finds it at 2.7× chance; the trained detector finds
-nothing confidently enough to act on. Generated drafts are not simply less damaged: most
-are less plausible than their references, and when corrupted and generated drafts are
-compared at *matched* degradation, generated changes are still localized far less well,
-in every band and on both corpora. Their damage is real but diffuse — spread across notes
-that each look plausible, and partly onto the unchanged notes around them — so labels
-derived from the reference point at notes the draft gives little reason to suspect.
-This is a property of the generator, not of generation. Drafts written by the same
-generator after two epochs of training are localized as well as random corruption
-(AUROC 0.87 against 0.84), and across six generator settings — three sampling
-temperatures and three training checkpoints — localizability falls steadily as the
-generator's changes become more plausible (§7; Figure 1). Localize-then-fix therefore
-gets harder exactly as generators get better.
+generator. Corrupted notes are readily found: an untrained two-sided judge, which scores
+each note given everything around it, ranks them at 6–7× chance. The trained generator's
+changes it ranks at 2.7×, and the gap holds when drafts are matched for how much damage
+they carry and for how contiguous their changes are. The damage is real but diffuse,
+lying less in any changed note than in how a rewritten passage meets its context. This
+is a property of the generator, not of generation: the same generator after two epochs
+of training leaves drafts as localizable as random corruption, and across six generator
+settings localizability falls steadily as its changes become more plausible (§7;
+Figure 1). Localize-then-fix gets harder exactly as generators get better.
 
 **A method that respects the boundary.** Where errors are local, localize-then-fix
 works, provided copying is the default. A plain sequence-to-sequence refiner is 25%
@@ -106,7 +98,7 @@ by construction. On random corruption, gated editing improves on the draft by 6.
 in edit distance on every one of five seeds, and it is the only system we test that
 improves these drafts in both edit distance *and* judged plausibility (§6). On generated
 drafts it declines to edit. That forgoes nothing any gate we tried could recover —
-no lower threshold and no alternative gate improves these drafts (§6, §7, §8) — and it
+no lower threshold and no alternative gate improves these drafts (§6, §7) — and it
 is safe where free
 decoding does harm. Nor would a better detector alone change this: on drafts from a weak
 generator, whose changes the judge localizes as well as corruption, the gate opens but
@@ -433,7 +425,12 @@ freely: plain sequence-to-sequence imitation. B2 keeps the head but trains with
 $\alpha = 0$, so it has exactly the refiner's parameters and differs only in the loss;
 since the head is 0.009% of the model, parameter count is not a confound in any case. B3
 returns the draft unchanged. We also report the edit-aware model decoded freely, which
-separates what the loss changes from what the gate changes.
+separates what the loss changes from what the gate changes. B3 and fidelity are not
+optional. Measured only against B1, an auxiliary edit loss can look like a clear gain —
+in a preliminary sweep on generated drafts, +6.3% over B1 on three of three seeds —
+while its output is nearly identical to the draft (0.0009 notes changed per note) and no
+better than copying it. The model had learned to copy, and without a copy-input baseline
+and a fidelity measure that is invisible.
 
 **One setting, chosen on validation.** The loss weight $\alpha$, the threshold $\tau$ and
 the class weighting of $\mathcal{L}_{\text{edit}}$ interact, and choosing them by looking
@@ -466,6 +463,11 @@ The last row gives how many seeds improve on copy-input.
 | **edit-aware, gated** | **+6.06 ± 0.58** | **+4.25 ± 0.46** | **+9.81 ± 0.46** | **+7.38 ± 0.27** | 0.00 ± 0.00 | 0.00 ± 0.00 |
 | gated: seeds > copy-input | 5/5 | 5/5 | 5/5 | 5/5 | 0/5 (abstains) | 0/5 (abstains) |
 
+Our main results are cross-corpus — the judge and generator are trained on Essen and
+tested on MTC — so every experiment is repeated same-corpus, with judge, generator and
+test melodies all from Essen. These are the Essen columns of Table 3 and the bracketed
+values in every later table; each conclusion below holds on both.
+
 **Gated editing improves drafts where errors are local.** On random corruption, gated
 decoding reduces Correction Cost by 6.06% relative to the draft on MTC and by 4.25% in
 the same-corpus setting, on every one of five seeds (Table 3). It improves 22.4% of
@@ -480,7 +482,10 @@ threshold from 0.2 to 0.95, on both corruption sources and both corpora (D1: +5.
 +6.4% on MTC, +2.7 to +4.6% on Essen; D3: +8.9 to +10.3% and +6.5 to +7.3%). Lower
 thresholds open the gate more often at lower precision (on MTC D1, 3.2% of events at
 precision 0.50 for τ = 0.2, against 1.0% at 0.90 for τ = 0.95), and the gain degrades
-gracefully rather than collapsing.
+gracefully rather than collapsing. Nor does it depend on model size: gated editing beats
+copy-input on D1 on every seed in all nine configurations we tried, from 1.6M to 42.7M
+parameters (at the earlier τ = 0.9), while free decoding is worse than copying in all
+nine.
 
 **Free decoding is worse than doing nothing.** Every freely decoded model is worse than
 returning the draft on random corruption, on every seed: the imitation baseline B1 by
@@ -490,13 +495,6 @@ edit-aware loss does not rescue free decoding: with the head trained ($\alpha = 
 or present but untrained (B2), free decoding stays within the seed noise of B1 on every
 cell. The gain in the last row comes from making copying the default, not from the
 auxiliary loss alone; the loss's contribution is a head confident enough to gate with.
-
-This also explains how an edit-aware objective can appear to work when it does not.
-Measured only against B1, an auxiliary edit loss can look like a clear gain — in a
-preliminary sweep on generated drafts, +6.3% over B1 on three of three seeds — while its
-output is nearly identical to the draft (0.0009 notes changed per note) and no better
-than copying it. The model had learned to copy. Without a copy-input baseline and a
-fidelity measure, that is invisible; we report both throughout.
 
 **How much is left.** An oracle — a model of the same architecture, trained and tested
 with the true edit positions given as input — removes 49.3% of the draft's Correction
@@ -551,9 +549,11 @@ point exists.
 C13, C14. Trained heads are 5 seeds; judges are one trained model each; transfer and
 strata are seeds 0–2.*
 
-On generated drafts the gate never opens. This section asks why: whether the generated
-material can be found at all, whether a better detector would find it, and what
-distinguishes the drafts that can be corrected from those that cannot.
+On generated drafts the gate never opens. This section asks why. It rules out three
+explanations — a weak detector, too little damage, and contiguous changes — then shows
+what does govern localizability: how good the generator is. It then shows that
+localizability is not enough, and ends with what training adds and where an untrained
+judge helps.
 
 **Table 5** *(proposed)*. Localization of the notes that differ from the reference,
 MTC (Essen in brackets). Each cell gives AP lift — average precision divided by the base
@@ -632,6 +632,17 @@ model charges it to the wrong notes; a two-sided judge, which sees both sides of
 seam, doubles D2 localization, from 1.4× to 2.7×, but cannot recover what was spread
 beyond the changed notes.
 
+**Contiguity costs localization, but does not explain D2.** Generated changes come in
+runs of 2–6 notes, while random corruption mostly alters single notes, and contiguous
+errors are harder to rank: within D3, the judge's AUROC falls from 0.94 for isolated
+changes to 0.75 for runs of three or more (Essen: 0.92 to 0.72), plausibly because
+corrupted neighbours stay visible as context. At matched run length, however, generated
+changes are still localized worse. For runs of three or more the judge reaches 0.68 on
+D2 against 0.75 on D3 (Essen: 0.68 against 0.72), and the trained head 0.64 against
+0.71. In drafts where no two changed notes are adjacent, so that contiguity cannot
+matter, the judge reaches 0.75 on D2 against 0.84 on D1 and 0.94 on D3 (Essen: 0.73,
+0.83, 0.92).
+
 **The better the generator, the less it leaves.** Everything so far compares one
 generator with corruption. Figure 1a varies the generator itself: three sampling
 temperatures, and three checkpoints saved early in its training, each scored by the
@@ -687,53 +698,48 @@ about implausible music. Transfer also bounds the gate's safety. Heads trained o
 2.0% on every seed. Abstention on generated drafts is the behaviour of a head trained on
 them; it is not guaranteed for a head trained on something else.
 
-**Contiguity costs localization, but does not explain D2.** Generated changes come in
-runs of 2–6 notes, while random corruption mostly alters single notes, and contiguous
-errors are harder to rank: within D3, the judge's AUROC falls from 0.94 for isolated
-changes to 0.75 for runs of three or more (Essen: 0.92 to 0.72), plausibly because
-corrupted neighbours stay visible as context. At matched run length, however, generated
-changes are still localized worse. For runs of three or more the judge reaches 0.68 on
-D2 against 0.75 on D3 (Essen: 0.68 against 0.72), and the trained head 0.64 against
-0.71. In drafts where no two changed notes are adjacent, so that contiguity cannot
-matter, the judge reaches 0.75 on D2 against 0.84 on D1 and 0.94 on D3 (Essen: 0.73,
-0.83, 0.92).
+**Using the judge.** The untrained two-sided judge localizes better than any trained head
+(Table 5), which suggests using it directly. How it is used matters (Table 8). *As an
+input feature* — its per-note surprisal fed to the refiner's encoder — it improves
+localization (AUROC 0.73 → 0.82 on MTC D1) yet makes gated editing worse (+6.35% →
++5.14%, three of three seeds) and collapses free decoding (−17.7% → −61.0%): the loss is
+in what the decoder writes, not in where it looks. *As the gate on its own* it is worse
+than the head, because its scores are standardized within each melody: it always
+nominates some note as the most surprising, and so cannot decline to edit a melody that
+has nothing wrong with it. *Combined at the gate* — a two-feature logistic model of judge
+surprise and head confidence, fitted once on D1 validation data — the two are
+complementary, adding 1.4 to 2.1 points on every D1 and D3 cell on every seed, at a cost
+of 0.4–0.5% on generated drafts, where the judge opens a gate the head keeps shut. With
+the imitation model as decoder, the judge gate needs no edit labels in training, and
+still improves every corrupted cell on every seed. The judge was early-stopped on the
+melodies our validation drafts are made from, so judge-based gates looked better on
+validation (+9.8% on D1) than on test; all numbers here are test.
 
-**Confounds.** The main results are cross-corpus — the judge and generator are trained on
-Essen and tested on MTC — but every result above replicates when judge, generator and
-test melodies all come from Essen (the Essen columns of Table 3 and the bracketed
-values of Tables 5 and 6). The selected setting is not fragile (§5), and gated editing
-beats copy-input on D1 in all nine model sizes tested.
+**Table 8** *(proposed)*. Gated editing's improvement over copy-input (%) with different
+gates, decoder fixed; seeds 0–2, thresholds and combination weights chosen on D1
+validation only. MTC (Essen in brackets). The head row is the headline setting.
+
+| gate | D1 random | D3 rule-based | D2 generated |
+|---|---|---|---|
+| trained head (τ = 0.8) | +6.35 (+4.47) | +9.98 (+7.30) | 0.00 (0.00) |
+| two-sided judge (z ≥ 3) | +2.81 (+2.86) | +7.96 (+6.25) | −0.47 (−1.17) |
+| judge, imitation decoder (no edit labels) | +2.43 (+2.43) | +7.29 (+6.17) | −0.16 (−1.14) |
+| judge + head | **+7.91** (**+6.52**) | **+11.80** (**+8.71**) | −0.39 (−0.46) |
 
 ## 8. Discussion and limitations
 
 *This draft is ~740 words (budget was 0.8 page; the length limit has been relaxed).
-Carries C9, the recommendations that follow from C2–C8, and limitations L1–L6.
-Judge-gate and surprisal figures are seeds 0–2, matched against the head gate on the
-same seeds (+6.35% on MTC D1).*
+Carries the interpretation of C9 (its numbers moved to §7, Table 8), the
+recommendations that follow from C2–C8, and limitations L1–L7.*
 
-**Where the judge belongs.** The untrained two-sided judge localizes better than any
-trained head (Table 5), which suggests using it directly. How it is used matters.
-*As an input feature* — the judge's per-note surprisal fed to the refiner's encoder — it
-improves localization (AUROC 0.73 → 0.82 on D1) yet makes gated editing *worse*
-(+6.35% → +5.14%, three of three seeds) and collapses free decoding (−17.7% → −61.0%): the
-loss is in what the decoder writes, not in where it looks. *As the gate on its own*, it is
-worse than the trained head (+2.8% on D1), because its scores are standardized within
-each melody: it always nominates some note as the most surprising, and so cannot decline
-to edit a melody that has nothing wrong with it. The head's probability is absolute, and
-can. *Combined at the gate* — a two-feature logistic model of judge surprise and head
-confidence, fitted once on D1 validation data — the two are complementary, and gated
-editing improves by a further 1.4 to 2.1 points on every D1 and D3 cell on every seed
-(MTC D1 +7.91%, D3 +11.80%; Essen D1 +6.52%, D3 +8.71%). The combination has a cost: on
-generated drafts the judge opens a gate the head keeps shut, and results fall by
-0.4–0.5%. We therefore keep the head alone as the method — its abstention on generated
-drafts is part of the paper's evidence — and report the combination as the natural next
-step for drafts known to contain local errors. Two notes of caution: the judge was
-early-stopped on the melodies our validation drafts are made from, so judge-based gates
-looked better on validation (+9.8%) than on test; and a variant trained without edit
-labels — the judge as gate, the imitation model as decoder, with only the gate's
-threshold chosen on validation — still improves on the draft
-(+2.4% on D1, +6–7% on D3, every seed), which is the setting that would apply to drafts
-nobody has labelled.
+**Where the judge belongs.** The untrained judge is the better localizer (Table 5), but it
+earns its keep at the gate, not inside the model (Table 8). Fed to the encoder, its
+signal improves where the model looks and damages what the decoder writes. Alone at the
+gate it cannot abstain, because a within-melody score always nominates some note. Beside
+the head's absolute confidence it adds 1.4–2.1 points wherever errors are local. We keep
+the head alone as the method, because its abstention on generated drafts is part of the
+evidence, and offer the combination for drafts known to contain local errors. The
+label-free variant is the one that would apply to drafts nobody has labelled.
 
 **What this means for refinement research.** Four recommendations follow.
 *Report copy-input and fidelity.* A refiner measured only against another learned
@@ -821,7 +827,7 @@ learning how they were made; a transfer test measures by how much.
 Refining the output of good generators will likely need a different starting point: a formulation
 that does not assume the damage lies at the notes that differ from a reference —
 revision scored by plausibility over whole passages, or error locations marked by
-musicians. The judge-and-head gate of §8 is not that step: it improves corrupted drafts
+musicians. The judge-and-head gate of §7 is not that step: it improves corrupted drafts
 further, and one variant needs no edit labels in training, but on generated drafts it
 too does harm.
 

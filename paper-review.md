@@ -161,7 +161,7 @@ fragile. "Two orders of magnitude" is safer, or report the difference.
 
 ---
 
-## C. Flow
+## C. Flow — ✅ C1–C5 done 2026-09-27 (C1 was already a pointer after the transfer reframe)
 
 1. **Transfer appears twice.** +7.25 vs +9.98 is in both §6 ("D3 is easier…") and §7
    ("What is detectable…"). Keep one full statement in §7 and a forward pointer in §6.
