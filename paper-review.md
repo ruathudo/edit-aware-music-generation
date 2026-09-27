@@ -139,13 +139,13 @@ fragile. "Two orders of magnitude" is safer, or report the difference.
 
 ## B. Comprehensiveness
 
-1. **Turn three points into a curve (highest value).** "Three points cannot establish"
+1. ✅ **Done 2026-09-27** — six generator settings; it changed the thesis (generator quality), and the ep2 refiner follow-up found the repair gap. **Turn three points into a curve (highest value).** "Three points cannot establish"
    manifold distance is the draft's own caveat, and the data to fix it exist. D2 at
    T = 0.8 and the undertrained ep2 checkpoint sit at 0.90 and 2.0 ΔNLL/unit, filling the
    gap between D2 and D3. Zero-shot two-sided-judge localization on those drafts needs no
    training. Five or six points on Figure 1(a) would turn a suggestive ordering into a
    trend.
-2. **Risk–coverage curve for the gate.** The paper leans on selective prediction but
+2. ✅ **Done** (`scripts/risk_coverage.py`; reported as a §6 paragraph, not a figure). **Risk–coverage curve for the gate.** The paper leans on selective prediction but
    shows a single operating point. A curve of CC gain against τ for D1/D3/D2 is the
    standard figure for that framing, and it also settles A7.
 3. **A qualitative example.** A music venue will expect one melody shown as reference,

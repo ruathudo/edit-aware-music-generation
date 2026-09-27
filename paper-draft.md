@@ -106,7 +106,8 @@ by construction. On random corruption, gated editing improves on the draft by 6.
 in edit distance on every one of five seeds, and it is the only system we test that
 improves these drafts in both edit distance *and* judged plausibility (§6). On generated
 drafts it declines to edit. That forgoes nothing any gate we tried could recover —
-every alternative gate makes these drafts worse (§7, §8) — and it is safe where free
+no lower threshold and no alternative gate improves these drafts (§6, §7, §8) — and it
+is safe where free
 decoding does harm. Nor would a better detector alone change this: on drafts from a weak
 generator, whose changes the judge localizes as well as corruption, the gate opens but
 gains little or nothing (−0.1% and +0.4% on the two corpora), because the decoder
@@ -473,6 +474,14 @@ notes, a third as many as free decoding. Of the events the gate hands to the dec
 82% were genuinely wrong. The same setting, chosen on D1 validation data, transfers
 unchanged to the other sources.
 
+**The operating point is not delicate.** Sweeping the threshold on test — as a
+description, not a selection — gated editing beats copy-input on every seed at every
+threshold from 0.2 to 0.95, on both corruption sources and both corpora (D1: +5.0 to
++6.4% on MTC, +2.7 to +4.6% on Essen; D3: +8.9 to +10.3% and +6.5 to +7.3%). Lower
+thresholds open the gate more often at lower precision (on MTC D1, 3.2% of events at
+precision 0.50 for τ = 0.2, against 1.0% at 0.90 for τ = 0.95), and the gain degrades
+gracefully rather than collapsing.
+
 **Free decoding is worse than doing nothing.** Every freely decoded model is worse than
 returning the draft on random corruption, on every seed: the imitation baseline B1 by
 25% on MTC, and by more than 90% in the same-corpus setting. It rewrites notes that
@@ -531,7 +540,10 @@ gain disappears under transfer, as it does for D1 (§7).
 
 **Generated drafts.** On D2 the gate never opens: the output equals the draft on every
 seed, and gated editing neither helps nor harms. Free decoding, by contrast, loses 3.6%
-and 27.1%. §7 shows why abstaining is the right response.
+and 27.1%. No other threshold would have helped: lowering it to 0.2 opens the gate on 3%
+of events at a precision of 0.17 and makes drafts worse on every seed (−1.0% on MTC,
+−1.1% on Essen), and from 0.5 upward the gate barely opens. §7 shows why no operating
+point exists.
 
 ## 7. Results II: where it does not
 
