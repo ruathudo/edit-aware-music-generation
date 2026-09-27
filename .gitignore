@@ -16,3 +16,5 @@ models/
 results/refiner/**/model_*.pt
 # decoded outputs saved by --save-artifacts (large; kept locally for analysis)
 results/refiner/**/outputs_*.json
+# refiner run logs
+results/refiner/**/*.log

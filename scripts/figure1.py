@@ -13,9 +13,10 @@ Reads only committed results, so it needs no data or checkpoints:
             temperatures, three undertrained
             checkpoints), MTC and Essen
   panel b   gated vs copy-input, % (5 seeds, +/- sd)  results/refiner/headline_s34/five_seed_summary.json
+            epoch-2 generator drafts (3 seeds)       results/refiner/headline_ep2/mtc_d2infill.json
 
-Panel b is MTC and the three headline sources only: gated gain needs a
-trained refiner per condition, and only the headline sources have one. Two
+Panel b is MTC only, and covers the conditions with a trained refiner: the
+three headline sources and the epoch-2 generator's drafts. Two
 panels rather than two y-axes: the measures have different units, and a shared
 x is what carries the comparison.
 """
@@ -111,7 +112,23 @@ def main():
                 else f"{name}\ngate never opens\n(abstains, 5/5 seeds)")
         ax_b.annotate(note, (xi, g), xytext=(0, 8), textcoords="offset points",
                       ha="center", va="bottom", color=INK, fontsize=7, linespacing=1.1)
-    ax_b.set_ylim(-2, 14)
+    # epoch-2 generator: localizable (panel a) yet not improved -- the repair gap
+    ep2 = load("results/refiner/headline_ep2/mtc_d2infill.json")
+    b3 = ep2["b3_copy_input"]["correction_cost_mean"]
+    gains = [100 * (b3 - r["gated"]["0.8"]["correction_cost"]) / b3
+             for r in ep2["rows"] if r["label"].startswith("alpha0.5")]
+    ep2_x = next(r["per_unit_median"] for r in severity
+                 if r["corpus"] == "MTC" and r["condition"] == "D2 ep2")
+    mean = sum(gains) / len(gains)
+    sd = (sum((g - mean) ** 2 for g in gains) / (len(gains) - 1)) ** 0.5
+    ax_b.errorbar([ep2_x], [mean], yerr=[sd], fmt="o", ms=7, color="white", mec=BLUE,
+                  mew=1.5, ecolor=BLUE, elinewidth=1, capsize=0, zorder=3)
+    signed = f"{mean:+.2f}".replace("-", "\u2212")
+    ax_b.annotate(f"ep2 generator\n{signed}%, {sum(g > 0 for g in gains)}/{len(gains)} seeds",
+                  (ep2_x, mean), xytext=(0, -10), textcoords="offset points",
+                  ha="center", va="top", color=INK, fontsize=7, linespacing=1.1)
+    ax_b.set_ylim(-4, 14)
+    ax_b.set_yticks(range(-2, 13, 2))
     ax_b.set_ylabel("CC gain over copy-input (%)")
     ax_b.set_title("(b) Does gated editing improve the draft?", loc="left",
                    fontsize=8, color=INK)

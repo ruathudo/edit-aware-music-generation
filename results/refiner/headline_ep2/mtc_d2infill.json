@@ -1,0 +1,364 @@
+{
+  "b3_copy_input": {
+    "correction_cost_mean": 5.067655236329935,
+    "correction_cost_per_note": 0.11307151892311941
+  },
+  "b3_by_split": {
+    "test": {
+      "correction_cost_mean": 5.067655236329935,
+      "correction_cost_per_note": 0.11307151892311941
+    }
+  },
+  "primary_split": "test",
+  "rows": [
+    {
+      "label": "alpha0.0_seed0_binary",
+      "alpha": 0.0,
+      "seed": 0,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.734939759036145,
+      "correction_cost_per_note": 0.12942456296527652,
+      "fidelity_distance": 1.8359592215013902,
+      "fidelity_per_note": 0.04409977982444332,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9258250416460313,
+            "recall": 0.41676715882490045,
+            "f1": 0.5747887884950001,
+            "support": 98681
+          },
+          "SUB_PITCH": {
+            "precision": 0.07628356364453433,
+            "recall": 0.5905815109343936,
+            "f1": 0.13511477506929145,
+            "support": 8048
+          }
+        },
+        "macro_f1": 0.3549517817821458,
+        "localization": {
+          "precision": 0.07628356364453433,
+          "recall": 0.5905815109343936,
+          "f1": 0.13511477506929145
+        },
+        "accuracy": 0.42987379250250635
+      },
+      "gated": {
+        "0.8": {
+          "correction_cost": 5.129749768303985,
+          "fidelity_per_note": 0.003007523600172376
+        }
+      },
+      "best_val_loss": 0.1638950841501355
+    },
+    {
+      "label": "alpha0.0_seed1_binary",
+      "alpha": 0.0,
+      "seed": 1,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 6.466172381835032,
+      "correction_cost_per_note": 0.1468848368949914,
+      "fidelity_distance": 2.7571825764596847,
+      "fidelity_per_note": 0.06614725850193352,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.926797477718674,
+            "recall": 0.5332130805322199,
+            "f1": 0.6769547457463574,
+            "support": 98681
+          },
+          "SUB_PITCH": {
+            "precision": 0.07791011910719647,
+            "recall": 0.4835984095427435,
+            "f1": 0.13419995517473235,
+            "support": 8048
+          }
+        },
+        "macro_f1": 0.4055773504605449,
+        "localization": {
+          "precision": 0.07791011910719647,
+          "recall": 0.4835984095427435,
+          "f1": 0.13419995517473235
+        },
+        "accuracy": 0.5294718398935622
+      },
+      "gated": {
+        "0.8": {
+          "correction_cost": 5.103799814643188,
+          "fidelity_per_note": 0.001543055594753047
+        }
+      },
+      "best_val_loss": 0.16752568930387496
+    },
+    {
+      "label": "alpha0.0_seed2_binary",
+      "alpha": 0.0,
+      "seed": 2,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.455977757182576,
+      "correction_cost_per_note": 0.12272247090709545,
+      "fidelity_distance": 1.386468952734013,
+      "fidelity_per_note": 0.03339187062258046,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.920889606228193,
+            "recall": 0.3931658576625693,
+            "f1": 0.5510609891202454,
+            "support": 98681
+          },
+          "SUB_PITCH": {
+            "precision": 0.07298987584754946,
+            "recall": 0.5858598409542743,
+            "f1": 0.12980755994824214,
+            "support": 8048
+          }
+        },
+        "macro_f1": 0.34043427453424374,
+        "localization": {
+          "precision": 0.07298987584754946,
+          "recall": 0.5858598409542743,
+          "f1": 0.12980755994824214
+        },
+        "accuracy": 0.4076961275754481
+      },
+      "gated": {
+        "0.8": {
+          "correction_cost": 5.0685820203892495,
+          "fidelity_per_note": 0.0005816667320243242
+        }
+      },
+      "best_val_loss": 0.1615072473883629
+    },
+    {
+      "label": "alpha0.5_seed0_binary",
+      "alpha": 0.5,
+      "seed": 0,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.5885078776645045,
+      "correction_cost_per_note": 0.12586563755545668,
+      "fidelity_distance": 1.8331788693234476,
+      "fidelity_per_note": 0.04422065598517982,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9282242813918306,
+            "recall": 0.9948115645362329,
+            "f1": 0.9603650931075469,
+            "support": 98681
+          },
+          "SUB_PITCH": {
+            "precision": 0.4716202270381837,
+            "recall": 0.05678429423459245,
+            "f1": 0.10136409005212377,
+            "support": 8048
+          }
+        },
+        "macro_f1": 0.5308645915798353,
+        "localization": {
+          "precision": 0.4716202270381837,
+          "recall": 0.05678429423459245,
+          "f1": 0.10136409005212377
+        },
+        "accuracy": 0.9240787414854444
+      },
+      "gated": {
+        "0.8": {
+          "correction_cost": 5.06209453197405,
+          "fidelity_per_note": 0.006849242301936293
+        }
+      },
+      "best_val_loss": 0.2821507159620523
+    },
+    {
+      "label": "alpha0.5_seed1_binary",
+      "alpha": 0.5,
+      "seed": 1,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.840593141797961,
+      "correction_cost_per_note": 0.1308367982153921,
+      "fidelity_distance": 2.537534754402224,
+      "fidelity_per_note": 0.05829133522955814,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9341987767290465,
+            "recall": 0.985944609397959,
+            "f1": 0.9593744453428522,
+            "support": 98681
+          },
+          "SUB_PITCH": {
+            "precision": 0.46281951975213015,
+            "recall": 0.14848409542743538,
+            "f1": 0.22483537158984004,
+            "support": 8048
+          }
+        },
+        "macro_f1": 0.5921049084663461,
+        "localization": {
+          "precision": 0.46281951975213015,
+          "recall": 0.14848409542743538,
+          "f1": 0.22483537158984004
+        },
+        "accuracy": 0.9227951166037347
+      },
+      "gated": {
+        "0.8": {
+          "correction_cost": 5.086190917516219,
+          "fidelity_per_note": 0.00907994811782008
+        }
+      },
+      "best_val_loss": 0.2749636139720678
+    },
+    {
+      "label": "alpha0.5_seed2_binary",
+      "alpha": 0.5,
+      "seed": 2,
+      "use_edit_head": true,
+      "head_type": "binary",
+      "n_parameters": 5855355,
+      "correction_cost": 5.488415199258573,
+      "correction_cost_per_note": 0.12271458208095032,
+      "fidelity_distance": 1.6126042632066728,
+      "fidelity_per_note": 0.037583946068059954,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "edit_scores": {
+        "per_class": {
+          "KEEP": {
+            "precision": 0.9274411060185971,
+            "recall": 0.9965849555638877,
+            "f1": 0.9607706172851567,
+            "support": 98681
+          },
+          "SUB_PITCH": {
+            "precision": 0.5123010130246021,
+            "recall": 0.043986083499005964,
+            "f1": 0.08101613456917266,
+            "support": 8048
+          }
+        },
+        "macro_f1": 0.5208933759271647,
+        "localization": {
+          "precision": 0.5123010130246021,
+          "recall": 0.043986083499005964,
+          "f1": 0.08101613456917266
+        },
+        "accuracy": 0.9247533472626933
+      },
+      "gated": {
+        "0.8": {
+          "correction_cost": 5.074142724745134,
+          "fidelity_per_note": 0.005686837469852686
+        }
+      },
+      "best_val_loss": 0.2788906954228878
+    },
+    {
+      "label": "alpha0.0_seed0_nohead",
+      "alpha": 0.0,
+      "seed": 0,
+      "use_edit_head": false,
+      "head_type": "none",
+      "n_parameters": 5854841,
+      "correction_cost": 5.669138090824838,
+      "correction_cost_per_note": 0.12798161286785523,
+      "fidelity_distance": 1.6070435588507879,
+      "fidelity_per_note": 0.03931573080387052,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "best_val_loss": 0.16402176376432182
+    },
+    {
+      "label": "alpha0.0_seed1_nohead",
+      "alpha": 0.0,
+      "seed": 1,
+      "use_edit_head": false,
+      "head_type": "none",
+      "n_parameters": 5854841,
+      "correction_cost": 5.375347544022243,
+      "correction_cost_per_note": 0.12017320063830712,
+      "fidelity_distance": 1.1668211306765524,
+      "fidelity_per_note": 0.02747949614768222,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "best_val_loss": 0.16995590291917323
+    },
+    {
+      "label": "alpha0.0_seed2_nohead",
+      "alpha": 0.0,
+      "seed": 2,
+      "use_edit_head": false,
+      "head_type": "none",
+      "n_parameters": 5854841,
+      "correction_cost": 5.891566265060241,
+      "correction_cost_per_note": 0.13239542991010092,
+      "fidelity_distance": 1.9555143651529194,
+      "fidelity_per_note": 0.046398340826130306,
+      "draft_cost": 5.067655236329935,
+      "n": 1079,
+      "best_val_loss": 0.16259167455136775
+    }
+  ],
+  "config": {
+    "alphas": [
+      0.0,
+      0.5
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "sources": [
+      "D2-infill"
+    ],
+    "temperature": 1.0,
+    "per_melody": 3,
+    "epochs": 40,
+    "batch_size": 32,
+    "lr": 0.0003,
+    "d_model": 256,
+    "n_heads": 4,
+    "n_layers": 3,
+    "patience": 5,
+    "generator": "models/generator_checkpoints/generator_epoch2.pth",
+    "out": "results/refiner/headline_ep2/mtc_d2infill.json",
+    "max_train": 0,
+    "essen_test": 0.0,
+    "references": "heldout",
+    "gated_thresholds": [
+      0.8
+    ],
+    "test_sources": null,
+    "save_artifacts": true,
+    "eval_splits": [
+      "test"
+    ],
+    "surprisal": false,
+    "judge": "models/judge.pth",
+    "head_type": "binary",
+    "weighting": "none"
+  }
+}

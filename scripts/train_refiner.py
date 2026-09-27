@@ -58,6 +58,9 @@ from src.refinement import (  # noqa: E402
 )
 
 
+DEFAULT_GENERATORS = {"models/generator.pth", "models/generator_ctrl.pth"}
+
+
 def load_generator(path, tokenizer, device):
     blob = torch.load(path, map_location=device, weights_only=False)
     model = MelodyLM(LMConfig(**blob["lm_config"]), pad_id=tokenizer.pad_id)
@@ -70,6 +73,13 @@ def make_drafts(melodies, tokenizer, priors, generator, args, seed, tag):
         "sources": args.sources, "temperature": args.temperature,
         "per_melody": args.per_melody, "seed": seed, "tag": tag,
     }
+    # The cache key did not originally include the generator, so D2 drafts from
+    # an undertrained checkpoint would silently reuse the trained generator's.
+    # Only non-default generators enter the key: adding the field for the two
+    # trained generators would orphan every existing cache.
+    path = getattr(args, "generator", None)
+    if path and path not in DEFAULT_GENERATORS and any(s.startswith("D2") for s in args.sources):
+        config["generator"] = path
     return cached_drafts(
         melodies,
         lambda: build_draft_corpus(

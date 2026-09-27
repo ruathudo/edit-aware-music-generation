@@ -37,7 +37,11 @@ seed-matched.
 > localizes the generated material at no better than 2.7× chance, against 6–7× for
 > corruption. Generated drafts are worse than their references, but the damage is
 > diffuse: at *matched* degradation, generated changes are still localized far less well
-> than corrupted ones, in every band and on both corpora.
+> than corrupted ones, in every band and on both corpora. **This is a property of the
+> generator's quality, not of generation (revised 2026-09-27):** drafts from the same
+> generator after 2 epochs are localized better than random corruption, and across six
+> generator settings localizability falls steadily as the generator's changes become more
+> plausible. Localize-then-fix gets harder exactly as generators get better.
 
 Three things the paper therefore contributes, in one line each:
 
@@ -50,10 +54,14 @@ Three things the paper therefore contributes, in one line each:
 
 ## 2. Title
 
-Recommended:
+Recommended (2026-09-27):
 
-- **Generated Drafts Leave Little Local Trace: When Does Localize-and-Fix Work for
+- **The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work for
   Symbolic Music Refinement?**
+
+Previous recommendation, before the severity curve: *Generated Drafts Leave Little Local
+Trace: …* — now too broad, since an undertrained generator's drafts leave as much trace
+as corruption. (It also said "Localize-and-Fix"; the body uses "localize-then-fix".)
 
 Alternatives:
 
@@ -201,6 +209,27 @@ on D3 (+7.25%) than on D1 itself.
 *Source:* `zero_shot_*.json`, `results/refiner/transfer/`.
 *Caveat:* three sources is a thin basis for "follows"; say "consistent with".
 
+**C8b. Localizability tracks the generator's quality.** (§7, Figure 1a) *New 2026-09-27.*
+Six D2 conditions — T ∈ {0.8, 1.0, 1.2} with the trained generator, checkpoints after
+2/5/10 epochs at T=1.0 — scored zero-shot by the two-sided judge. MTC AUROC (per unit):
+T=0.8 .652 (0.86), T=1.0 .688 (1.04), T=1.2 .718 (1.21), ep10 .769 (1.41), ep5 .832
+(1.70), ep2 .865 (2.01); D3 .812 (3.14), D1 .838 (3.94). Essen: .647 → .858, same order,
+D1 .831. Rises steeply to ~2 per unit, then plateaus at 0.81–0.87 for every source.
+*Source:* `results/judge/severity_curve.json` (`scripts/severity_curve.py`).
+*Caveat:* one generator weakened, not generators of increasing strength compared (L7).
+Checkpoint val NLLs for the main generator were not recorded.
+
+**C8c. Localizable is not repairable.** (§7, Table 7, Figure 1b) *New 2026-09-27.*
+Refiners trained on the 2-epoch generator's drafts (headline setting, 3 seeds) gain
+−0.13% ± 0.24 over copy-input on MTC (1/3 seeds); B1 free −11.4%. Head AUROC 0.67–0.76
+(judge 0.865), gate precision ~0.65 (D1 0.82). At gate-opened true substitutions the
+decoder writes the reference's exact event 11% of the time (D1 59%, D3 44%; Essen D1
+58%, D3 41%). Mechanism: a rewritten span's original is one plausible continuation among
+many; a corrupted note is pinned by its neighbours. Oracle agrees (49% vs 21.5%).
+*Source:* `results/refiner/headline_ep2/`, `results/refiner/controls/repair_accuracy.json`
+(`scripts/repair_accuracy.py`). Essen ep2 pending.
+*Do not claim:* "gated editing works wherever errors are localizable".
+
 **C9. Put the judge at the gate, not in the model.** (§8)
 - At the gate: combining judge surprise with the head's confidence (a two-feature
   logistic fitted on D1 validation) adds **+1.4 to +2.1 points** over the head on every
@@ -291,6 +320,8 @@ D3 0.94 (Essen 0.73 / 0.83 / 0.92). D2 is worse at every matched run length.
 11. "Most generated drafts are different, not wrong" → at matched degradation D2 is
    still far less localizable; the damage is diffuse, not absent (C4). Do not use τ
    exceedance as evidence that a draft is error-free.
+12. "Generated drafts are hard to localize" (unqualified) → drafts from a *good*
+   generator are; an undertrained generator's are as localizable as corruption (C8b).
 
 Also avoid: any human-in-the-loop or user-utility claim beyond one motivating sentence;
 "reproduces the published result" (C12 framing note).
@@ -308,6 +339,8 @@ Also avoid: any human-in-the-loop or user-utility claim beyond one motivating se
   one full re-run.
 - **L6.** D2 drafts are not filtered by the judge; C4 (matched strata) is the argument
   for why filtering would not change the localizability conclusion.
+- **L7.** The generator-quality gradient weakens one generator; that stronger generators
+  leave still less trace is an extrapolation (C8b).
 
 ## 7. Anticipated objections (short form)
 
