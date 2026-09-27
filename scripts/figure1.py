@@ -6,13 +6,18 @@ each draft source moves a melody off the data distribution.
 
 Reads only committed results, so it needs no data or checkpoints:
 
-  x         median dNLL per unit of change (Table 2)  results/judge/plausibility_table.json
-  panel a   AUROC, two-sided judge (untrained)         results/refiner/headline_r2/zero_shot_mtc.json
-            AUROC, trained head (5 seeds)             results/refiner/headline_s34/five_seed_summary.json
+  x         median dNLL per unit of change (Table 2)  results/judge/plausibility_table.json,
+                                                      results/judge/severity_curve.json
+  panel a   AUROC, two-sided judge (untrained), for   results/judge/severity_curve.json
+            D1, D3 and six generator settings (three
+            temperatures, three undertrained
+            checkpoints), MTC and Essen
   panel b   gated vs copy-input, % (5 seeds, +/- sd)  results/refiner/headline_s34/five_seed_summary.json
 
-MTC throughout. Two panels rather than two y-axes: the measures have
-different units, and a shared x is what carries the comparison.
+Panel b is MTC and the three headline sources only: gated gain needs a
+trained refiner per condition, and only the headline sources have one. Two
+panels rather than two y-axes: the measures have different units, and a shared
+x is what carries the comparison.
 """
 import json
 from pathlib import Path
@@ -42,13 +47,10 @@ def load(path):
 
 def main():
     plaus = {r["source"]: r for r in load("results/judge/plausibility_table.json")["rows"]}
-    zero = {r["source"]: r for r in load("results/refiner/headline_r2/zero_shot_mtc.json")["rows"]}
+    severity = load("results/judge/severity_curve.json")["rows"]
     five = {r["cell"]: r for r in load("results/refiner/headline_s34/five_seed_summary.json")}
 
     x = [plaus[p]["per_unit_median"] for p, _, _, _ in SOURCES]
-    judge = [zero[z]["two-sided"]["auroc"] for _, z, _, _ in SOURCES]
-    head = [five[c]["auroc"] for _, _, c, _ in SOURCES]
-    head_sd = [five[c]["auroc_sd"] for _, _, c, _ in SOURCES]
     gain = [five[c]["gated"] for _, _, c, _ in SOURCES]
     gain_sd = [five[c]["gated_sd"] for _, _, c, _ in SOURCES]
     pos = [five[c]["pos"] for _, _, c, _ in SOURCES]
@@ -68,23 +70,35 @@ def main():
         ax.axvline(human, color=MUTED, linewidth=1, linestyle=(0, (3, 2)))
         ax.set_xlim(-0.1, 4.6)
 
-    # (a) localization
+    # (a) localization by the untrained two-sided judge, every condition
     ax_a.axhline(0.5, color=INK2, linewidth=0.8)
     ax_a.text(4.55, 0.505, "chance", ha="right", va="bottom", color=INK2, fontsize=7)
-    ax_a.errorbar(x, head, yerr=head_sd, fmt="s", ms=6, color=ORANGE, mec="white",
-                  mew=1, elinewidth=1, capsize=0, label="trained edit head (5 seeds)", zorder=3)
-    ax_a.plot(x, judge, "o", ms=7, color=BLUE, mec="white", mew=1,
-              label="two-sided judge, untrained", zorder=4)
-    for xi, j, (_, _, _, name) in zip(x, judge, SOURCES):
-        ax_a.annotate(name, (xi, j), xytext=(0, 7), textcoords="offset points",
-                      ha="center", va="bottom", color=INK, fontsize=7)
+    for corpus, color, marker, ms in (("MTC", BLUE, "o", 6), ("Essen", ORANGE, "s", 5)):
+        rows = [r for r in severity if r["corpus"] == corpus]
+        gen = sorted((r for r in rows if r["condition"].startswith("D2")),
+                     key=lambda r: r["per_unit_median"])
+        ax_a.plot([r["per_unit_median"] for r in gen], [r["judge_auroc"] for r in gen],
+                  "-", color=color, linewidth=1, alpha=0.6, zorder=2)
+        ax_a.plot([r["per_unit_median"] for r in rows], [r["judge_auroc"] for r in rows],
+                  marker, ms=ms, color=color, mec="white", mew=0.8, linestyle="none",
+                  label=corpus, zorder=3)
+    labels = {"D1": ("D1 random", (0, 7), "center"), "D3": ("D3 rule-based", (0, -11), "center"),
+              "D2 T=0.8": ("T=0.8", (5, -2), "left"), "D2 T=1.0": ("D2 (T=1.0)", (5, -2), "left"),
+              "D2 T=1.2": ("T=1.2", (5, -2), "left"), "D2 ep10": ("ep10", (5, -2), "left"),
+              "D2 ep5": ("ep5", (5, -2), "left"), "D2 ep2": ("ep2", (5, -2), "left")}
+    for r in severity:
+        if r["corpus"] == "MTC" and r["condition"] in labels:
+            text, offset, ha = labels[r["condition"]]
+            ax_a.annotate(text, (r["per_unit_median"], r["judge_auroc"]), xytext=offset,
+                          textcoords="offset points", ha=ha, va="bottom" if offset[1] > 0 else "top",
+                          color=INK, fontsize=6.5)
     ax_a.text(human + 0.08, 0.53, "human\nvariants", ha="left", va="bottom",
               color=INK2, fontsize=7)
     ax_a.set_ylim(0.45, 0.92)
     ax_a.set_ylabel("AUROC, changed notes")
     ax_a.set_title("(a) Can the changed notes be found?", loc="left", fontsize=8, color=INK)
     ax_a.legend(loc="lower right", frameon=False, fontsize=7, handletextpad=0.3,
-                bbox_to_anchor=(1.0, 0.16))
+                bbox_to_anchor=(1.0, 0.2))
 
     # (b) gated improvement
     ax_b.axhline(0, color=INK2, linewidth=0.8)

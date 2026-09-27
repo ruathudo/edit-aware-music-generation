@@ -117,16 +117,19 @@ Our experiments use monophonic folk melodies from the Meertens Tune Collections 
 and the Essen Folksong Collection [Essen]. Plausibility is judged by a language model,
 not by listeners; we treat this as the central limitation and return to it in §8.
 
-**Figure 1** (`figures/figure1.pdf`, `scripts/figure1.py`). Three draft sources placed by
+**Figure 1** (`figures/figure1.pdf`, `scripts/figure1.py`). Draft conditions placed by
 how far their changes move a melody off the data distribution: the judge's median
 implausibility per unit of change (Table 2); the dashed line marks human variants of the
-same tune. (a) How well the changed notes are localized (AUROC; 0.5 is chance) by an
-untrained two-sided judge and by the trained edit head (Table 5). (b) Gated editing's
-improvement in Correction Cost over returning the draft unchanged (Table 3). MTC; error
-bars are ±1 s.d. over five seeds, mostly smaller than the markers. Corruption, random or
-rule-based, is localizable and improvable. Generator-written drafts are a third as
-implausible per unit of change as corruption, though still far more than human variants;
-they are localized far less well, and the gate abstains.
+same tune. (a) How well an untrained two-sided judge localizes the changed notes (AUROC;
+0.5 is chance), for random (D1) and rule-based (D3) corruption and for six generator
+settings — sampling temperature 0.8/1.0/1.2 with the trained generator, and checkpoints
+after 2, 5 and 10 epochs — on MTC and, same-corpus, Essen. D2 is the trained generator at
+T = 1.0. (b) Gated editing's improvement in Correction Cost over returning the draft
+unchanged, for the three headline sources (Table 3; MTC; error bars ±1 s.d. over five
+seeds, mostly smaller than the markers). Localizability of generator-written changes
+rises steeply with their implausibility, and drafts from an undertrained generator are
+as localizable as corruption; the trained generator's drafts sit at the bottom of the
+curve, where the gate abstains.
 
 ## 2. Related Work
 
