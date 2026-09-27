@@ -59,6 +59,18 @@
       "exact_repair": 0.4137453874538745,
       "pitch_repair": 0.426396942540854,
       "skipped_examples": 3
+    },
+    {
+      "corpus": "Essen",
+      "source": "D2 ep2",
+      "seeds": 3,
+      "changed": 8356,
+      "share_true_substitution": 0.652106270943035,
+      "share_broke_correct": 0.1949497367161321,
+      "share_deletion_or_other": 0.15294399234083295,
+      "exact_repair": 0.1255276197467425,
+      "pitch_repair": 0.19086070838685998,
+      "skipped_examples": 0
     }
   ]
 }

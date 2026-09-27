@@ -221,14 +221,15 @@ Checkpoint val NLLs for the main generator were not recorded.
 
 **C8c. Localizable is not repairable.** (§7, Table 7, Figure 1b) *New 2026-09-27.*
 Refiners trained on the 2-epoch generator's drafts (headline setting, 3 seeds) gain
-−0.13% ± 0.24 over copy-input on MTC (1/3 seeds); B1 free −11.4%. Head AUROC 0.67–0.76
-(judge 0.865), gate precision ~0.65 (D1 0.82). At gate-opened true substitutions the
-decoder writes the reference's exact event 11% of the time (D1 59%, D3 44%; Essen D1
-58%, D3 41%). Mechanism: a rewritten span's original is one plausible continuation among
+−0.13% ± 0.24 over copy-input on MTC (1/3 seeds) and +0.38% ± 0.30 on Essen (3/3) — a
+tenth of D1's gain; B1 free −11.4% / −28.4%. Head AUROC 0.67–0.81 (judge 0.86–0.87),
+gate precision 0.59–0.72 (D1 0.82). At gate-opened true substitutions the decoder writes
+the reference's exact event 11% / 13% of the time (D1 59% / 58%, D3 44% / 41%). Mechanism: a rewritten span's original is one plausible continuation among
 many; a corrupted note is pinned by its neighbours. Oracle agrees (49% vs 21.5%).
 *Source:* `results/refiner/headline_ep2/`, `results/refiner/controls/repair_accuracy.json`
-(`scripts/repair_accuracy.py`). Essen ep2 pending.
-*Do not claim:* "gated editing works wherever errors are localizable".
+(`scripts/repair_accuracy.py`).
+*Do not claim:* "gated editing works wherever errors are localizable", nor "gated editing
+fails on generated drafts" unqualified — it gains a little on Essen ep2.
 
 **C9. Put the judge at the gate, not in the model.** (§8)
 - At the gate: combining judge surprise with the head's confidence (a two-feature

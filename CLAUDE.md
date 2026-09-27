@@ -406,6 +406,26 @@ transfer loss is symmetric (D1→D3 −27%, D3→D1 −24%), so it measures sour
 learning in every synthetic benchmark, not D3's rules in particular. `paper-core.md`
 C4/C8 and must-not-claim #8/#11 carry both revisions.
 
+### Generator-quality gradient, and localizable ≠ repairable (2026-09-27)
+
+`scripts/severity_curve.py` scores D2 drafts from T ∈ {0.8, 1.0, 1.2} and the generator's
+epoch-2/5/10 checkpoints with the two-sided judge (`results/judge/severity_curve.json`).
+AUROC rises steadily with implausibility per unit: MTC 0.652 (T=0.8) → 0.688 (D2) →
+0.718 → 0.769 (ep10) → 0.832 (ep5) → **0.865 (ep2), above D1's 0.838**; Essen 0.647 →
+0.858. Above ~2 per unit every source plateaus at 0.81–0.87. **Thesis revised: the better
+the generator, the less trace** — hard-to-localize is a property of a *good* generator,
+not of generation.
+
+But refiners trained on ep2 drafts (`results/refiner/headline_ep2/`, headline setting,
+3 seeds) gain only −0.13% ± 0.24 (MTC) / +0.38% ± 0.30 (Essen) over copy-input.
+`scripts/repair_accuracy.py`: at gate-opened true substitutions the decoder writes the
+reference's exact note **11% / 13%** of the time, vs D1 59% / 58% and D3 44% / 41%. A
+rewritten span's original is underdetermined by context; a corrupted note is pinned by
+its neighbours. Head AUROC on ep2 is also lower than the judge's (0.67–0.81 vs 0.86).
+
+`train_refiner.make_drafts` now puts non-default generator paths in the draft cache key;
+before, ep2 drafts silently reused the trained generator's cache.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

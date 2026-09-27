@@ -109,8 +109,9 @@ drafts it declines to edit. That forgoes nothing any gate we tried could recover
 every alternative gate makes these drafts worse (§7, §8) — and it is safe where free
 decoding does harm. Nor would a better detector alone change this: on drafts from a weak
 generator, whose changes the judge localizes as well as corruption, the gate opens but
-gains nothing, because the decoder restores a generator-rewritten note only 11% of the
-time, against 59% for a corrupted one. A rewritten passage's original is one plausible
+gains little or nothing (−0.1% and +0.4% on the two corpora), because the decoder
+restores a generator-rewritten note only 11–13% of the time, against 58–59% for a
+corrupted one. A rewritten passage's original is one plausible
 continuation among many; a corrupted note is pinned down by its neighbours.
 
 In summary, we make three contributions:
@@ -635,13 +636,15 @@ ordering of the three headline sources (D1 > D3 > D2) is one slice through that 
 
 **Localizable is not repairable.** If localizability were the whole story, gated
 editing should work on the 2-epoch generator's drafts, which the judge localizes as well
-as corruption. It does not. Refiners trained on those drafts under the same setting gain
-−0.13% ± 0.24 on copy-input (MTC, three seeds, one positive), while free decoding loses
-11.4%. Two things fall short. The trained head localizes these drafts less well than the
-judge does (AUROC 0.67–0.76 against 0.87), so the gate opens at a precision of about
-0.65, against 0.82 on D1. And where the gate does find a changed note, the decoder
-rarely restores it (Table 7): it writes the reference's exact note 11% of the time,
-against 59% on random corruption and 44% on rule-based. A corrupted note is pinned down
+as corruption. It barely does. Refiners trained on those drafts under the same setting
+gain −0.13% ± 0.24 on copy-input on MTC (one seed of three positive) and +0.38% ± 0.30
+same-corpus (three of three) — a tenth of what the same method gains on random
+corruption — while free decoding loses 11% and 28%. Two things fall short. The trained
+head localizes these drafts less well than the judge does (AUROC 0.67–0.81 across seeds
+and corpora, against 0.86–0.87), so the gate opens at a precision of 0.59–0.72, against
+0.82 on D1. And where the gate does find a changed note, the decoder
+rarely restores it (Table 7): it writes the reference's exact note 11–13% of the time,
+against 58–59% on random corruption and 41–44% on rule-based. A corrupted note is pinned down
 by the intact notes around it. A rewritten span's original content is one plausible
 continuation among many, and the draft does not say which one the reference used. The
 oracle agrees: given the true positions, it removes 49% of D1's Correction Cost but
@@ -658,7 +661,7 @@ substitutions where the output equals the reference event. MTC (Essen in bracket
 |---|---|---|---|---|
 | D1 random | 1,943 (9,844) | 76% (69%) | 12% (17%) | **59%** (58%) |
 | D3 rule-based | 3,673 (17,133) | 94% (89%) | 6% (11%) | **44%** (41%) |
-| D2, 2-epoch generator | 735 (—) | 67% (—) | 21% (—) | **11%** (—) |
+| D2, 2-epoch generator | 735 (8,356) | 67% (65%) | 21% (19%) | **11%** (13%) |
 
 **What training adds.** Trained heads add a source-specific component on top, which transfer isolates (seeds 0–2). A
 head trained on D1 reaches +7.25% on D3 drafts, against +9.98% for a head trained on D3
@@ -794,7 +797,7 @@ rather than in any note of it. The same generator early in training leaves trace
 clear as corruption's; how much trace remains is a measure of how good the generator
 is. And a trace is not a repair: where a weak generator's changes can be found, the
 reference's original is still only one plausible continuation among many, and a refiner
-restores it about one time in nine. On a good generator's drafts the safe behaviour for a localize-then-fix system is to
+restores it about one time in eight. On a good generator's drafts the safe behaviour for a localize-then-fix system is to
 decline to act, and a gated refiner does.
 
 Two measurement lessons carry beyond this setting. Edit distance to a reference ranks
