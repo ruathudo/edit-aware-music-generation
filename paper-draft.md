@@ -230,7 +230,7 @@ set is MTC-ANN, the annotated corpus of the Meertens Tune Collections [MTC]: 360
 melodies believed to descend from a common ancestor through oral transmission. MTC-ANN
 is seen by no model during training, which makes every main result cross-corpus; a
 same-corpus control, which holds out 20% of Essen as the test set and retrains the judge
-and generator on the rest, is reported in §7.
+and generator on the rest, is reported alongside every result from §6 on.
 
 **Draft sources.** Each test reference yields three drafts per source.
 
