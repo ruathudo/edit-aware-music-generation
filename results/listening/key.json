@@ -1,0 +1,1626 @@
+{
+ "version": 1,
+ "seed": 2026,
+ "key": {
+  "s-3ea01a": {
+   "source": "D1",
+   "reference_id": "NLB073866_01",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": [
+    12
+   ]
+  },
+  "s-a34491": {
+   "source": "D1",
+   "reference_id": "NLB073374_01",
+   "window": [
+    15,
+    35
+   ],
+   "wrong_positions": [
+    6
+   ]
+  },
+  "s-6517f1": {
+   "source": "D1",
+   "reference_id": "NLB074077_02",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": [
+    0,
+    6,
+    19
+   ]
+  },
+  "s-39a664": {
+   "source": "D1",
+   "reference_id": "NLB073225_02",
+   "window": [
+    12,
+    32
+   ],
+   "wrong_positions": [
+    3,
+    15,
+    16,
+    17
+   ]
+  },
+  "s-3ed098": {
+   "source": "D1",
+   "reference_id": "NLB073486_01",
+   "window": [
+    20,
+    40
+   ],
+   "wrong_positions": [
+    3,
+    15
+   ]
+  },
+  "s-405962": {
+   "source": "D1",
+   "reference_id": "NLB075068_01",
+   "window": [
+    5,
+    25
+   ],
+   "wrong_positions": [
+    19
+   ]
+  },
+  "s-9abf5a": {
+   "source": "D1",
+   "reference_id": "NLB073754_02",
+   "window": [
+    12,
+    32
+   ],
+   "wrong_positions": [
+    2,
+    18
+   ]
+  },
+  "s-b641e3": {
+   "source": "D1",
+   "reference_id": "NLB070122_01",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": [
+    11,
+    14
+   ]
+  },
+  "s-d78b67": {
+   "source": "D1",
+   "reference_id": "NLB141314_01",
+   "window": [
+    3,
+    23
+   ],
+   "wrong_positions": [
+    5,
+    6,
+    7
+   ]
+  },
+  "s-401b45": {
+   "source": "D1",
+   "reference_id": "NLB072288_01",
+   "window": [
+    15,
+    35
+   ],
+   "wrong_positions": [
+    12
+   ]
+  },
+  "s-cb3106": {
+   "source": "D1",
+   "reference_id": "NLB072382_02",
+   "window": [
+    5,
+    25
+   ],
+   "wrong_positions": [
+    1,
+    6,
+    7
+   ]
+  },
+  "s-4b9d27": {
+   "source": "D1",
+   "reference_id": "NLB075831_01",
+   "window": [
+    14,
+    34
+   ],
+   "wrong_positions": [
+    7
+   ]
+  },
+  "s-f52af2": {
+   "source": "D1",
+   "reference_id": "NLB072287_01",
+   "window": [
+    14,
+    34
+   ],
+   "wrong_positions": [
+    7,
+    11
+   ]
+  },
+  "s-46fe1b": {
+   "source": "D1",
+   "reference_id": "NLB074003_01",
+   "window": [
+    9,
+    29
+   ],
+   "wrong_positions": [
+    4,
+    9,
+    12,
+    15,
+    17
+   ]
+  },
+  "s-2dcbf8": {
+   "source": "D1",
+   "reference_id": "NLB072898_02",
+   "window": [
+    22,
+    42
+   ],
+   "wrong_positions": [
+    15
+   ]
+  },
+  "s-1375e4": {
+   "source": "D1",
+   "reference_id": "NLB074227_01",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": [
+    0,
+    3
+   ]
+  },
+  "s-ae71ef": {
+   "source": "D1",
+   "reference_id": "NLB070493_01",
+   "window": [
+    12,
+    32
+   ],
+   "wrong_positions": [
+    2,
+    4,
+    9,
+    17
+   ]
+  },
+  "s-1ccd8d": {
+   "source": "D1",
+   "reference_id": "NLB076076_01",
+   "window": [
+    10,
+    30
+   ],
+   "wrong_positions": [
+    5,
+    7
+   ]
+  },
+  "s-f0eb48": {
+   "source": "D1",
+   "reference_id": "NLB072499_01",
+   "window": [
+    3,
+    23
+   ],
+   "wrong_positions": [
+    6,
+    9
+   ]
+  },
+  "s-4d3bcb": {
+   "source": "D1",
+   "reference_id": "NLB075379_01",
+   "window": [
+    37,
+    57
+   ],
+   "wrong_positions": [
+    3
+   ]
+  },
+  "s-770be8": {
+   "source": "D3",
+   "reference_id": "NLB075035_01",
+   "window": [
+    21,
+    41
+   ],
+   "wrong_positions": [
+    1,
+    17
+   ]
+  },
+  "s-aff7dd": {
+   "source": "D3",
+   "reference_id": "NLB073628_01",
+   "window": [
+    2,
+    22
+   ],
+   "wrong_positions": [
+    2,
+    8
+   ]
+  },
+  "s-b7dd1e": {
+   "source": "D3",
+   "reference_id": "NLB070053_01",
+   "window": [
+    28,
+    48
+   ],
+   "wrong_positions": [
+    17
+   ]
+  },
+  "s-f2b857": {
+   "source": "D3",
+   "reference_id": "NLB072664_01",
+   "window": [
+    21,
+    41
+   ],
+   "wrong_positions": [
+    4,
+    12
+   ]
+  },
+  "s-9fd7d8": {
+   "source": "D3",
+   "reference_id": "NLB070134_01",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": [
+    0,
+    8,
+    9,
+    10,
+    15
+   ]
+  },
+  "s-133406": {
+   "source": "D3",
+   "reference_id": "NLB072627_01",
+   "window": [
+    41,
+    61
+   ],
+   "wrong_positions": [
+    0,
+    2,
+    19
+   ]
+  },
+  "s-46a2c5": {
+   "source": "D3",
+   "reference_id": "NLB075848_01",
+   "window": [
+    14,
+    34
+   ],
+   "wrong_positions": [
+    1,
+    17
+   ]
+  },
+  "s-09657d": {
+   "source": "D3",
+   "reference_id": "NLB072003_01",
+   "window": [
+    14,
+    34
+   ],
+   "wrong_positions": [
+    13,
+    15,
+    16
+   ]
+  },
+  "s-9d0929": {
+   "source": "D3",
+   "reference_id": "NLB134480_01",
+   "window": [
+    7,
+    27
+   ],
+   "wrong_positions": [
+    6,
+    10,
+    13,
+    18
+   ]
+  },
+  "s-35b844": {
+   "source": "D3",
+   "reference_id": "NLB147912_01",
+   "window": [
+    2,
+    22
+   ],
+   "wrong_positions": [
+    7,
+    13
+   ]
+  },
+  "s-c746c5": {
+   "source": "D3",
+   "reference_id": "NLB072355_01",
+   "window": [
+    0,
+    20
+   ],
+   "wrong_positions": [
+    1,
+    2,
+    3,
+    11,
+    18
+   ]
+  },
+  "s-530d46": {
+   "source": "D3",
+   "reference_id": "NLB072154_01",
+   "window": [
+    12,
+    32
+   ],
+   "wrong_positions": [
+    9,
+    10,
+    17,
+    18,
+    19
+   ]
+  },
+  "s-923762": {
+   "source": "D3",
+   "reference_id": "NLB074552_01",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": [
+    4
+   ]
+  },
+  "s-04d67a": {
+   "source": "D3",
+   "reference_id": "NLB072505_01",
+   "window": [
+    17,
+    37
+   ],
+   "wrong_positions": [
+    15,
+    16
+   ]
+  },
+  "s-d865f6": {
+   "source": "D3",
+   "reference_id": "NLB135273_01",
+   "window": [
+    12,
+    32
+   ],
+   "wrong_positions": [
+    2,
+    18
+   ]
+  },
+  "s-5bf78f": {
+   "source": "D3",
+   "reference_id": "NLB072614_01",
+   "window": [
+    14,
+    34
+   ],
+   "wrong_positions": [
+    3,
+    19
+   ]
+  },
+  "s-53efae": {
+   "source": "D3",
+   "reference_id": "NLB072587_01",
+   "window": [
+    1,
+    21
+   ],
+   "wrong_positions": [
+    4,
+    5
+   ]
+  },
+  "s-bfc5fc": {
+   "source": "D3",
+   "reference_id": "NLB074216_01",
+   "window": [
+    13,
+    33
+   ],
+   "wrong_positions": [
+    1,
+    19
+   ]
+  },
+  "s-9af4c8": {
+   "source": "D3",
+   "reference_id": "NLB145525_01",
+   "window": [
+    11,
+    31
+   ],
+   "wrong_positions": [
+    0,
+    15,
+    16,
+    18,
+    19
+   ]
+  },
+  "s-4ef6b7": {
+   "source": "D3",
+   "reference_id": "NLB072358_01",
+   "window": [
+    8,
+    28
+   ],
+   "wrong_positions": [
+    3
+   ]
+  },
+  "s-40c7d0": {
+   "source": "D2",
+   "reference_id": "NLB146741_01",
+   "window": [
+    9,
+    29
+   ],
+   "wrong_positions": [
+    8,
+    9,
+    10,
+    12
+   ]
+  },
+  "s-f818e0": {
+   "source": "D2",
+   "reference_id": "NLB072886_02",
+   "window": [
+    13,
+    33
+   ],
+   "wrong_positions": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  "s-257170": {
+   "source": "D2",
+   "reference_id": "NLB073998_01",
+   "window": [
+    6,
+    26
+   ],
+   "wrong_positions": [
+    0,
+    1,
+    2,
+    3,
+    4
+   ]
+  },
+  "s-9a5d96": {
+   "source": "D2",
+   "reference_id": "NLB072638_01",
+   "window": [
+    24,
+    44
+   ],
+   "wrong_positions": [
+    9,
+    11,
+    12,
+    13,
+    15
+   ]
+  },
+  "s-b212b8": {
+   "source": "D2",
+   "reference_id": "NLB162684_01",
+   "window": [
+    25,
+    45
+   ],
+   "wrong_positions": [
+    14,
+    15,
+    16
+   ]
+  },
+  "s-3debaa": {
+   "source": "D2",
+   "reference_id": "NLB070748_01",
+   "window": [
+    17,
+    37
+   ],
+   "wrong_positions": [
+    3,
+    4
+   ]
+  },
+  "s-7e7a4d": {
+   "source": "D2",
+   "reference_id": "NLB074649_01",
+   "window": [
+    20,
+    40
+   ],
+   "wrong_positions": [
+    3
+   ]
+  },
+  "s-e97028": {
+   "source": "D2",
+   "reference_id": "NLB074754_01",
+   "window": [
+    10,
+    30
+   ],
+   "wrong_positions": [
+    6,
+    7,
+    8
+   ]
+  },
+  "s-2a43ec": {
+   "source": "D2",
+   "reference_id": "NLB073990_01",
+   "window": [
+    2,
+    22
+   ],
+   "wrong_positions": [
+    2,
+    3,
+    4
+   ]
+  },
+  "s-fd581a": {
+   "source": "D2",
+   "reference_id": "NLB074533_01",
+   "window": [
+    0,
+    20
+   ],
+   "wrong_positions": [
+    3,
+    4,
+    6,
+    7,
+    8
+   ]
+  },
+  "s-73bc8d": {
+   "source": "D2",
+   "reference_id": "NLB167193_01",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": [
+    7,
+    8
+   ]
+  },
+  "s-dd7d4d": {
+   "source": "D2",
+   "reference_id": "NLB112123_01",
+   "window": [
+    31,
+    51
+   ],
+   "wrong_positions": [
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  "s-a53819": {
+   "source": "D2",
+   "reference_id": "NLB073296_01",
+   "window": [
+    19,
+    39
+   ],
+   "wrong_positions": [
+    16,
+    17
+   ]
+  },
+  "s-a09afb": {
+   "source": "D2",
+   "reference_id": "NLB070732_01",
+   "window": [
+    6,
+    26
+   ],
+   "wrong_positions": [
+    2,
+    3,
+    5,
+    6
+   ]
+  },
+  "s-ed0f40": {
+   "source": "D2",
+   "reference_id": "NLB075057_01",
+   "window": [
+    53,
+    73
+   ],
+   "wrong_positions": [
+    12,
+    15,
+    16
+   ]
+  },
+  "s-b340e3": {
+   "source": "D2",
+   "reference_id": "NLB072871_01",
+   "window": [
+    21,
+    41
+   ],
+   "wrong_positions": [
+    6,
+    7,
+    8
+   ]
+  },
+  "s-c364b2": {
+   "source": "D2",
+   "reference_id": "NLB075064_01",
+   "window": [
+    12,
+    32
+   ],
+   "wrong_positions": [
+    0
+   ]
+  },
+  "s-e222cd": {
+   "source": "D2",
+   "reference_id": "NLB073639_01",
+   "window": [
+    0,
+    20
+   ],
+   "wrong_positions": [
+    2,
+    3,
+    4,
+    5,
+    7
+   ]
+  },
+  "s-dcd2c6": {
+   "source": "D2",
+   "reference_id": "NLB073286_01",
+   "window": [
+    7,
+    27
+   ],
+   "wrong_positions": [
+    13,
+    15
+   ]
+  },
+  "s-3c5652": {
+   "source": "D2",
+   "reference_id": "NLB074028_01",
+   "window": [
+    13,
+    33
+   ],
+   "wrong_positions": [
+    15,
+    16,
+    17
+   ]
+  },
+  "s-e38ed6": {
+   "source": "D2-ep2",
+   "reference_id": "NLB071014_01",
+   "window": [
+    23,
+    43
+   ],
+   "wrong_positions": [
+    12,
+    13,
+    14,
+    15
+   ]
+  },
+  "s-894e7b": {
+   "source": "D2-ep2",
+   "reference_id": "NLB075191_01",
+   "window": [
+    0,
+    20
+   ],
+   "wrong_positions": [
+    2,
+    3,
+    4
+   ]
+  },
+  "s-497439": {
+   "source": "D2-ep2",
+   "reference_id": "NLB073822_01",
+   "window": [
+    2,
+    22
+   ],
+   "wrong_positions": [
+    1,
+    2
+   ]
+  },
+  "s-3f18d0": {
+   "source": "D2-ep2",
+   "reference_id": "NLB072665_01",
+   "window": [
+    19,
+    39
+   ],
+   "wrong_positions": [
+    4,
+    5,
+    6,
+    7
+   ]
+  },
+  "s-ea875b": {
+   "source": "D2-ep2",
+   "reference_id": "NLB072559_01",
+   "window": [
+    25,
+    45
+   ],
+   "wrong_positions": [
+    10
+   ]
+  },
+  "s-cc84c0": {
+   "source": "D2-ep2",
+   "reference_id": "NLB074349_01",
+   "window": [
+    13,
+    33
+   ],
+   "wrong_positions": [
+    6,
+    7
+   ]
+  },
+  "s-a888f5": {
+   "source": "D2-ep2",
+   "reference_id": "NLB075635_01",
+   "window": [
+    8,
+    28
+   ],
+   "wrong_positions": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ]
+  },
+  "s-ac75e8": {
+   "source": "D2-ep2",
+   "reference_id": "NLB074004_01",
+   "window": [
+    17,
+    37
+   ],
+   "wrong_positions": [
+    10,
+    11,
+    12,
+    13
+   ]
+  },
+  "s-6b79be": {
+   "source": "D2-ep2",
+   "reference_id": "NLB125421_01",
+   "window": [
+    72,
+    92
+   ],
+   "wrong_positions": [
+    12,
+    13,
+    14,
+    15,
+    16
+   ]
+  },
+  "s-a93026": {
+   "source": "D2-ep2",
+   "reference_id": "NLB075174_01",
+   "window": [
+    10,
+    30
+   ],
+   "wrong_positions": [
+    12,
+    13,
+    14
+   ]
+  },
+  "s-588f74": {
+   "source": "D2-ep2",
+   "reference_id": "NLB072813_01",
+   "window": [
+    50,
+    70
+   ],
+   "wrong_positions": [
+    12,
+    13
+   ]
+  },
+  "s-811cf3": {
+   "source": "D2-ep2",
+   "reference_id": "NLB074575_01",
+   "window": [
+    36,
+    56
+   ],
+   "wrong_positions": [
+    8,
+    9,
+    10,
+    11
+   ]
+  },
+  "s-d44965": {
+   "source": "D2-ep2",
+   "reference_id": "NLB073997_01",
+   "window": [
+    11,
+    31
+   ],
+   "wrong_positions": [
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17
+   ]
+  },
+  "s-ad702f": {
+   "source": "D2-ep2",
+   "reference_id": "NLB146699_01",
+   "window": [
+    34,
+    54
+   ],
+   "wrong_positions": [
+    10,
+    11,
+    12
+   ]
+  },
+  "s-7092f2": {
+   "source": "D2-ep2",
+   "reference_id": "NLB070360_01",
+   "window": [
+    6,
+    26
+   ],
+   "wrong_positions": [
+    13,
+    15,
+    16,
+    17,
+    18,
+    19
+   ]
+  },
+  "s-898bba": {
+   "source": "D2-ep2",
+   "reference_id": "NLB072585_01",
+   "window": [
+    6,
+    26
+   ],
+   "wrong_positions": [
+    13,
+    14,
+    15,
+    17,
+    18
+   ]
+  },
+  "s-6b1f6f": {
+   "source": "D2-ep2",
+   "reference_id": "NLB073333_01",
+   "window": [
+    0,
+    20
+   ],
+   "wrong_positions": [
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+   ]
+  },
+  "s-8dc712": {
+   "source": "D2-ep2",
+   "reference_id": "NLB072356_02",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": [
+    0,
+    1,
+    2,
+    3,
+    5
+   ]
+  },
+  "s-28711c": {
+   "source": "D2-ep2",
+   "reference_id": "NLB072355_02",
+   "window": [
+    14,
+    34
+   ],
+   "wrong_positions": [
+    13,
+    14,
+    16,
+    17
+   ]
+  },
+  "s-05d552": {
+   "source": "D2-ep2",
+   "reference_id": "NLB074956_01",
+   "window": [
+    3,
+    23
+   ],
+   "wrong_positions": [
+    7,
+    8
+   ]
+  },
+  "s-a8f397": {
+   "source": "reference",
+   "reference_id": "NLB072920_01",
+   "window": [
+    4,
+    24
+   ],
+   "wrong_positions": []
+  },
+  "s-ed4b24": {
+   "source": "reference",
+   "reference_id": "NLB112115_01",
+   "window": [
+    60,
+    80
+   ],
+   "wrong_positions": []
+  },
+  "s-9e6ffb": {
+   "source": "reference",
+   "reference_id": "NLB073685_01",
+   "window": [
+    5,
+    25
+   ],
+   "wrong_positions": []
+  },
+  "s-d58624": {
+   "source": "reference",
+   "reference_id": "NLB072851_01",
+   "window": [
+    18,
+    38
+   ],
+   "wrong_positions": []
+  },
+  "s-4439ae": {
+   "source": "reference",
+   "reference_id": "NLB072311_01",
+   "window": [
+    33,
+    53
+   ],
+   "wrong_positions": []
+  },
+  "s-8ab015": {
+   "source": "reference",
+   "reference_id": "NLB073897_01",
+   "window": [
+    0,
+    20
+   ],
+   "wrong_positions": []
+  },
+  "s-5eda29": {
+   "source": "reference",
+   "reference_id": "NLB071669_01",
+   "window": [
+    1,
+    21
+   ],
+   "wrong_positions": []
+  },
+  "s-767407": {
+   "source": "reference",
+   "reference_id": "NLB072457_01",
+   "window": [
+    23,
+    43
+   ],
+   "wrong_positions": []
+  },
+  "s-aeba6d": {
+   "source": "reference",
+   "reference_id": "NLB072256_01",
+   "window": [
+    10,
+    30
+   ],
+   "wrong_positions": []
+  },
+  "s-a2b914": {
+   "source": "reference",
+   "reference_id": "NLB073150_01",
+   "window": [
+    11,
+    31
+   ],
+   "wrong_positions": []
+  },
+  "s-82bd2e": {
+   "source": "reference",
+   "reference_id": "NLB075073_01",
+   "window": [
+    15,
+    35
+   ],
+   "wrong_positions": []
+  },
+  "s-800d65": {
+   "source": "reference",
+   "reference_id": "NLB070801_01",
+   "window": [
+    20,
+    40
+   ],
+   "wrong_positions": []
+  },
+  "s-fae1e7": {
+   "source": "reference",
+   "reference_id": "NLB073681_01",
+   "window": [
+    20,
+    40
+   ],
+   "wrong_positions": []
+  },
+  "s-f61b8e": {
+   "source": "reference",
+   "reference_id": "NLB073146_01",
+   "window": [
+    0,
+    20
+   ],
+   "wrong_positions": []
+  },
+  "s-eea6e3": {
+   "source": "reference",
+   "reference_id": "NLB073337_02",
+   "window": [
+    8,
+    28
+   ],
+   "wrong_positions": []
+  },
+  "s-8c19dc": {
+   "source": "reference",
+   "reference_id": "NLB073709_01",
+   "window": [
+    5,
+    25
+   ],
+   "wrong_positions": []
+  },
+  "s-9baebe": {
+   "source": "reference",
+   "reference_id": "NLB072299_01",
+   "window": [
+    25,
+    45
+   ],
+   "wrong_positions": []
+  },
+  "s-1bbe7c": {
+   "source": "reference",
+   "reference_id": "NLB070411_01",
+   "window": [
+    9,
+    29
+   ],
+   "wrong_positions": []
+  },
+  "s-98e2de": {
+   "source": "reference",
+   "reference_id": "NLB141649_01",
+   "window": [
+    8,
+    28
+   ],
+   "wrong_positions": []
+  },
+  "s-2e72a1": {
+   "source": "reference",
+   "reference_id": "NLB072284_01",
+   "window": [
+    19,
+    39
+   ],
+   "wrong_positions": []
+  },
+  "p-4a2df2": {
+   "kind": "main",
+   "reference_id": "NLB124573_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 2.355569362640381,
+    "reference": 2.039327383041382
+   }
+  },
+  "p-89972b": {
+   "kind": "main",
+   "reference_id": "NLB072284_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 0.6707729697227478,
+    "reference": 1.1316428184509277
+   }
+  },
+  "p-baff08": {
+   "kind": "main",
+   "reference_id": "NLB072299_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 0.627544105052948,
+    "reference": 3.346881628036499
+   }
+  },
+  "p-f40191": {
+   "kind": "main",
+   "reference_id": "NLB074840_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 5.624525547027588,
+    "reference": 1.8514560461044312
+   }
+  },
+  "p-8bd1ee": {
+   "kind": "main",
+   "reference_id": "NLB072287_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 1.2453367710113525,
+    "reference": 3.639531373977661
+   }
+  },
+  "p-f9f19a": {
+   "kind": "main",
+   "reference_id": "NLB073339_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 4.017126083374023,
+    "reference": 1.7992206811904907
+   }
+  },
+  "p-37055d": {
+   "kind": "main",
+   "reference_id": "NLB071441_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 3.270986795425415,
+    "reference": 0.8513200879096985
+   }
+  },
+  "p-71f780": {
+   "kind": "main",
+   "reference_id": "NLB073777_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 1.6894240379333496,
+    "reference": 2.144780158996582
+   }
+  },
+  "p-e97b09": {
+   "kind": "main",
+   "reference_id": "NLB112123_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 1.955899715423584,
+    "reference": 2.6159470081329346
+   }
+  },
+  "p-18b246": {
+   "kind": "main",
+   "reference_id": "NLB075073_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 5.894622325897217,
+    "reference": 3.5762557983398438
+   }
+  },
+  "p-a70a72": {
+   "kind": "main",
+   "reference_id": "NLB072253_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 2.9744765758514404,
+    "reference": 7.858554363250732
+   }
+  },
+  "p-285c1f": {
+   "kind": "main",
+   "reference_id": "NLB073709_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 3.1706149578094482,
+    "reference": 3.061750650405884
+   }
+  },
+  "p-b11f53": {
+   "kind": "main",
+   "reference_id": "NLB070693_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 0.9490124583244324,
+    "reference": 6.9426774978637695
+   }
+  },
+  "p-3255de": {
+   "kind": "main",
+   "reference_id": "NLB073997_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 0.3490825891494751,
+    "reference": 3.8645102977752686
+   }
+  },
+  "p-97f0aa": {
+   "kind": "main",
+   "reference_id": "NLB162526_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 4.576663970947266,
+    "reference": 1.9553579092025757
+   }
+  },
+  "p-157068": {
+   "kind": "main",
+   "reference_id": "NLB074769_02",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 4.4952287673950195,
+    "reference": 4.569367408752441
+   }
+  },
+  "p-e7a5fa": {
+   "kind": "main",
+   "reference_id": "NLB071369_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 1.5583112239837646,
+    "reference": 5.16372013092041
+   }
+  },
+  "p-c5c07b": {
+   "kind": "main",
+   "reference_id": "NLB073324_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 0.6412573456764221,
+    "reference": 4.811741828918457
+   }
+  },
+  "p-e9f72f": {
+   "kind": "main",
+   "reference_id": "NLB074007_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 5.902132034301758,
+    "reference": 1.2977066040039062
+   }
+  },
+  "p-0b3f2c": {
+   "kind": "main",
+   "reference_id": "NLB138219_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 2.044267177581787,
+    "reference": 2.9544730186462402
+   }
+  },
+  "p-a30708": {
+   "kind": "main",
+   "reference_id": "NLB074603_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 0.9312760233879089,
+    "reference": 3.4530258178710938
+   }
+  },
+  "p-35d6a1": {
+   "kind": "main",
+   "reference_id": "NLB070493_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 1.1641898155212402,
+    "reference": 4.259853839874268
+   }
+  },
+  "p-561b0d": {
+   "kind": "main",
+   "reference_id": "NLB074260_02",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 1.6760016679763794,
+    "reference": 4.255157470703125
+   }
+  },
+  "p-828893": {
+   "kind": "main",
+   "reference_id": "NLB072714_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 7.724085807800293,
+    "reference": 7.185746192932129
+   }
+  },
+  "p-17a627": {
+   "kind": "main",
+   "reference_id": "NLB076495_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 6.054553508758545,
+    "reference": 3.0988149642944336
+   }
+  },
+  "p-246a89": {
+   "kind": "main",
+   "reference_id": "NLB073946_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 0.5436638593673706,
+    "reference": 4.1728668212890625
+   }
+  },
+  "p-3d4601": {
+   "kind": "main",
+   "reference_id": "NLB073866_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 1.1444576978683472,
+    "reference": 17.073617935180664
+   }
+  },
+  "p-ab79c6": {
+   "kind": "main",
+   "reference_id": "NLB070492_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 1.584726095199585,
+    "reference": 2.683490037918091
+   }
+  },
+  "p-9d3363": {
+   "kind": "main",
+   "reference_id": "NLB134389_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 3.2139768600463867,
+    "reference": 0.2288924753665924
+   }
+  },
+  "p-7be872": {
+   "kind": "main",
+   "reference_id": "NLB146699_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 4.211802005767822,
+    "reference": 1.9669241905212402
+   }
+  },
+  "p-eff548": {
+   "kind": "check",
+   "reference_id": "NLB072898_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 2.019826650619507,
+    "draft": 10.385438919067383
+   }
+  },
+  "p-ccd1da": {
+   "kind": "check",
+   "reference_id": "NLB072967_01",
+   "a_is": "draft",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 0.36472561955451965,
+    "draft": 5.15854024887085
+   }
+  },
+  "p-a00f68": {
+   "kind": "check",
+   "reference_id": "NLB144072_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 4.058271408081055,
+    "draft": 12.330509185791016
+   }
+  },
+  "p-fa5831": {
+   "kind": "check",
+   "reference_id": "NLB073895_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 2.9349355697631836,
+    "draft": 6.894952774047852
+   }
+  },
+  "p-5e5ac2": {
+   "kind": "check",
+   "reference_id": "NLB076128_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 4.995107173919678,
+    "draft": 13.711633682250977
+   }
+  },
+  "p-3a3923": {
+   "kind": "check",
+   "reference_id": "NLB070748_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 3.490171194076538,
+    "draft": 13.396045684814453
+   }
+  },
+  "p-c3638d": {
+   "kind": "check",
+   "reference_id": "NLB072665_01",
+   "a_is": "draft",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 2.0288450717926025,
+    "draft": 16.152990341186523
+   }
+  },
+  "p-085ef0": {
+   "kind": "check",
+   "reference_id": "NLB073146_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 1.3134766817092896,
+    "draft": 2.5495805740356445
+   }
+  },
+  "p-6fe7d7": {
+   "kind": "check",
+   "reference_id": "NLB072441_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 1.5797755718231201,
+    "draft": 6.903581619262695
+   }
+  },
+  "p-116dee": {
+   "kind": "check",
+   "reference_id": "NLB070411_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 0.9485253691673279,
+    "draft": 7.271018981933594
+   }
+  }
+ }
+}
