@@ -38,10 +38,12 @@ seed-matched.
 > corruption. Generated drafts are worse than their references, but the damage is
 > diffuse: at *matched* degradation, generated changes are still localized far less well
 > than corrupted ones, in every band and on both corpora. **This is a property of the
-> generator's quality, not of generation (revised 2026-09-27):** drafts from the same
-> generator after 2 epochs are localized better than random corruption, and across six
-> generator settings localizability falls steadily as the generator's changes become more
-> plausible. Localize-then-fix gets harder exactly as generators get better.
+> generator's quality, not of generation (revised 2026-09-27/28):** across six generator
+> settings, ordered by the generator's own held-out NLL, localizability falls steadily as
+> the generator improves — for the judge and for an independent head trained only on
+> corruption. Localize-then-fix gets harder exactly as generators get better. Where a
+> weak generator's changes are found, they are repaired toward the rewritten context
+> rather than back to the reference, which edit distance scores as no gain.
 
 Three things the paper therefore contributes, in one line each:
 
@@ -217,9 +219,21 @@ T=0.8 .652 (0.86), T=1.0 .688 (1.04), T=1.2 .718 (1.21), ep10 .769 (1.41), ep5 .
 D1 .831. Rises steeply to ~2 per unit, then plateaus at 0.81–0.87 for every source.
 *Source:* `results/judge/severity_curve.json` (`scripts/severity_curve.py`).
 *Caveat:* one generator weakened, not generators of increasing strength compared (L7).
-Checkpoint val NLLs for the main generator were not recorded.
+*Reviewer checks (2026-09-28):* held-out NLL orders the settings independently of `J`
+(1.84 / 1.70 / 1.50 / 1.23 MTC generator; `generator_quality.json`). An independent
+localizer — the D1-trained head, zero-shot — rises in the same direction (MTC 0.57 → 0.64,
+one small inversion; Essen 0.61 → 0.68, monotone) but stays below D1 (0.73)
+(`severity_head.json`). *Do not claim* "the 2-epoch generator's drafts are as
+localizable as corruption" without "by the judge".
 
-**C8c. Localizable is not repairable.** (§7, Table 7, Figure 1b) *New 2026-09-27.*
+**C8c. Repaired, but not to the reference.** (§7, Table 7, Figure 1b) *New 2026-09-27,
+revised 2026-09-28: the original title "localizable is not repairable" was wrong.*
+`repair_plausibility.py`: on ep2 drafts gating removes 28% / 36% of the drafts' ΔNLL
+(85–88% of changed melodies more plausible); at mismatched repairs the output note's
+two-sided surprisal is 2.36 / 2.27 vs reference 3.25 / 3.90 vs draft 11.05 / 10.73, and
+output ≤ reference in 64% / 68%. The decoder repairs toward the rewritten context; CC and
+exact repair cannot see it. Caveat: the judge rewards typical notes (listening study).
+Original evidence, still valid:
 Refiners trained on the 2-epoch generator's drafts (headline setting, 3 seeds) gain
 −0.13% ± 0.24 over copy-input on MTC (1/3 seeds) and +0.38% ± 0.30 on Essen (3/3) — a
 tenth of D1's gain; B1 free −11.4% / −28.4%. Head AUROC 0.67–0.81 (judge 0.86–0.87),
@@ -228,8 +242,9 @@ the reference's exact event 11% / 13% of the time (D1 59% / 58%, D3 44% / 41%). 
 many; a corrupted note is pinned by its neighbours. Oracle agrees (49% vs 21.5%).
 *Source:* `results/refiner/headline_ep2/`, `results/refiner/controls/repair_accuracy.json`
 (`scripts/repair_accuracy.py`).
-*Do not claim:* "gated editing works wherever errors are localizable", nor "gated editing
-fails on generated drafts" unqualified — it gains a little on Essen ep2.
+*Do not claim:* "gated editing works wherever errors are localizable", nor "found errors
+in generated drafts are rarely repaired" — they are repaired, differently; nor that the
+repairs are *better* than the reference without the listening study.
 
 **C9. Put the judge at the gate, not in the model.** (§8)
 - At the gate: combining judge surprise with the head's confidence (a two-feature

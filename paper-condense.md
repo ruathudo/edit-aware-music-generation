@@ -1,7 +1,7 @@
 # The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work for Symbolic Music Refinement?
 
 *Condensed version of `paper-draft.md` for an 8–10 page IEEE conference submission.
-Main text ≈ 5,600 words, six tables, one figure. Everything trimmed is kept in the
+Main text ≈ 4,900 words, six tables, one figure. Everything trimmed is kept in the
 **Supplementary material** at the end of this file, as blocks that can go into a
 supplement if the venue allows one or be dropped if it does not. `paper-draft.md`
 remains the full version; `paper-core.md` remains the claims document. Numbers are
@@ -22,9 +22,11 @@ unit of change. Comparing random, rule-based and generator-written drafts, we fi
 localize-then-fix works where changes leave a local trace, and that how much trace a
 generator leaves depends on how good it is. An untrained judge that scores each note in
 context finds corrupted notes at 6–7 times chance but a trained generator's at 2.7
-times, even at matched degradation; the same generator early in training leaves traces
-as clear as corruption's. Even then, found errors are rarely repaired: the original of a
-rewritten passage is underdetermined by its context. A precision-gated refiner, which
+times, even at matched degradation, and across six generator settings localizability
+falls steadily as the generator's own held-out likelihood improves. Where a weak
+generator's changes are found and edited, the edits make the music more plausible but
+rarely restore the reference, so edit distance scores them as no gain. A precision-gated
+refiner, which
 copies each note unless confident it is wrong, improves randomly corrupted drafts by
 6.1% on every seed, is the only system tested that improves them in both edit distance
 and plausibility, and abstains on generated drafts, where plain sequence-to-sequence
@@ -60,9 +62,9 @@ model, one recipe and one setting chosen on validation data. An untrained two-si
 judge ranks corrupted notes at 6–7× chance but the generator's at 2.7×, and the gap
 holds at matched degradation and matched contiguity: the damage is real but diffuse,
 lying in how a rewritten passage meets its context. This is a property of the
-generator, not of generation — the same generator after two epochs of training leaves
-drafts as localizable as random corruption, and across six generator settings
-localizability falls steadily as its changes become more plausible (§7; Figure 1).
+generator, not of generation: across six generator settings, ordered by the generator's
+own held-out likelihood, localizability falls steadily as the generator improves, for
+the judge and for a detector trained only on corruption (§7; Figure 1).
 Localize-then-fix gets harder exactly as generators get better.
 
 **A method that respects the boundary.** A plain sequence-to-sequence refiner is 25%
@@ -72,9 +74,11 @@ selective classification [Chow1970, Geifman2017] applied per note — so the met
 floor is the draft by construction. On random corruption it improves on the draft by
 6.1% on every seed, and is the only system we test that improves both edit distance and
 judged plausibility (§6). On generated drafts it declines to act, and no other threshold
-or gate we tried does better. Nor would a better detector suffice: on a weak generator's
-drafts, which the judge localizes as well as corruption, the decoder restores a
-rewritten note 11–13% of the time, against 58–59% for a corrupted one.
+or gate we tried does better. On a weak generator's drafts the gate opens and makes the
+music more plausible, yet gains nothing in edit distance: its repairs match the
+reference 11–13% of the time (58–59% for corrupted notes) but are, by the judge, mostly
+as plausible as it. Edit distance cannot see such repairs — our first finding, turned on
+our own evaluation.
 
 We make three contributions:
 
@@ -88,8 +92,9 @@ We make three contributions:
    benchmark's in-domain score is specific to the process that made its errors.
 3. **A method, and its limit.** Precision-gated editing, whose downside is bounded by
    construction, which improves drafts where errors are local and abstains where they
-   are not — and a decomposition showing why localizing generated errors is not enough:
-   their original is underdetermined, so they are rarely repaired.
+   are not — and a decomposition showing that found errors in generated drafts are
+   repaired toward the rewritten context rather than back to the reference, which edit
+   distance scores as no gain.
 
 We use monophonic folk melodies from the Meertens Tune Collections [MTC] and the Essen
 Folksong Collection [Essen]. Plausibility is judged by a language model, not by
@@ -102,8 +107,9 @@ random (D1) and rule-based (D3) corruption and six generator settings — temper
 0.8/1.0/1.2, and checkpoints after 2, 5 and 10 epochs — on MTC and Essen. D2 is the
 trained generator at T = 1.0. (b) Gated editing's improvement over the unchanged draft
 for the headline sources (five seeds) and, hollow, for the 2-epoch generator's drafts
-(three seeds); MTC. Localizability rises steeply with implausibility, and an
-undertrained generator's drafts are as localizable as corruption — yet not improved.
+(three seeds); MTC. Localizability rises steeply with implausibility; by this judge an
+undertrained generator's drafts are as localizable as corruption, and gated editing makes
+them more plausible without moving them closer to the reference.
 
 ## 2. Related Work
 
@@ -275,7 +281,8 @@ Essen columns are the same-corpus replication.
 **Gated editing improves drafts where errors are local.** On random corruption gated
 decoding reduces CC by 6.06% on MTC and 4.25% same-corpus, on every seed (Table 2). It changes
 about 1.5% of notes, and 82% of the events it hands to the decoder were genuinely wrong.
-The result is not delicate: every threshold from 0.2 to 0.95 beats copy-input on every
+(Here "wrong" is flag-level precision; counting only events the decoder actually
+changed, 88% were wrong.) The result is not delicate: every threshold from 0.2 to 0.95 beats copy-input on every
 seed, on both corruption sources and corpora, and so do all nine model sizes we tried
 (1.6M–42.7M parameters, at τ = 0.9).
 
@@ -366,34 +373,48 @@ against 0.84 (D1) and 0.94 (D3). Essen agrees throughout (Supplement S2).
 **The better the generator, the less it leaves.** Figure 1a varies the generator itself.
 Localizability rises steadily as its changes become less plausible — AUROC 0.65 at
 temperature 0.8, 0.69 for D2, 0.72 at 1.2, then 0.77, 0.83 and 0.87 for the checkpoints
-after 10, 5 and 2 epochs (Essen: 0.65 to 0.86, same order). The 2-epoch generator's
-drafts are localized *better* than random corruption (0.87 against 0.84). What makes D2
-hard to localize is not that a generator wrote it, but that a good one did. Across all
-eight conditions, localizability rises steeply with implausibility per unit of change up
-to about 2 nats, then levels off at 0.81–0.87.
+after 10, 5 and 2 epochs (Essen: 0.65 to 0.86, same order). The ordering is the
+generator's quality by its own measure: held-out NLL falls from 1.84 (2 epochs) through
+1.70 and 1.50 to 1.23 (trained). Because the judge shares training data with $J$, which
+supplies the x-axis, part of its rise is built in; an independent detector — the head
+trained on random corruption's labels, applied zero-shot — rises in the same direction
+(0.57 to 0.64; Essen 0.61 to 0.68, monotone) but more shallowly, staying below random
+corruption (0.73) where the judge puts the 2-epoch drafts above it (0.87 against 0.84).
+What makes D2 hard to localize is not that a generator wrote it, but that a good one did.
+(Judge scores are standardized within each melody and head probabilities are not;
+standardizing the head lowers its AUROC, so this favours the head.)
 
-**Localizable is not repairable.** Refiners trained on the 2-epoch generator's drafts
-under the same setting gain only −0.13% ± 0.24 over copy-input on MTC and +0.38% ± 0.30
+**Repaired, but not to the reference.** Refiners trained on the 2-epoch generator's
+drafts under the same setting gain only −0.13% ± 0.24 over copy-input on MTC and +0.38% ± 0.30
 same-corpus — a tenth of their gain on random corruption. Two things fall short. The
 trained head localizes these drafts less well than the judge (AUROC 0.67–0.81 against
 0.86–0.87), so the gate opens at precision 0.59–0.72 rather than 0.82. And where the gate
-finds a changed note, the decoder rarely restores it (Table 6).
+finds a changed note, the decoder rarely writes the reference's note (Table 6) — but it
+is not failing. Gating removes 28–36% of these drafts' implausibility, and at repairs
+that miss the reference the two-sided judge rates the decoder's note far above the
+draft's (median surprisal 2.3–2.4 against 10.7–11.1) and at least as plausible as the
+reference's own note in 64–68% of cases.
 
 **Table 6.** What the decoder writes where the gate opens (seeds 0–2). *True
 substitution*: the draft event differs from its aligned reference event. *Exact repair*:
-share of true substitutions where the output equals the reference event. MTC (Essen).
+share of true substitutions where the output equals the reference event. *≥ reference*:
+share of the other (mismatched) repairs the two-sided judge rates at least as plausible
+as the reference note. *Recovered*: share of changed melodies' ΔNLL removed. MTC (Essen).
 
-| drafts | true substitution | broke a correct note | exact repair |
-|---|---|---|---|
-| D1 random | 76% (69%) | 12% (17%) | **59%** (58%) |
-| D3 rule-based | 94% (89%) | 6% (11%) | **44%** (41%) |
-| D2, 2-epoch generator | 67% (65%) | 21% (19%) | **11%** (13%) |
+| drafts | true substitution | exact repair | mismatched ≥ reference | recovered |
+|---|---|---|---|---|
+| D1 random | 76% (69%) | **59%** (58%) | 49% (49%) | 30% (31%) |
+| D3 rule-based | 94% (89%) | **44%** (41%) | 39% (40%) | 48% (53%) |
+| D2, 2-epoch generator | 67% (65%) | **11%** (13%) | **64%** (68%) | 28% (36%) |
 
-A corrupted note is pinned down by the intact notes around it. A rewritten span's
-original is one plausible continuation among many, and the draft does not say which one
-the reference used. The oracle agrees: given the true positions it removes 49% of D1's
-CC but 21.5% of D2's. For generated drafts the reference-derived target is hard to find
-*and* underdetermined once found.
+A corrupted note is pinned down by the intact notes around it. Inside a rewritten span
+the neighbours were rewritten too, so the reference's note is no longer the best fit and
+the decoder writes one that fits them; the span's original is one plausible continuation
+among many. The oracle agrees: given the true positions it removes 49% of D1's CC but
+21.5% of D2's. Edit distance — which §4 showed cannot tell an error from an alternative —
+scores these repairs as no improvement. The judge rewards typical notes and may favour
+the repairs for that reason alone; whether listeners do is the question for our
+listening study.
 
 **What training adds.** Transfer between sources isolates what a trained head learns
 about its own corruption process (seeds 0–2). A D1 head reaches +7.25% on D3 against
@@ -418,8 +439,10 @@ another learned baseline can look successful while copying its input. *Report
 plausibility beside edit distance:* the two disagree across sources and systems, and
 either alone would have misled us. *Test synthetic benchmarks by transfer:* about a
 quarter of in-domain gain is specific to the corruption process. *Report the generator's
-quality with any result on generated drafts:* a weak generator's drafts are as
-localizable as corruption, so results on them will not transfer to a stronger one.
+quality with any result on generated drafts:* a weak generator's drafts are far easier to
+localize, so results on them will not transfer to a stronger one. *Do not score repairs
+by exact match:* on generated drafts, repairs that miss the reference are mostly as
+plausible as it.
 Refining the output of good generators likely needs a formulation that does not start
 from per-note error labels — revision scored by plausibility over whole passages, or
 error locations marked by people. The same hazard applies wherever edit supervision is
@@ -427,7 +450,9 @@ derived from a reference, in text and code as well as music.
 
 **Limitations.** *Plausibility is a model's judgement:* ΔNLL is implausibility under a
 small language model, calibrated on human variants but not validated by listeners, and
-it rewards typical continuations. *Shared training data:* the refiners train on the
+it rewards typical continuations — which bears directly on the repair finding. *[TODO:
+listening study with three musically trained raters; replace this sentence with its
+results.]* *Shared training data:* the refiners train on the
 judge's half of Essen, which flatters free decoding most and gated editing less.
 *One generator, degraded:* the quality gradient weakens one generator rather than
 comparing independently built ones; that stronger generators leave still less trace is
@@ -446,9 +471,10 @@ way unusual enough to be found note by note, and a refiner that copies by defaul
 edits only where confident improves such drafts on every seed without making the music
 less plausible. A good generator's drafts are different in kind: worse than their
 references, but diffusely, in how a rewritten passage meets its context. The same
-generator early in training leaves traces as clear as corruption's, so how much trace
-remains measures how good the generator is — and a trace is not a repair, since the
-original of a rewritten passage is one plausible continuation among many. Two
+generator early in training leaves far clearer traces, so how much trace remains
+measures how good the generator is. And where such changes are found and edited, the
+refiner repairs toward the rewritten context rather than back to the reference — more
+plausible music that edit distance scores as no gain. Two
 measurement lessons carry beyond music: edit distance to a reference should be reported
 beside plausibility and beside the score of returning the draft, and a synthetic
 benchmark should be tested by transfer.
@@ -596,18 +622,24 @@ seeds each), and from 0.8 up the gate stays shut.
 
 ### S5. The generator-quality curve
 
-Zero-shot two-sided judge on D2 drafts from each generator setting, with D1 and D3.
+Zero-shot localization of each generator setting's drafts, with D1 and D3: the two-sided
+judge, and the D1-trained head (3 seeds; trained on edit labels only, never on $J$).
+*Gen. NLL*: the generator's own held-out per-token NLL (temperature does not change it).
 
-| condition | MTC per unit | MTC AUROC | MTC AP lift | Essen per unit | Essen AUROC |
-|---|---|---|---|---|---|
-| D2, T = 0.8 | 0.86 | .652 | 2.2× | 0.66 | .647 |
-| D2, T = 1.0 | 1.04 | .688 | 2.7× | 0.86 | .683 |
-| D2, T = 1.2 | 1.21 | .718 | 3.2× | 1.05 | .715 |
-| D2, 10 epochs | 1.41 | .769 | 3.8× | 1.33 | .764 |
-| D2, 5 epochs | 1.70 | .832 | 5.1× | 1.67 | .823 |
-| D2, 2 epochs | 2.01 | .865 | 6.4× | 1.99 | .858 |
-| D3 rule-based | 3.14 | .812 | 5.9× | 2.60 | .790 |
-| D1 random | 3.94 | .838 | 6.2× | 3.64 | .831 |
+| condition | gen. NLL (MTC / Essen) | MTC per unit | judge AUROC MTC (Essen) | D1-head AUROC MTC (Essen) |
+|---|---|---|---|---|
+| D2, T = 0.8 | 1.23 / 1.32 | 0.86 | .652 (.647) | .569 (.610) |
+| D2, T = 1.0 | 1.23 / 1.32 | 1.04 | .688 (.683) | .584 (.621) |
+| D2, T = 1.2 | 1.23 / 1.32 | 1.21 | .718 (.715) | .598 (.635) |
+| D2, 10 epochs | 1.50 / 1.59 | 1.41 | .769 (.764) | .590 (.636) |
+| D2, 5 epochs | 1.70 / 1.74 | 1.70 | .832 (.823) | .604 (.646) |
+| D2, 2 epochs | 1.84 / 1.91 | 2.01 | .865 (.858) | .641 (.683) |
+| D3 rule-based | — | 3.14 | .812 (.790) | .697 (.707) |
+| D1 random | — | 3.94 | .838 (.831) | .727 (.732) |
+
+The D3-trained head, applied the same way, is nearly flat across generator settings
+(0.57–0.59 MTC, 0.62–0.64 Essen). (`results/judge/generator_quality.json`,
+`results/judge/severity_head.json`.)
 
 The 2-epoch refiners: head AUROC 0.67–0.76 (MTC) and 0.73–0.81 (Essen); gate precision
 0.59–0.69 and 0.66–0.72; free decoding (B1) −11.4% ± 5.1 and −28.4% ± 1.3.
