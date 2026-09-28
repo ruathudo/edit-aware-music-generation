@@ -1,0 +1,244 @@
+{
+  "rows": [
+    {
+      "corpus": "MTC",
+      "condition": "D1",
+      "n_drafts": 1080,
+      "D1-trained head": {
+        "auroc": 0.7270333945612812,
+        "auroc_sd": 0.00484938095807364,
+        "ap_lift": 5.838677746673834
+      },
+      "D3-trained head": {
+        "auroc": 0.6504066481859833,
+        "auroc_sd": 0.0190613545262317,
+        "ap_lift": 4.150849904444664
+      }
+    },
+    {
+      "corpus": "MTC",
+      "condition": "D3",
+      "n_drafts": 1061,
+      "D1-trained head": {
+        "auroc": 0.6968062248555646,
+        "auroc_sd": 0.005640278454566751,
+        "ap_lift": 4.520838290438517
+      },
+      "D3-trained head": {
+        "auroc": 0.743245781294022,
+        "auroc_sd": 0.03831429874393828,
+        "ap_lift": 5.019394635733033
+      }
+    },
+    {
+      "corpus": "MTC",
+      "condition": "D2 T=0.8",
+      "n_drafts": 1061,
+      "D1-trained head": {
+        "auroc": 0.5687338097195017,
+        "auroc_sd": 0.006461528425305981,
+        "ap_lift": 1.2327558770499927
+      },
+      "D3-trained head": {
+        "auroc": 0.5747539875477361,
+        "auroc_sd": 0.006702851870453768,
+        "ap_lift": 1.2646897050428116
+      }
+    },
+    {
+      "corpus": "MTC",
+      "condition": "D2 T=1.0",
+      "n_drafts": 1064,
+      "D1-trained head": {
+        "auroc": 0.5842142230269447,
+        "auroc_sd": 0.0064060350133826926,
+        "ap_lift": 1.4088213485312018
+      },
+      "D3-trained head": {
+        "auroc": 0.5742648564083721,
+        "auroc_sd": 0.0073295252831081775,
+        "ap_lift": 1.3196305476259598
+      }
+    },
+    {
+      "corpus": "MTC",
+      "condition": "D2 T=1.2",
+      "n_drafts": 1067,
+      "D1-trained head": {
+        "auroc": 0.5981049658573686,
+        "auroc_sd": 0.006330082439370361,
+        "ap_lift": 1.6168997311195954
+      },
+      "D3-trained head": {
+        "auroc": 0.5798755016723359,
+        "auroc_sd": 0.008433897184285865,
+        "ap_lift": 1.4489391115426586
+      }
+    },
+    {
+      "corpus": "MTC",
+      "condition": "D2 ep2",
+      "n_drafts": 1079,
+      "D1-trained head": {
+        "auroc": 0.6411058114398365,
+        "auroc_sd": 0.00654973779539295,
+        "ap_lift": 2.452659920353476
+      },
+      "D3-trained head": {
+        "auroc": 0.5910456609474865,
+        "auroc_sd": 0.00591664223729414,
+        "ap_lift": 1.9212512890249809
+      }
+    },
+    {
+      "corpus": "MTC",
+      "condition": "D2 ep5",
+      "n_drafts": 1078,
+      "D1-trained head": {
+        "auroc": 0.6038718813386997,
+        "auroc_sd": 0.008480846174102568,
+        "ap_lift": 1.7629832947811919
+      },
+      "D3-trained head": {
+        "auroc": 0.5725022040778679,
+        "auroc_sd": 0.003473766940855757,
+        "ap_lift": 1.502056944813712
+      }
+    },
+    {
+      "corpus": "MTC",
+      "condition": "D2 ep10",
+      "n_drafts": 1075,
+      "D1-trained head": {
+        "auroc": 0.5901474559878075,
+        "auroc_sd": 0.005992019905049764,
+        "ap_lift": 1.5511446307797991
+      },
+      "D3-trained head": {
+        "auroc": 0.5718073156402186,
+        "auroc_sd": 0.009398045629355985,
+        "ap_lift": 1.399157032943856
+      }
+    },
+    {
+      "corpus": "Essen",
+      "condition": "D1",
+      "n_drafts": 5082,
+      "D1-trained head": {
+        "auroc": 0.7323056599469357,
+        "auroc_sd": 0.025846116353690184,
+        "ap_lift": 5.805989166242448
+      },
+      "D3-trained head": {
+        "auroc": 0.6652690492564284,
+        "auroc_sd": 0.002926720578469677,
+        "ap_lift": 3.5809524400392925
+      }
+    },
+    {
+      "corpus": "Essen",
+      "condition": "D3",
+      "n_drafts": 4990,
+      "D1-trained head": {
+        "auroc": 0.7066377524218463,
+        "auroc_sd": 0.024874593145585287,
+        "ap_lift": 4.362827629921307
+      },
+      "D3-trained head": {
+        "auroc": 0.7178426040554996,
+        "auroc_sd": 0.001331783945751763,
+        "ap_lift": 4.268907575645734
+      }
+    },
+    {
+      "corpus": "Essen",
+      "condition": "D2 T=0.8",
+      "n_drafts": 5033,
+      "D1-trained head": {
+        "auroc": 0.6097979839988992,
+        "auroc_sd": 0.003162820724772979,
+        "ap_lift": 1.4310885353953355
+      },
+      "D3-trained head": {
+        "auroc": 0.6210486373031179,
+        "auroc_sd": 0.0037773334532556066,
+        "ap_lift": 1.4700295335922415
+      }
+    },
+    {
+      "corpus": "Essen",
+      "condition": "D2 T=1.0",
+      "n_drafts": 5057,
+      "D1-trained head": {
+        "auroc": 0.6205900722059847,
+        "auroc_sd": 0.0010315456298067088,
+        "ap_lift": 1.5722156679134514
+      },
+      "D3-trained head": {
+        "auroc": 0.6250818199906961,
+        "auroc_sd": 0.002664911404336191,
+        "ap_lift": 1.5338357815627617
+      }
+    },
+    {
+      "corpus": "Essen",
+      "condition": "D2 T=1.2",
+      "n_drafts": 5063,
+      "D1-trained head": {
+        "auroc": 0.6345904435539798,
+        "auroc_sd": 0.004114669245810815,
+        "ap_lift": 1.8029987133834855
+      },
+      "D3-trained head": {
+        "auroc": 0.6309377792647092,
+        "auroc_sd": 0.002569857165516803,
+        "ap_lift": 1.6491451357837703
+      }
+    },
+    {
+      "corpus": "Essen",
+      "condition": "D2 ep2",
+      "n_drafts": 5078,
+      "D1-trained head": {
+        "auroc": 0.6826882191044968,
+        "auroc_sd": 0.016869540310102956,
+        "ap_lift": 2.943075592858609
+      },
+      "D3-trained head": {
+        "auroc": 0.6417298520279842,
+        "auroc_sd": 0.002693359340449538,
+        "ap_lift": 2.212823337748431
+      }
+    },
+    {
+      "corpus": "Essen",
+      "condition": "D2 ep5",
+      "n_drafts": 5078,
+      "D1-trained head": {
+        "auroc": 0.6460617170389438,
+        "auroc_sd": 0.0071188627827118755,
+        "ap_lift": 2.0707696329255247
+      },
+      "D3-trained head": {
+        "auroc": 0.6282458502369325,
+        "auroc_sd": 0.0018038411141244749,
+        "ap_lift": 1.730346842594237
+      }
+    },
+    {
+      "corpus": "Essen",
+      "condition": "D2 ep10",
+      "n_drafts": 5071,
+      "D1-trained head": {
+        "auroc": 0.635837297971795,
+        "auroc_sd": 0.003490806522943406,
+        "ap_lift": 1.8339827076454027
+      },
+      "D3-trained head": {
+        "auroc": 0.6277766720094334,
+        "auroc_sd": 0.0025449867154248925,
+        "ap_lift": 1.6306866119432761
+      }
+    }
+  ]
+}

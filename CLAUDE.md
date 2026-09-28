@@ -426,6 +426,26 @@ its neighbours. Head AUROC on ep2 is also lower than the judge's (0.67–0.81 vs
 `train_refiner.make_drafts` now puts non-default generator paths in the draft cache key;
 before, ep2 drafts silently reused the trained generator's cache.
 
+### Reviewer checks (2026-09-28): two claims weaken, one reverses
+
+From `paper-review-condensed.md` M1–M3; all from saved artifacts, no training.
+
+- **Generator quality measured independently** (`scripts/generator_quality.py`): held-out
+  NLL falls monotonically ep2 → ep5 → ep10 → trained (MTC generator 1.84 / 1.70 / 1.50 /
+  1.23; same-corpus 1.91 / 1.74 / 1.59 / 1.32). The "better generator" ordering stands.
+- **Independent localizer** (`scripts/severity_head.py`): the D1-trained head, zero-shot,
+  also rises across the six generator settings — MTC 0.569 → 0.641 (one small inversion,
+  T=1.2 vs ep10), Essen 0.610 → 0.683 monotone — **but stays well below D1 (0.73)**. "The
+  2-epoch generator is as localizable as corruption" holds for the judge only, whose curve
+  is steeper partly because it shares training data with the x-axis. D3-trained head ~flat.
+- **Repairs are different, not failed** (`scripts/repair_plausibility.py`): on ep2 drafts
+  gating removes 28% (MTC) / 36% (Essen) of the drafts' implausibility, 85–88% of changed
+  melodies get more plausible; at mismatched repairs the output note's two-sided surprisal
+  is 2.36 / 2.27 against the reference note's 3.25 / 3.90 and the draft's 11.05 / 10.73
+  (output ≤ reference in 64% / 68%). **"Localizable is not repairable" is wrong as stated:**
+  the decoder repairs into the rewritten context rather than back to the reference, which
+  CC and exact repair cannot see. Caveat: the judge rewards typical notes.
+
 ### Getting the data
 
 Corpora are **not committed** — `data/` is gitignored and neither collection permits redistribution.

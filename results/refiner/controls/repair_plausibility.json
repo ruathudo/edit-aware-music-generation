@@ -1,0 +1,118 @@
+{
+  "rows": [
+    {
+      "corpus": "MTC",
+      "source": "D1",
+      "melodies_changed": 1541,
+      "dnll_draft_mean": 0.33695288728692946,
+      "dnll_output_mean": 0.23563719569360336,
+      "recovered": 0.30068206985581203,
+      "pct_more_plausible": 0.9720960415314731,
+      "pct_less_plausible": 0.027903958468526932,
+      "exact_repairs": 871,
+      "mismatched_repairs": 605,
+      "surprisal_median": {
+        "draft": 7.985648155212402,
+        "output": 2.122619867324829,
+        "reference": 2.1891698837280273
+      },
+      "pct_output_beats_draft": 0.996694214876033,
+      "pct_output_at_least_reference": 0.4925619834710744
+    },
+    {
+      "corpus": "MTC",
+      "source": "D3",
+      "melodies_changed": 2296,
+      "dnll_draft_mean": 0.3066552003865043,
+      "dnll_output_mean": 0.16086321544771826,
+      "recovered": 0.47542642275438896,
+      "pct_more_plausible": 0.9860627177700348,
+      "pct_less_plausible": 0.013937282229965157,
+      "exact_repairs": 1516,
+      "mismatched_repairs": 1925,
+      "surprisal_median": {
+        "draft": 11.807684898376465,
+        "output": 2.4854977130889893,
+        "reference": 1.872825026512146
+      },
+      "pct_output_beats_draft": 0.9984415584415585,
+      "pct_output_at_least_reference": 0.3901298701298701
+    },
+    {
+      "corpus": "MTC",
+      "source": "D2 ep2",
+      "melodies_changed": 633,
+      "dnll_draft_mean": 0.31056018322000006,
+      "dnll_output_mean": 0.22367208094393473,
+      "recovered": 0.27977862897676753,
+      "pct_more_plausible": 0.8467614533965245,
+      "pct_less_plausible": 0.15323854660347552,
+      "exact_repairs": 54,
+      "mismatched_repairs": 435,
+      "surprisal_median": {
+        "draft": 11.045867919921875,
+        "output": 2.355896472930908,
+        "reference": 3.249903440475464
+      },
+      "pct_output_beats_draft": 0.9747126436781609,
+      "pct_output_at_least_reference": 0.6436781609195402
+    },
+    {
+      "corpus": "Essen",
+      "source": "D1",
+      "melodies_changed": 7275,
+      "dnll_draft_mean": 0.3293203060733494,
+      "dnll_output_mean": 0.227139566714821,
+      "recovered": 0.3102776763962126,
+      "pct_more_plausible": 0.972233676975945,
+      "pct_less_plausible": 0.027766323024054983,
+      "exact_repairs": 3935,
+      "mismatched_repairs": 2859,
+      "surprisal_median": {
+        "draft": 8.081968307495117,
+        "output": 2.2480833530426025,
+        "reference": 2.258829116821289
+      },
+      "pct_output_beats_draft": 0.9947534102833159,
+      "pct_output_at_least_reference": 0.48933193424274224
+    },
+    {
+      "corpus": "Essen",
+      "source": "D3",
+      "melodies_changed": 10253,
+      "dnll_draft_mean": 0.2678642695349832,
+      "dnll_output_mean": 0.1251937893324569,
+      "recovered": 0.5326222883335826,
+      "pct_more_plausible": 0.9931727299327027,
+      "pct_less_plausible": 0.006827270067297377,
+      "exact_repairs": 6279,
+      "mismatched_repairs": 8897,
+      "surprisal_median": {
+        "draft": 11.124556541442871,
+        "output": 2.4444541931152344,
+        "reference": 1.8902794122695923
+      },
+      "pct_output_beats_draft": 0.9982016410025851,
+      "pct_output_at_least_reference": 0.3996852871754524
+    },
+    {
+      "corpus": "Essen",
+      "source": "D2 ep2",
+      "melodies_changed": 5927,
+      "dnll_draft_mean": 0.31461675208918616,
+      "dnll_output_mean": 0.2018850142042251,
+      "recovered": 0.35831447987551646,
+      "pct_more_plausible": 0.8842584781508351,
+      "pct_less_plausible": 0.11574152184916484,
+      "exact_repairs": 684,
+      "mismatched_repairs": 4765,
+      "surprisal_median": {
+        "draft": 10.726149559020996,
+        "output": 2.272249937057495,
+        "reference": 3.898066282272339
+      },
+      "pct_output_beats_draft": 0.9733473242392445,
+      "pct_output_at_least_reference": 0.6833158447009444
+    }
+  ]
+}

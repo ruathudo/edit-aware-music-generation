@@ -1,0 +1,60 @@
+{
+  "rows": [
+    {
+      "corpus": "MTC",
+      "generator": "ep2",
+      "path": "models/generator_checkpoints/generator_epoch2.pth",
+      "val_nll": 1.8407791436315426,
+      "reference_nll": 1.8845611367449664
+    },
+    {
+      "corpus": "MTC",
+      "generator": "ep5",
+      "path": "models/generator_checkpoints/generator_epoch5.pth",
+      "val_nll": 1.7043592203178193,
+      "reference_nll": 1.7447452849974674
+    },
+    {
+      "corpus": "MTC",
+      "generator": "ep10",
+      "path": "models/generator_checkpoints/generator_epoch10.pth",
+      "val_nll": 1.4966079963143801,
+      "reference_nll": 1.5218322251527479
+    },
+    {
+      "corpus": "MTC",
+      "generator": "trained",
+      "path": "models/generator.pth",
+      "val_nll": 1.228279732730345,
+      "reference_nll": 1.3055064299536216
+    },
+    {
+      "corpus": "Essen",
+      "generator": "ep2",
+      "path": "models/generator_ctrl_checkpoints/generator_epoch2.pth",
+      "val_nll": 1.9132185121597047,
+      "reference_nll": 1.9010432492073137
+    },
+    {
+      "corpus": "Essen",
+      "generator": "ep5",
+      "path": "models/generator_ctrl_checkpoints/generator_epoch5.pth",
+      "val_nll": 1.7378278882990048,
+      "reference_nll": 1.7252522420585095
+    },
+    {
+      "corpus": "Essen",
+      "generator": "ep10",
+      "path": "models/generator_ctrl_checkpoints/generator_epoch10.pth",
+      "val_nll": 1.5875529706202751,
+      "reference_nll": 1.5730160183145254
+    },
+    {
+      "corpus": "Essen",
+      "generator": "trained",
+      "path": "models/generator_ctrl.pth",
+      "val_nll": 1.3173626070121827,
+      "reference_nll": 1.3084926808907769
+    }
+  ]
+}
