@@ -284,17 +284,10 @@ let state = null;  // {rater, seed, started, practiced, answers, rounds:{n:{orde
 
 function storeKey(name) { return STORE + ":" + name.trim().toLowerCase(); }
 function loadRater(name) {
-  let s = load(storeKey(name));
-  if (s) {   // practice was removed: move anyone saved mid-practice to the first scored excerpt
-    s.practiced = true;
-    Object.values(s.rounds || {}).forEach(r => { if (r.pos.part === "practice") r.pos = { part: "spot", index: 0 }; r.practiceHere = false; });
-    return s;
-  }
-  const v1 = load("folk-listening-v1:" + name.trim().toLowerCase());   // answers from the single-session version
-  s = { version: DATA.version, rater: name.trim(), seed: hash(name.trim().toLowerCase()), started: new Date().toISOString(),
+  const s = load(storeKey(name));
+  if (s) return s;
+  return { version: DATA.version, rater: name.trim(), seed: hash(name.trim().toLowerCase()), started: new Date().toISOString(),
         practiced: true, answers: {}, rounds: {}, current: 1 };   // no practice step: every excerpt is scored
-  if (v1 && v1.answers) { s.answers = v1.answers; s.practiced = true; s.migrated_from_v1 = true; }
-  return s;
 }
 function roundState(n) {
   if (!state.rounds[n]) {
