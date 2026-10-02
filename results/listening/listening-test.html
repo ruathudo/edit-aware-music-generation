@@ -177,7 +177,7 @@ button.link { border: 0; background: none; padding: 4px 2px; color: var(--accent
       <li><span class="n">2</span><div><strong>Which version, 10 pairs.</strong> Two versions of an excerpt differ at one highlighted note. Choose the one that sounds better, or "No preference".</div></li>
       <li><span class="n">3</span><div><strong>Download the round's answers</strong> as a JSON file and send it back.</div></li>
     </ol>
-    <p class="muted">The blocks show rhythm only: each block is one note, its width is its length, and dashed blocks are rests. Pitch is left out on purpose, so judge by ear. Trust your first impression and replay as often as you like. Your first round starts with two practice excerpts that are not scored.</p>
+    <p class="muted">The blocks show rhythm only: each block is one note, its width is its length, and dashed blocks are rests. Pitch is left out on purpose, so judge by ear. Trust your first impression and replay as often as you like.</p>
     <label class="field" for="rater">Your initials or name
       <input type="text" id="rater" autocomplete="off" maxlength="40" placeholder="e.g. QD">
     </label>
@@ -285,10 +285,14 @@ let state = null;  // {rater, seed, started, practiced, answers, rounds:{n:{orde
 function storeKey(name) { return STORE + ":" + name.trim().toLowerCase(); }
 function loadRater(name) {
   let s = load(storeKey(name));
-  if (s) return s;
+  if (s) {   // practice was removed: move anyone saved mid-practice to the first scored excerpt
+    s.practiced = true;
+    Object.values(s.rounds || {}).forEach(r => { if (r.pos.part === "practice") r.pos = { part: "spot", index: 0 }; r.practiceHere = false; });
+    return s;
+  }
   const v1 = load("folk-listening-v1:" + name.trim().toLowerCase());   // answers from the single-session version
   s = { version: DATA.version, rater: name.trim(), seed: hash(name.trim().toLowerCase()), started: new Date().toISOString(),
-        practiced: false, answers: {}, rounds: {}, current: 1 };
+        practiced: true, answers: {}, rounds: {}, current: 1 };   // no practice step: every excerpt is scored
   if (v1 && v1.answers) { s.answers = v1.answers; s.practiced = true; s.migrated_from_v1 = true; }
   return s;
 }
