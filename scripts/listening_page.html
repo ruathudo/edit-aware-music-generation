@@ -146,6 +146,7 @@ textarea { width: 100%; min-height: 140px; font-family: var(--mono); font-size: 
 .round small { font-family: var(--mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .round[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
 .round.finished small { color: var(--accent); }
+.round-hint { font-size: 14px; color: var(--muted); margin: -2px 0 4px; }
 .feedback { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 8px 8px 0; }
 .note.answer { box-shadow: 0 0 0 2px var(--accent) inset; }
 .bar-actions { display: flex; gap: 8px; align-items: center; }
@@ -182,7 +183,8 @@ button.link { border: 0; background: none; padding: 4px 2px; color: var(--accent
       <input type="text" id="rater" autocomplete="off" maxlength="40" placeholder="e.g. QD">
     </label>
     <fieldset>
-      <legend>Round</legend>
+      <legend>Choose a round</legend>
+      <p class="round-hint">Rounds can be done in any order, and each one is a different set of tunes. One round has been picked for you at random; keep it or choose another.</p>
       <div class="rounds" id="rounds"></div>
     </fieldset>
     <div class="buttons">
@@ -540,10 +542,19 @@ $("choose-round").onclick = () => toIntro();
 $("switch").onclick = () => toIntro();
 
 // ---------- intro and round chooser
-let chosen = 1;
-try { const q = +new URLSearchParams(location.search).get("round"); if (q >= 1 && q <= ROUNDS) chosen = q; } catch {}
+// Default to a random round, so raters do not all start at round 1.
+let chosen = 1 + Math.floor(Math.random() * ROUNDS), chosenByUser = false;
+try { const q = +new URLSearchParams(location.search).get("round"); if (q >= 1 && q <= ROUNDS) { chosen = q; chosenByUser = true; } } catch {}
+function randomOpenRound(prior) {
+  const open = [];
+  for (let n = 1; n <= ROUNDS; n++) if (!prior?.rounds?.[n]?.finished) open.push(n);
+  return open.length ? open[Math.floor(Math.random() * open.length)] : chosen;
+}
+let lastName = null;
 function renderRounds() {
   const name = $("rater").value.trim(), prior = name ? load(storeKey(name)) : null;
+  // A returning rater gets a random round among those they have not finished.
+  if (name !== lastName) { lastName = name; if (prior && !chosenByUser && prior.rounds?.[chosen]?.finished) chosen = randomOpenRound(prior); }
   const box = $("rounds"); box.innerHTML = "";
   for (let n = 1; n <= ROUNDS; n++) {
     const b = document.createElement("button"); b.type = "button"; b.className = "round"; b.id = "round-" + n;
@@ -552,7 +563,7 @@ function renderRounds() {
     if (fin) b.classList.add("finished");
     b.setAttribute("aria-pressed", n === chosen ? "true" : "false");
     b.innerHTML = `<b>${n}</b><small>${fin ? "done" : `${done} / ${PER_ROUND.spot + PER_ROUND.pair}`}</small>`;
-    b.addEventListener("click", () => { chosen = n; renderRounds(); });
+    b.addEventListener("click", () => { chosen = n; chosenByUser = true; renderRounds(); });
     box.appendChild(b);
   }
   $("start").disabled = !name;
