@@ -18,3 +18,4 @@ results/refiner/**/model_*.pt
 results/refiner/**/outputs_*.json
 # refiner run logs
 results/refiner/**/*.log
+results/human_test/**/*.json
