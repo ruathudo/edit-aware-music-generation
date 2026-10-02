@@ -1,5 +1,5 @@
 {
- "version": 1,
+ "version": 2,
  "seed": 2026,
  "key": {
   "s-3ea01a": {
@@ -11,7 +11,8 @@
    ],
    "wrong_positions": [
     12
-   ]
+   ],
+   "round": 2
   },
   "s-a34491": {
    "source": "D1",
@@ -22,7 +23,8 @@
    ],
    "wrong_positions": [
     6
-   ]
+   ],
+   "round": 2
   },
   "s-6517f1": {
    "source": "D1",
@@ -35,7 +37,8 @@
     0,
     6,
     19
-   ]
+   ],
+   "round": 3
   },
   "s-39a664": {
    "source": "D1",
@@ -49,7 +52,8 @@
     15,
     16,
     17
-   ]
+   ],
+   "round": 5
   },
   "s-3ed098": {
    "source": "D1",
@@ -61,7 +65,8 @@
    "wrong_positions": [
     3,
     15
-   ]
+   ],
+   "round": 5
   },
   "s-405962": {
    "source": "D1",
@@ -72,7 +77,8 @@
    ],
    "wrong_positions": [
     19
-   ]
+   ],
+   "round": 4
   },
   "s-9abf5a": {
    "source": "D1",
@@ -84,7 +90,8 @@
    "wrong_positions": [
     2,
     18
-   ]
+   ],
+   "round": 4
   },
   "s-b641e3": {
    "source": "D1",
@@ -96,7 +103,8 @@
    "wrong_positions": [
     11,
     14
-   ]
+   ],
+   "round": 2
   },
   "s-d78b67": {
    "source": "D1",
@@ -109,7 +117,8 @@
     5,
     6,
     7
-   ]
+   ],
+   "round": 3
   },
   "s-401b45": {
    "source": "D1",
@@ -120,7 +129,8 @@
    ],
    "wrong_positions": [
     12
-   ]
+   ],
+   "round": 3
   },
   "s-cb3106": {
    "source": "D1",
@@ -133,7 +143,8 @@
     1,
     6,
     7
-   ]
+   ],
+   "round": 1
   },
   "s-4b9d27": {
    "source": "D1",
@@ -144,7 +155,8 @@
    ],
    "wrong_positions": [
     7
-   ]
+   ],
+   "round": 5
   },
   "s-f52af2": {
    "source": "D1",
@@ -156,7 +168,8 @@
    "wrong_positions": [
     7,
     11
-   ]
+   ],
+   "round": 5
   },
   "s-46fe1b": {
    "source": "D1",
@@ -171,7 +184,8 @@
     12,
     15,
     17
-   ]
+   ],
+   "round": 1
   },
   "s-2dcbf8": {
    "source": "D1",
@@ -182,7 +196,8 @@
    ],
    "wrong_positions": [
     15
-   ]
+   ],
+   "round": 4
   },
   "s-1375e4": {
    "source": "D1",
@@ -194,7 +209,8 @@
    "wrong_positions": [
     0,
     3
-   ]
+   ],
+   "round": 3
   },
   "s-ae71ef": {
    "source": "D1",
@@ -208,7 +224,8 @@
     4,
     9,
     17
-   ]
+   ],
+   "round": 4
   },
   "s-1ccd8d": {
    "source": "D1",
@@ -220,7 +237,8 @@
    "wrong_positions": [
     5,
     7
-   ]
+   ],
+   "round": 2
   },
   "s-f0eb48": {
    "source": "D1",
@@ -232,7 +250,8 @@
    "wrong_positions": [
     6,
     9
-   ]
+   ],
+   "round": 1
   },
   "s-4d3bcb": {
    "source": "D1",
@@ -243,7 +262,8 @@
    ],
    "wrong_positions": [
     3
-   ]
+   ],
+   "round": 1
   },
   "s-770be8": {
    "source": "D3",
@@ -255,7 +275,8 @@
    "wrong_positions": [
     1,
     17
-   ]
+   ],
+   "round": 1
   },
   "s-aff7dd": {
    "source": "D3",
@@ -267,7 +288,8 @@
    "wrong_positions": [
     2,
     8
-   ]
+   ],
+   "round": 5
   },
   "s-b7dd1e": {
    "source": "D3",
@@ -278,7 +300,8 @@
    ],
    "wrong_positions": [
     17
-   ]
+   ],
+   "round": 4
   },
   "s-f2b857": {
    "source": "D3",
@@ -290,7 +313,8 @@
    "wrong_positions": [
     4,
     12
-   ]
+   ],
+   "round": 4
   },
   "s-9fd7d8": {
    "source": "D3",
@@ -305,7 +329,8 @@
     9,
     10,
     15
-   ]
+   ],
+   "round": 3
   },
   "s-133406": {
    "source": "D3",
@@ -318,7 +343,8 @@
     0,
     2,
     19
-   ]
+   ],
+   "round": 1
   },
   "s-46a2c5": {
    "source": "D3",
@@ -330,7 +356,8 @@
    "wrong_positions": [
     1,
     17
-   ]
+   ],
+   "round": 3
   },
   "s-09657d": {
    "source": "D3",
@@ -343,7 +370,8 @@
     13,
     15,
     16
-   ]
+   ],
+   "round": 1
   },
   "s-9d0929": {
    "source": "D3",
@@ -357,7 +385,8 @@
     10,
     13,
     18
-   ]
+   ],
+   "round": 3
   },
   "s-35b844": {
    "source": "D3",
@@ -369,7 +398,8 @@
    "wrong_positions": [
     7,
     13
-   ]
+   ],
+   "round": 5
   },
   "s-c746c5": {
    "source": "D3",
@@ -384,7 +414,8 @@
     3,
     11,
     18
-   ]
+   ],
+   "round": 5
   },
   "s-530d46": {
    "source": "D3",
@@ -399,7 +430,8 @@
     17,
     18,
     19
-   ]
+   ],
+   "round": 2
   },
   "s-923762": {
    "source": "D3",
@@ -410,7 +442,8 @@
    ],
    "wrong_positions": [
     4
-   ]
+   ],
+   "round": 2
   },
   "s-04d67a": {
    "source": "D3",
@@ -422,7 +455,8 @@
    "wrong_positions": [
     15,
     16
-   ]
+   ],
+   "round": 1
   },
   "s-d865f6": {
    "source": "D3",
@@ -434,7 +468,8 @@
    "wrong_positions": [
     2,
     18
-   ]
+   ],
+   "round": 2
   },
   "s-5bf78f": {
    "source": "D3",
@@ -446,7 +481,8 @@
    "wrong_positions": [
     3,
     19
-   ]
+   ],
+   "round": 4
   },
   "s-53efae": {
    "source": "D3",
@@ -458,7 +494,8 @@
    "wrong_positions": [
     4,
     5
-   ]
+   ],
+   "round": 5
   },
   "s-bfc5fc": {
    "source": "D3",
@@ -470,7 +507,8 @@
    "wrong_positions": [
     1,
     19
-   ]
+   ],
+   "round": 2
   },
   "s-9af4c8": {
    "source": "D3",
@@ -485,7 +523,8 @@
     16,
     18,
     19
-   ]
+   ],
+   "round": 3
   },
   "s-4ef6b7": {
    "source": "D3",
@@ -496,7 +535,8 @@
    ],
    "wrong_positions": [
     3
-   ]
+   ],
+   "round": 4
   },
   "s-40c7d0": {
    "source": "D2",
@@ -510,7 +550,8 @@
     9,
     10,
     12
-   ]
+   ],
+   "round": 4
   },
   "s-f818e0": {
    "source": "D2",
@@ -526,7 +567,8 @@
     12,
     13,
     14
-   ]
+   ],
+   "round": 2
   },
   "s-257170": {
    "source": "D2",
@@ -541,7 +583,8 @@
     2,
     3,
     4
-   ]
+   ],
+   "round": 5
   },
   "s-9a5d96": {
    "source": "D2",
@@ -556,7 +599,8 @@
     12,
     13,
     15
-   ]
+   ],
+   "round": 4
   },
   "s-b212b8": {
    "source": "D2",
@@ -569,7 +613,8 @@
     14,
     15,
     16
-   ]
+   ],
+   "round": 4
   },
   "s-3debaa": {
    "source": "D2",
@@ -581,7 +626,8 @@
    "wrong_positions": [
     3,
     4
-   ]
+   ],
+   "round": 2
   },
   "s-7e7a4d": {
    "source": "D2",
@@ -592,7 +638,8 @@
    ],
    "wrong_positions": [
     3
-   ]
+   ],
+   "round": 3
   },
   "s-e97028": {
    "source": "D2",
@@ -605,7 +652,8 @@
     6,
     7,
     8
-   ]
+   ],
+   "round": 5
   },
   "s-2a43ec": {
    "source": "D2",
@@ -618,7 +666,8 @@
     2,
     3,
     4
-   ]
+   ],
+   "round": 3
   },
   "s-fd581a": {
    "source": "D2",
@@ -633,7 +682,8 @@
     6,
     7,
     8
-   ]
+   ],
+   "round": 4
   },
   "s-73bc8d": {
    "source": "D2",
@@ -645,7 +695,8 @@
    "wrong_positions": [
     7,
     8
-   ]
+   ],
+   "round": 1
   },
   "s-dd7d4d": {
    "source": "D2",
@@ -659,7 +710,8 @@
     12,
     13,
     14
-   ]
+   ],
+   "round": 3
   },
   "s-a53819": {
    "source": "D2",
@@ -671,7 +723,8 @@
    "wrong_positions": [
     16,
     17
-   ]
+   ],
+   "round": 2
   },
   "s-a09afb": {
    "source": "D2",
@@ -685,7 +738,8 @@
     3,
     5,
     6
-   ]
+   ],
+   "round": 1
   },
   "s-ed0f40": {
    "source": "D2",
@@ -698,7 +752,8 @@
     12,
     15,
     16
-   ]
+   ],
+   "round": 1
   },
   "s-b340e3": {
    "source": "D2",
@@ -711,7 +766,8 @@
     6,
     7,
     8
-   ]
+   ],
+   "round": 1
   },
   "s-c364b2": {
    "source": "D2",
@@ -722,7 +778,8 @@
    ],
    "wrong_positions": [
     0
-   ]
+   ],
+   "round": 2
   },
   "s-e222cd": {
    "source": "D2",
@@ -737,7 +794,8 @@
     4,
     5,
     7
-   ]
+   ],
+   "round": 5
   },
   "s-dcd2c6": {
    "source": "D2",
@@ -749,7 +807,8 @@
    "wrong_positions": [
     13,
     15
-   ]
+   ],
+   "round": 3
   },
   "s-3c5652": {
    "source": "D2",
@@ -762,7 +821,8 @@
     15,
     16,
     17
-   ]
+   ],
+   "round": 5
   },
   "s-e38ed6": {
    "source": "D2-ep2",
@@ -776,7 +836,8 @@
     13,
     14,
     15
-   ]
+   ],
+   "round": 3
   },
   "s-894e7b": {
    "source": "D2-ep2",
@@ -789,7 +850,8 @@
     2,
     3,
     4
-   ]
+   ],
+   "round": 1
   },
   "s-497439": {
    "source": "D2-ep2",
@@ -801,7 +863,8 @@
    "wrong_positions": [
     1,
     2
-   ]
+   ],
+   "round": 5
   },
   "s-3f18d0": {
    "source": "D2-ep2",
@@ -815,7 +878,8 @@
     5,
     6,
     7
-   ]
+   ],
+   "round": 3
   },
   "s-ea875b": {
    "source": "D2-ep2",
@@ -826,7 +890,8 @@
    ],
    "wrong_positions": [
     10
-   ]
+   ],
+   "round": 4
   },
   "s-cc84c0": {
    "source": "D2-ep2",
@@ -838,7 +903,8 @@
    "wrong_positions": [
     6,
     7
-   ]
+   ],
+   "round": 1
   },
   "s-a888f5": {
    "source": "D2-ep2",
@@ -854,7 +920,8 @@
     4,
     5,
     6
-   ]
+   ],
+   "round": 2
   },
   "s-ac75e8": {
    "source": "D2-ep2",
@@ -868,7 +935,8 @@
     11,
     12,
     13
-   ]
+   ],
+   "round": 3
   },
   "s-6b79be": {
    "source": "D2-ep2",
@@ -883,7 +951,8 @@
     14,
     15,
     16
-   ]
+   ],
+   "round": 1
   },
   "s-a93026": {
    "source": "D2-ep2",
@@ -896,7 +965,8 @@
     12,
     13,
     14
-   ]
+   ],
+   "round": 3
   },
   "s-588f74": {
    "source": "D2-ep2",
@@ -908,7 +978,8 @@
    "wrong_positions": [
     12,
     13
-   ]
+   ],
+   "round": 2
   },
   "s-811cf3": {
    "source": "D2-ep2",
@@ -922,7 +993,8 @@
     9,
     10,
     11
-   ]
+   ],
+   "round": 4
   },
   "s-d44965": {
    "source": "D2-ep2",
@@ -939,7 +1011,8 @@
     15,
     16,
     17
-   ]
+   ],
+   "round": 4
   },
   "s-ad702f": {
    "source": "D2-ep2",
@@ -952,7 +1025,8 @@
     10,
     11,
     12
-   ]
+   ],
+   "round": 2
   },
   "s-7092f2": {
    "source": "D2-ep2",
@@ -968,7 +1042,8 @@
     17,
     18,
     19
-   ]
+   ],
+   "round": 5
   },
   "s-898bba": {
    "source": "D2-ep2",
@@ -983,7 +1058,8 @@
     15,
     17,
     18
-   ]
+   ],
+   "round": 4
   },
   "s-6b1f6f": {
    "source": "D2-ep2",
@@ -999,7 +1075,8 @@
     12,
     13,
     14
-   ]
+   ],
+   "round": 1
   },
   "s-8dc712": {
    "source": "D2-ep2",
@@ -1014,7 +1091,8 @@
     2,
     3,
     5
-   ]
+   ],
+   "round": 5
   },
   "s-28711c": {
    "source": "D2-ep2",
@@ -1028,7 +1106,8 @@
     14,
     16,
     17
-   ]
+   ],
+   "round": 5
   },
   "s-05d552": {
    "source": "D2-ep2",
@@ -1040,7 +1119,8 @@
    "wrong_positions": [
     7,
     8
-   ]
+   ],
+   "round": 2
   },
   "s-a8f397": {
    "source": "reference",
@@ -1049,7 +1129,8 @@
     4,
     24
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 5
   },
   "s-ed4b24": {
    "source": "reference",
@@ -1058,7 +1139,8 @@
     60,
     80
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 2
   },
   "s-9e6ffb": {
    "source": "reference",
@@ -1067,7 +1149,8 @@
     5,
     25
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 2
   },
   "s-d58624": {
    "source": "reference",
@@ -1076,7 +1159,8 @@
     18,
     38
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 1
   },
   "s-4439ae": {
    "source": "reference",
@@ -1085,7 +1169,8 @@
     33,
     53
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 4
   },
   "s-8ab015": {
    "source": "reference",
@@ -1094,7 +1179,8 @@
     0,
     20
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 4
   },
   "s-5eda29": {
    "source": "reference",
@@ -1103,7 +1189,8 @@
     1,
     21
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 5
   },
   "s-767407": {
    "source": "reference",
@@ -1112,7 +1199,8 @@
     23,
     43
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 4
   },
   "s-aeba6d": {
    "source": "reference",
@@ -1121,7 +1209,8 @@
     10,
     30
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 3
   },
   "s-a2b914": {
    "source": "reference",
@@ -1130,7 +1219,8 @@
     11,
     31
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 4
   },
   "s-82bd2e": {
    "source": "reference",
@@ -1139,7 +1229,8 @@
     15,
     35
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 1
   },
   "s-800d65": {
    "source": "reference",
@@ -1148,7 +1239,8 @@
     20,
     40
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 3
   },
   "s-fae1e7": {
    "source": "reference",
@@ -1157,7 +1249,8 @@
     20,
     40
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 1
   },
   "s-f61b8e": {
    "source": "reference",
@@ -1166,7 +1259,8 @@
     0,
     20
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 5
   },
   "s-eea6e3": {
    "source": "reference",
@@ -1175,7 +1269,8 @@
     8,
     28
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 3
   },
   "s-8c19dc": {
    "source": "reference",
@@ -1184,7 +1279,8 @@
     5,
     25
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 5
   },
   "s-9baebe": {
    "source": "reference",
@@ -1193,7 +1289,8 @@
     25,
     45
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 1
   },
   "s-1bbe7c": {
    "source": "reference",
@@ -1202,7 +1299,8 @@
     9,
     29
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 2
   },
   "s-98e2de": {
    "source": "reference",
@@ -1211,7 +1309,8 @@
     8,
     28
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 2
   },
   "s-2e72a1": {
    "source": "reference",
@@ -1220,7 +1319,8 @@
     19,
     39
    ],
-   "wrong_positions": []
+   "wrong_positions": [],
+   "round": 3
   },
   "p-4a2df2": {
    "kind": "main",
@@ -1230,69 +1330,43 @@
    "judge_surprisal": {
     "repair": 2.355569362640381,
     "reference": 2.039327383041382
-   }
+   },
+   "round": 4
   },
   "p-89972b": {
    "kind": "main",
-   "reference_id": "NLB072284_01",
+   "reference_id": "NLB074840_01",
    "a_is": "reference",
    "b_is": "repair",
-   "judge_surprisal": {
-    "repair": 0.6707729697227478,
-    "reference": 1.1316428184509277
-   }
-  },
-  "p-baff08": {
-   "kind": "main",
-   "reference_id": "NLB072299_01",
-   "a_is": "repair",
-   "b_is": "reference",
-   "judge_surprisal": {
-    "repair": 0.627544105052948,
-    "reference": 3.346881628036499
-   }
-  },
-  "p-f40191": {
-   "kind": "main",
-   "reference_id": "NLB074840_01",
-   "a_is": "repair",
-   "b_is": "reference",
    "judge_surprisal": {
     "repair": 5.624525547027588,
     "reference": 1.8514560461044312
-   }
+   },
+   "round": 3
   },
-  "p-8bd1ee": {
-   "kind": "main",
-   "reference_id": "NLB072287_01",
-   "a_is": "reference",
-   "b_is": "repair",
-   "judge_surprisal": {
-    "repair": 1.2453367710113525,
-    "reference": 3.639531373977661
-   }
-  },
-  "p-f9f19a": {
+  "p-baff08": {
    "kind": "main",
    "reference_id": "NLB073339_01",
-   "a_is": "reference",
-   "b_is": "repair",
+   "a_is": "repair",
+   "b_is": "reference",
    "judge_surprisal": {
     "repair": 4.017126083374023,
     "reference": 1.7992206811904907
-   }
+   },
+   "round": 4
   },
-  "p-37055d": {
+  "p-f40191": {
    "kind": "main",
    "reference_id": "NLB071441_01",
-   "a_is": "reference",
-   "b_is": "repair",
+   "a_is": "repair",
+   "b_is": "reference",
    "judge_surprisal": {
     "repair": 3.270986795425415,
     "reference": 0.8513200879096985
-   }
+   },
+   "round": 1
   },
-  "p-71f780": {
+  "p-8bd1ee": {
    "kind": "main",
    "reference_id": "NLB073777_01",
    "a_is": "reference",
@@ -1300,29 +1374,10 @@
    "judge_surprisal": {
     "repair": 1.6894240379333496,
     "reference": 2.144780158996582
-   }
+   },
+   "round": 5
   },
-  "p-e97b09": {
-   "kind": "main",
-   "reference_id": "NLB112123_01",
-   "a_is": "reference",
-   "b_is": "repair",
-   "judge_surprisal": {
-    "repair": 1.955899715423584,
-    "reference": 2.6159470081329346
-   }
-  },
-  "p-18b246": {
-   "kind": "main",
-   "reference_id": "NLB075073_01",
-   "a_is": "repair",
-   "b_is": "reference",
-   "judge_surprisal": {
-    "repair": 5.894622325897217,
-    "reference": 3.5762557983398438
-   }
-  },
-  "p-a70a72": {
+  "p-f9f19a": {
    "kind": "main",
    "reference_id": "NLB072253_01",
    "a_is": "reference",
@@ -1330,39 +1385,21 @@
    "judge_surprisal": {
     "repair": 2.9744765758514404,
     "reference": 7.858554363250732
-   }
+   },
+   "round": 4
   },
-  "p-285c1f": {
-   "kind": "main",
-   "reference_id": "NLB073709_01",
-   "a_is": "reference",
-   "b_is": "repair",
-   "judge_surprisal": {
-    "repair": 3.1706149578094482,
-    "reference": 3.061750650405884
-   }
-  },
-  "p-b11f53": {
+  "p-37055d": {
    "kind": "main",
    "reference_id": "NLB070693_01",
-   "a_is": "repair",
-   "b_is": "reference",
+   "a_is": "reference",
+   "b_is": "repair",
    "judge_surprisal": {
     "repair": 0.9490124583244324,
     "reference": 6.9426774978637695
-   }
+   },
+   "round": 2
   },
-  "p-3255de": {
-   "kind": "main",
-   "reference_id": "NLB073997_01",
-   "a_is": "reference",
-   "b_is": "repair",
-   "judge_surprisal": {
-    "repair": 0.3490825891494751,
-    "reference": 3.8645102977752686
-   }
-  },
-  "p-97f0aa": {
+  "p-71f780": {
    "kind": "main",
    "reference_id": "NLB162526_01",
    "a_is": "reference",
@@ -1370,19 +1407,21 @@
    "judge_surprisal": {
     "repair": 4.576663970947266,
     "reference": 1.9553579092025757
-   }
+   },
+   "round": 1
   },
-  "p-157068": {
+  "p-e97b09": {
    "kind": "main",
    "reference_id": "NLB074769_02",
-   "a_is": "repair",
-   "b_is": "reference",
+   "a_is": "reference",
+   "b_is": "repair",
    "judge_surprisal": {
     "repair": 4.4952287673950195,
     "reference": 4.569367408752441
-   }
+   },
+   "round": 3
   },
-  "p-e7a5fa": {
+  "p-18b246": {
    "kind": "main",
    "reference_id": "NLB071369_01",
    "a_is": "repair",
@@ -1390,9 +1429,10 @@
    "judge_surprisal": {
     "repair": 1.5583112239837646,
     "reference": 5.16372013092041
-   }
+   },
+   "round": 5
   },
-  "p-c5c07b": {
+  "p-a70a72": {
    "kind": "main",
    "reference_id": "NLB073324_01",
    "a_is": "reference",
@@ -1400,9 +1440,10 @@
    "judge_surprisal": {
     "repair": 0.6412573456764221,
     "reference": 4.811741828918457
-   }
+   },
+   "round": 1
   },
-  "p-e9f72f": {
+  "p-285c1f": {
    "kind": "main",
    "reference_id": "NLB074007_01",
    "a_is": "reference",
@@ -1410,59 +1451,54 @@
    "judge_surprisal": {
     "repair": 5.902132034301758,
     "reference": 1.2977066040039062
-   }
+   },
+   "round": 2
   },
-  "p-0b3f2c": {
+  "p-b11f53": {
    "kind": "main",
    "reference_id": "NLB138219_01",
-   "a_is": "reference",
-   "b_is": "repair",
+   "a_is": "repair",
+   "b_is": "reference",
    "judge_surprisal": {
     "repair": 2.044267177581787,
     "reference": 2.9544730186462402
-   }
+   },
+   "round": 5
   },
-  "p-a30708": {
+  "p-3255de": {
    "kind": "main",
    "reference_id": "NLB074603_01",
-   "a_is": "repair",
-   "b_is": "reference",
-   "judge_surprisal": {
-    "repair": 0.9312760233879089,
-    "reference": 3.4530258178710938
-   }
-  },
-  "p-35d6a1": {
-   "kind": "main",
-   "reference_id": "NLB070493_01",
-   "a_is": "repair",
-   "b_is": "reference",
-   "judge_surprisal": {
-    "repair": 1.1641898155212402,
-    "reference": 4.259853839874268
-   }
-  },
-  "p-561b0d": {
-   "kind": "main",
-   "reference_id": "NLB074260_02",
-   "a_is": "repair",
-   "b_is": "reference",
-   "judge_surprisal": {
-    "repair": 1.6760016679763794,
-    "reference": 4.255157470703125
-   }
-  },
-  "p-828893": {
-   "kind": "main",
-   "reference_id": "NLB072714_01",
    "a_is": "reference",
    "b_is": "repair",
    "judge_surprisal": {
+    "repair": 0.9312760233879089,
+    "reference": 3.4530258178710938
+   },
+   "round": 4
+  },
+  "p-97f0aa": {
+   "kind": "main",
+   "reference_id": "NLB074260_02",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 1.6760016679763794,
+    "reference": 4.255157470703125
+   },
+   "round": 2
+  },
+  "p-157068": {
+   "kind": "main",
+   "reference_id": "NLB072714_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
     "repair": 7.724085807800293,
     "reference": 7.185746192932129
-   }
+   },
+   "round": 5
   },
-  "p-17a627": {
+  "p-e7a5fa": {
    "kind": "main",
    "reference_id": "NLB076495_01",
    "a_is": "repair",
@@ -1470,9 +1506,10 @@
    "judge_surprisal": {
     "repair": 6.054553508758545,
     "reference": 3.0988149642944336
-   }
+   },
+   "round": 1
   },
-  "p-246a89": {
+  "p-c5c07b": {
    "kind": "main",
    "reference_id": "NLB073946_01",
    "a_is": "reference",
@@ -1480,19 +1517,10 @@
    "judge_surprisal": {
     "repair": 0.5436638593673706,
     "reference": 4.1728668212890625
-   }
+   },
+   "round": 3
   },
-  "p-3d4601": {
-   "kind": "main",
-   "reference_id": "NLB073866_01",
-   "a_is": "reference",
-   "b_is": "repair",
-   "judge_surprisal": {
-    "repair": 1.1444576978683472,
-    "reference": 17.073617935180664
-   }
-  },
-  "p-ab79c6": {
+  "p-e9f72f": {
    "kind": "main",
    "reference_id": "NLB070492_01",
    "a_is": "reference",
@@ -1500,9 +1528,10 @@
    "judge_surprisal": {
     "repair": 1.584726095199585,
     "reference": 2.683490037918091
-   }
+   },
+   "round": 3
   },
-  "p-9d3363": {
+  "p-0b3f2c": {
    "kind": "main",
    "reference_id": "NLB134389_01",
    "a_is": "reference",
@@ -1510,117 +1539,338 @@
    "judge_surprisal": {
     "repair": 3.2139768600463867,
     "reference": 0.2288924753665924
-   }
+   },
+   "round": 3
   },
-  "p-7be872": {
+  "p-a30708": {
    "kind": "main",
-   "reference_id": "NLB146699_01",
+   "reference_id": "NLB072898_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 2.019826650619507,
+    "reference": 1.0411326885223389
+   },
+   "round": 1
+  },
+  "p-35d6a1": {
+   "kind": "main",
+   "reference_id": "NLB072967_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 0.36472561955451965,
+    "reference": 3.6804351806640625
+   },
+   "round": 4
+  },
+  "p-561b0d": {
+   "kind": "main",
+   "reference_id": "NLB144072_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 4.058271408081055,
+    "reference": 7.626064300537109
+   },
+   "round": 5
+  },
+  "p-828893": {
+   "kind": "main",
+   "reference_id": "NLB073895_01",
    "a_is": "reference",
    "b_is": "repair",
    "judge_surprisal": {
-    "repair": 4.211802005767822,
-    "reference": 1.9669241905212402
-   }
-  },
-  "p-eff548": {
-   "kind": "check",
-   "reference_id": "NLB072898_01",
-   "a_is": "repair",
-   "b_is": "draft",
-   "judge_surprisal": {
-    "repair": 2.019826650619507,
-    "draft": 10.385438919067383
-   }
-  },
-  "p-ccd1da": {
-   "kind": "check",
-   "reference_id": "NLB072967_01",
-   "a_is": "draft",
-   "b_is": "repair",
-   "judge_surprisal": {
-    "repair": 0.36472561955451965,
-    "draft": 5.15854024887085
-   }
-  },
-  "p-a00f68": {
-   "kind": "check",
-   "reference_id": "NLB144072_01",
-   "a_is": "repair",
-   "b_is": "draft",
-   "judge_surprisal": {
-    "repair": 4.058271408081055,
-    "draft": 12.330509185791016
-   }
-  },
-  "p-fa5831": {
-   "kind": "check",
-   "reference_id": "NLB073895_01",
-   "a_is": "repair",
-   "b_is": "draft",
-   "judge_surprisal": {
     "repair": 2.9349355697631836,
-    "draft": 6.894952774047852
-   }
+    "reference": 9.476490020751953
+   },
+   "round": 3
   },
-  "p-5e5ac2": {
-   "kind": "check",
+  "p-17a627": {
+   "kind": "main",
    "reference_id": "NLB076128_01",
    "a_is": "repair",
-   "b_is": "draft",
+   "b_is": "reference",
    "judge_surprisal": {
     "repair": 4.995107173919678,
-    "draft": 13.711633682250977
-   }
+    "reference": 5.823379993438721
+   },
+   "round": 1
+  },
+  "p-246a89": {
+   "kind": "main",
+   "reference_id": "NLB072441_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 1.5797755718231201,
+    "reference": 6.437906742095947
+   },
+   "round": 5
+  },
+  "p-3d4601": {
+   "kind": "main",
+   "reference_id": "NLB075249_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 8.242907524108887,
+    "reference": 1.1720126867294312
+   },
+   "round": 2
+  },
+  "p-ab79c6": {
+   "kind": "main",
+   "reference_id": "NLB074182_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 0.5550017952919006,
+    "reference": 2.270582675933838
+   },
+   "round": 4
+  },
+  "p-9d3363": {
+   "kind": "main",
+   "reference_id": "NLB075065_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 11.087560653686523,
+    "reference": 8.580829620361328
+   },
+   "round": 5
+  },
+  "p-7be872": {
+   "kind": "main",
+   "reference_id": "NLB073672_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 8.951375007629395,
+    "reference": 1.0417643785476685
+   },
+   "round": 4
+  },
+  "p-eff548": {
+   "kind": "main",
+   "reference_id": "NLB070089_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 6.333239555358887,
+    "reference": 6.456113815307617
+   },
+   "round": 2
+  },
+  "p-ccd1da": {
+   "kind": "main",
+   "reference_id": "NLB074308_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 2.3257293701171875,
+    "reference": 3.1915316581726074
+   },
+   "round": 2
+  },
+  "p-a00f68": {
+   "kind": "main",
+   "reference_id": "NLB073311_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 1.8046871423721313,
+    "reference": 3.575615406036377
+   },
+   "round": 5
+  },
+  "p-fa5831": {
+   "kind": "main",
+   "reference_id": "NLB073393_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 1.37826669216156,
+    "reference": 13.064629554748535
+   },
+   "round": 1
+  },
+  "p-5e5ac2": {
+   "kind": "main",
+   "reference_id": "NLB074276_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 1.401265263557434,
+    "reference": 4.643485069274902
+   },
+   "round": 3
   },
   "p-3a3923": {
-   "kind": "check",
-   "reference_id": "NLB070748_01",
+   "kind": "main",
+   "reference_id": "NLB070238_01",
    "a_is": "repair",
-   "b_is": "draft",
+   "b_is": "reference",
    "judge_surprisal": {
-    "repair": 3.490171194076538,
-    "draft": 13.396045684814453
-   }
+    "repair": 4.940159797668457,
+    "reference": 6.056366443634033
+   },
+   "round": 2
   },
   "p-c3638d": {
+   "kind": "main",
+   "reference_id": "NLB147463_01",
+   "a_is": "reference",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 1.5178790092468262,
+    "reference": 7.5276713371276855
+   },
+   "round": 3
+  },
+  "p-085ef0": {
+   "kind": "main",
+   "reference_id": "NLB074468_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 9.78668212890625,
+    "reference": 0.5068082809448242
+   },
+   "round": 1
+  },
+  "p-6fe7d7": {
+   "kind": "main",
+   "reference_id": "NLB072500_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 5.434266567230225,
+    "reference": 0.6970004439353943
+   },
+   "round": 4
+  },
+  "p-116dee": {
+   "kind": "main",
+   "reference_id": "NLB072085_01",
+   "a_is": "repair",
+   "b_is": "reference",
+   "judge_surprisal": {
+    "repair": 0.994259774684906,
+    "reference": 5.268812656402588
+   },
+   "round": 2
+  },
+  "p-47d3d6": {
    "kind": "check",
-   "reference_id": "NLB072665_01",
+   "reference_id": "NLB074452_01",
    "a_is": "draft",
    "b_is": "repair",
    "judge_surprisal": {
-    "repair": 2.0288450717926025,
-    "draft": 16.152990341186523
-   }
+    "repair": 7.010784149169922,
+    "draft": 12.846363067626953
+   },
+   "round": 1
   },
-  "p-085ef0": {
+  "p-a0b462": {
    "kind": "check",
-   "reference_id": "NLB073146_01",
+   "reference_id": "NLB071666_01",
    "a_is": "repair",
    "b_is": "draft",
    "judge_surprisal": {
-    "repair": 1.3134766817092896,
-    "draft": 2.5495805740356445
-   }
+    "repair": 4.297504425048828,
+    "draft": 14.625349998474121
+   },
+   "round": 4
   },
-  "p-6fe7d7": {
+  "p-dd0908": {
    "kind": "check",
-   "reference_id": "NLB072441_01",
+   "reference_id": "NLB074378_02",
    "a_is": "repair",
    "b_is": "draft",
    "judge_surprisal": {
-    "repair": 1.5797755718231201,
-    "draft": 6.903581619262695
-   }
+    "repair": 2.6597392559051514,
+    "draft": 14.279051780700684
+   },
+   "round": 2
   },
-  "p-116dee": {
+  "p-0d76e5": {
    "kind": "check",
-   "reference_id": "NLB070411_01",
+   "reference_id": "NLB073992_01",
+   "a_is": "draft",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 13.560380935668945,
+    "draft": 19.24513053894043
+   },
+   "round": 3
+  },
+  "p-552d2b": {
+   "kind": "check",
+   "reference_id": "NLB072357_01",
    "a_is": "repair",
    "b_is": "draft",
    "judge_surprisal": {
-    "repair": 0.9485253691673279,
-    "draft": 7.271018981933594
-   }
+    "repair": 4.44437313079834,
+    "draft": 6.659738540649414
+   },
+   "round": 4
+  },
+  "p-3e8ca5": {
+   "kind": "check",
+   "reference_id": "NLB072886_01",
+   "a_is": "draft",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 17.38385009765625,
+    "draft": 25.932506561279297
+   },
+   "round": 3
+  },
+  "p-6f00ab": {
+   "kind": "check",
+   "reference_id": "NLB073426_01",
+   "a_is": "draft",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 2.2421822547912598,
+    "draft": 4.367084980010986
+   },
+   "round": 1
+  },
+  "p-571276": {
+   "kind": "check",
+   "reference_id": "NLB073404_01",
+   "a_is": "draft",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 2.7086546421051025,
+    "draft": 13.900429725646973
+   },
+   "round": 2
+  },
+  "p-38dcbc": {
+   "kind": "check",
+   "reference_id": "NLB075059_01",
+   "a_is": "repair",
+   "b_is": "draft",
+   "judge_surprisal": {
+    "repair": 3.4296112060546875,
+    "draft": 10.56041431427002
+   },
+   "round": 5
+  },
+  "p-d4f2ff": {
+   "kind": "check",
+   "reference_id": "NLB073298_01",
+   "a_is": "draft",
+   "b_is": "repair",
+   "judge_surprisal": {
+    "repair": 2.825242042541504,
+    "draft": 6.761987209320068
+   },
+   "round": 5
   }
  }
 }

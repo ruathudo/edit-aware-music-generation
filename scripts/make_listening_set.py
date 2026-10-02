@@ -36,7 +36,8 @@ from scripts.repair_plausibility import slot_surprisal, test_examples  # noqa: E
 DIAG = 0  # src.align's diagonal move
 SEED = 2026
 SPOT_PER_SOURCE = 20
-PAIRS_MAIN, PAIRS_CHECK = 30, 10
+PAIRS_MAIN, PAIRS_CHECK = 40, 10
+ROUNDS = 5
 MAX_EXCERPT, PAIR_CONTEXT = 20, 8
 SWEEPS = {
     "D1": "results/refiner/headline_r2/mtc_d1",
@@ -130,8 +131,10 @@ def main():
             if before != after and j is not None and before != ref[j] and after != ref[j]:
                 candidates.append((ex, gated, i, before, after, ref[j]))
     rng.shuffle(candidates)
-    seen, chosen = set(), []
-    for c in candidates:                      # one pair per reference melody
+    # One pair per reference melody, and never a tune already used for an excerpt,
+    # so no rater hears the same tune twice.
+    seen, chosen = set(r for r in refs if r not in unused), []
+    for c in candidates:
         if c[0].reference.id not in seen:
             seen.add(c[0].reference.id); chosen.append(c)
     for kind, group in (("main", chosen[:PAIRS_MAIN]), ("check", chosen[PAIRS_MAIN:PAIRS_MAIN + PAIRS_CHECK])):
@@ -152,11 +155,47 @@ def main():
                                           ("reference" if kind == "main" else "draft"): surprisal[1]}})
         print(f"pair {kind:5s} {len(group)} items")
 
+    # ---- rounds: five balanced blocks of 20 excerpts (4 per source) and 10 pairs
+    # (8 main + 2 checks). A separate generator keeps the item ids above unchanged.
+    rrng = random.Random(SEED + 1)
+    groups = {}
+    for it in items:
+        a = key[it["id"]]
+        groups.setdefault(a.get("source") or a["kind"], []).append(it)
+    for name, group in groups.items():
+        rrng.shuffle(group)
+        assert len(group) % ROUNDS == 0, (name, len(group))
+        for n, it in enumerate(group):
+            it["round"] = key[it["id"]]["round"] = n % ROUNDS + 1
+
+    # ---- practice: two unscored excerpts from tunes used nowhere else, with answers
+    # shown after the rater responds (one untouched, one with a clear changed note)
+    prng = random.Random(SEED + 2)
+    spare = [r for r in unused if r not in seen]
+    by_ref = {ex.reference.id: ex for ex in examples["D1"]}
+    practice = []
+    for ref_id in spare:
+        ex = by_ref[ref_id]
+        if not practice:
+            notes = list(ex.reference.notes); wrong = []
+        else:
+            notes = list(ex.draft_notes)
+            labels = edit_labels(notes, list(ex.reference.notes))
+            wrong = [i for i, lab in enumerate(labels[:len(notes)]) if lab != 0]
+            if len(wrong) != 1:
+                continue
+        s0, e0 = excerpt_window(len(notes), wrong, prng)
+        practice.append({"id": f"practice-{len(practice) + 1}", "task": "practice",
+                         "notes": notes[s0:e0], "answer": [i - s0 for i in wrong]})
+        if len(practice) == 2:
+            break
+
     rng.shuffle(items)   # stored order carries no information either
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "items.json").write_text(json.dumps({"version": 1, "ticks_per_quarter": 24,
-                                                "items": items}, separators=(",", ":")))
-    (OUT / "key.json").write_text(json.dumps({"version": 1, "seed": SEED, "key": key}, indent=1))
+    (OUT / "items.json").write_text(json.dumps({"version": 2, "rounds": ROUNDS, "ticks_per_quarter": 24,
+                                                "practice": practice, "items": items},
+                                               separators=(",", ":")))
+    (OUT / "key.json").write_text(json.dumps({"version": 2, "seed": SEED, "key": key}, indent=1))
     print(f"\n{len(items)} items -> {OUT / 'items.json'}; key -> {OUT / 'key.json'}")
 
 
