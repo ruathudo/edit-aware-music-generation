@@ -5,7 +5,8 @@ Rewritten section by section from the Overleaf version (itself drafted from
 here are as on Overleaf. Done: abstract and §1–§5 with the method figure (applied to
 Overleaf); §6 and §7 with Figure 2 (applied to Overleaf); the §7 listening study with
 Table VIII and its follow-ups in the abstract, §1, §4 and §8 (applied to Overleaf
-2026-10-12). Not yet on Overleaf: the full reviews of §8 and §9 (2026-10-12).
+2026-10-12); the full reviews of §8 and §9 (applied to Overleaf 2026-10-12). Local
+build: 11 pages, references spilling about a third of a column onto page 11.
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
@@ -961,10 +962,11 @@ makes them slightly worse.
   - *Abstract: one clause added after the repair sentence ("In a blinded listening
     study, listeners locate rule-based errors but not a generator's changes, and hear
     those repairs as different, not wrong."). Not "and a small listening study agrees".*
-- *§8 and §9 reviewed (2026-10-12), not yet on Overleaf. The judge's domain gap (L4)
+- *§8 and §9 reviewed and applied to Overleaf (2026-10-12). The judge's domain gap (L4)
   stays in §4 only, since the same-corpus control answers it there. Every section has
-  now had one pass; next is applying §8–§9 to Overleaf and a whole-paper read for
-  length and repetition (§8's recommendations and §9's lessons overlap by design).*
+  now had one pass. Next: a whole-paper read for length and repetition. The draft is
+  11 pages against a 10-page limit, and §8's recommendations overlap §9's lessons by
+  design.*
 - *Removed from the introduction, and still reported in later sections: 92% vs 7%
   distance, two orders of magnitude, 6–7× vs 2.7× chance, the 25% loss of free decoding,
   −0.1%/+0.4%, and 11–13% vs 58–59% exact repair.*
