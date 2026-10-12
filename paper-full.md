@@ -3,7 +3,7 @@
 Rewritten section by section from the Overleaf version (itself drafted from
 `paper-draft.md`; claims and numbers per `paper-core.md`). Sections not yet rewritten
 here are as on Overleaf. Done: abstract and §1–§5 with the method figure (applied to
-Overleaf); §6 and §7 with Figure 2 (built locally, not yet on Overleaf).
+Overleaf); §6 and §7 with Figure 2 (applied to Overleaf).
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
