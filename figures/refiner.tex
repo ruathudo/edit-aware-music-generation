@@ -1,0 +1,50 @@
+% Figure: the refiner with gated decoding (input from main.tex; needs tikz).
+% Colours match figures/figure1.pdf: blue #2a78d6 for the model, orange #eb6834 for an edit.
+\definecolor{rfBlue}{HTML}{2A78D6}
+\definecolor{rfOrange}{HTML}{EB6834}
+\definecolor{rfInk}{HTML}{52514E}
+\begin{tikzpicture}[
+    x=1.08cm, y=0.68cm, font=\scriptsize,
+    tok/.style={draw=rfInk, rounded corners=1pt, minimum width=0.72cm, minimum height=0.36cm,
+                inner sep=1pt, font=\scriptsize\ttfamily},
+    edit/.style={tok, draw=rfOrange, fill=rfOrange!12, very thick},
+    block/.style={draw=rfBlue, fill=rfBlue!8, rounded corners=2pt, minimum height=0.40cm},
+    prob/.style={font=\scriptsize, inner sep=1pt},
+    flow/.style={-{Latex[length=1.6mm]}, rfInk, semithick},
+    copyflow/.style={-{Latex[length=1.6mm]}, rfInk!55, semithick},
+    side/.style={anchor=east, font=\scriptsize, align=right, text=rfInk},
+  ]
+  % columns: five draft events
+  \foreach \i/\n in {0/G4, 1/G4, 3/B4, 4/B4} {
+    \node[tok] (d\i) at (\i, 0) {\n};
+    \node[tok] (o\i) at (\i, 4.3) {\n};
+  }
+  \node[edit] (d2) at (2, 0) {C5};
+  \node[edit] (o2) at (2, 4.3) {A4};
+
+  % encoder and edit head span all events
+  \node[block, minimum width=5.25cm] (enc) at (2, 1.05) {encoder (reads the whole draft)};
+  \node[block, minimum width=5.25cm] (head) at (2, 2.1) {};
+  \foreach \i/\p in {0/.01, 1/.02, 3/.04, 4/.03} \node[prob] (p\i) at (\i, 2.1) {$p{=}\p$};
+  \node[prob, text=rfOrange, font=\scriptsize\bfseries] (p2) at (2, 2.1) {$p{=}.93$};
+
+  % gate: copy, or hand the event to the decoder
+  \foreach \i in {0, 1, 3, 4} {
+    \draw[copyflow] (p\i.north |- head.north) -- node[fill=white, inner sep=1pt, text=rfInk] {copy} (o\i.south);
+  }
+  \node[block, draw=rfOrange, fill=rfOrange!12, minimum width=0.95cm] (dec) at (2, 3.2) {decoder};
+  \draw[flow, rfOrange] (p2.north |- head.north) -- (dec.south);
+  \draw[flow, rfOrange] (dec.north) -- (o2.south);
+
+  % draft into encoder, encoder into head
+  \foreach \i in {0,...,4} {
+    \draw[flow] (d\i.north) -- (d\i.north |- enc.south);
+    \draw[flow] (d\i.north |- enc.north) -- (d\i.north |- head.south);
+  }
+
+  % row labels
+  \node[side] at (-0.55, 4.3) {output};
+  \node[side] at (-0.55, 3.2) {gate:\\ $p \ge \theta$?};
+  \node[side] at (-0.55, 2.1) {edit head:\\ $p$(edit)};
+  \node[side] at (-0.55, 0) {draft};
+\end{tikzpicture}

@@ -2,7 +2,8 @@
 
 Rewritten section by section from the Overleaf version (itself drafted from
 `paper-draft.md`; claims and numbers per `paper-core.md`). Sections not yet rewritten
-here are as on Overleaf. Done: abstract, §1, §2, §3, §4, Figure 1 (all applied to Overleaf).
+here are as on Overleaf. Done: abstract, §1, §2, §3, §4, §5 with the method figure, and
+the results figure (all applied to Overleaf).
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
@@ -334,7 +335,82 @@ for comparability with prior work, and ΔNLL, for whether the music became more 
 ΔNLL has its own bias: it rewards typical notes, so it can favour a refiner that writes
 the most likely note over the reference's (§6). §8 returns to its limits.
 
-## Figure 1 (placed in §7)
+## 5. Method
+
+**Figure 1 (placed at the top of §5).** `figures/refiner.tex` (TikZ, `\input` from
+`main.tex`; preview `figures/refiner.png`). One column wide. Five draft events (the
+opening of Table II's draft) pass through the encoder to the edit head, which shows a
+probability per event; four are copied straight to the output, and the one above the
+threshold (C5, $p = .93$) goes to the decoder, which writes A4. Blue is the model, orange
+the edited event.
+
+![Figure 1](figures/refiner.png)
+
+**Caption.** Gated decoding on the draft of Table II. The edit head gives each event a
+probability $p$ that it needs editing. Events with $p < \theta$ are copied; only where
+$p \ge \theta$ does the decoder write a replacement (here C5 becomes A4). Probabilities are
+illustrative; bar tokens are always copied.
+
+**Refiner.** The refiner (Fig. 1) is an encoder–decoder transformer (three encoder and
+three decoder layers, width 256, four heads; 5.86M parameters). The encoder reads the
+whole draft; the decoder writes the refined melody one token at a time, attending to the
+encoded draft, and is trained with teacher forcing on the reference. An encoder–decoder
+suits the task for two reasons: deciding whether a note is wrong requires seeing the notes
+after it, and a draft and its reference differ in length whenever a note has been
+inserted or deleted, so they cannot be aligned position by position.
+
+**Edit head.** A linear layer on the encoder's output gives, for every draft event, a
+probability $p$ that the event needs editing. It is supervised by the keep/edit labels of
+§3, and the model is trained on
+
+$$\mathcal{L} = \mathcal{L}_{\text{gen}} + \alpha\,\mathcal{L}_{\text{edit}}, \qquad (2)$$
+
+where $\mathcal{L}_{\text{gen}}$ is cross-entropy over the reference's tokens and
+$\mathcal{L}_{\text{edit}}$ is cross-entropy over the labels. The head adds 514
+parameters. A five-way head that also predicts the type of edit does no better
+($+0.10 \pm 0.36$ points, seed-matched) and never predicts an insertion correctly, so we
+use the binary head throughout.
+
+**Gated decoding.** The usual way to use such a model is free decoding, in which the
+decoder rewrites the whole melody. But most of a draft is already right, and every note
+the decoder rewrites is another chance to get one wrong. We instead make copying the
+default (Fig. 1). An event with $p < \theta$ is copied verbatim. An event with
+$p \ge \theta$ is handed to the decoder, which writes a replacement event in its place,
+conditioned on the encoded draft and on everything output so far. Bar tokens are always
+copied. Decoding is greedy, under a mask that enforces the alternation of pitch and
+duration tokens.
+
+This construction has a useful property. With a threshold no probability can reach, the
+gate never opens and the output *is* the draft: gated decoding contains copy-input as a
+special case, so its worst setting is doing nothing. Lowering $\theta$ trades coverage
+for risk, as in selective classification [Geifman2017], and what decides whether each
+additional edit helps is the head's precision among its most confident predictions, not
+its overall accuracy. In this form the gate only substitutes events; it neither inserts
+nor deletes, which limits what it can repair (§8).
+
+**Baselines.** B1 is the same encoder–decoder without the head, decoded freely: plain
+sequence-to-sequence imitation. B2 keeps the head but trains with $\alpha = 0$, so it has
+exactly the refiner's parameters and differs only in the loss. B3 returns the draft
+unchanged (copy-input). We also report the edit-aware model decoded freely, which
+separates what the loss changes from what the gate changes. B3 and fidelity are not
+optional: in a preliminary sweep on generated drafts, an auxiliary edit loss beat B1 by
+6.3% on every seed only because it had learned to copy the draft (0.0009 notes changed
+per note), which nothing else would have shown.
+
+**One setting, chosen on validation.** The loss weight $\alpha$, the threshold $\theta$
+and the weighting of the rare edit class in $\mathcal{L}_{\text{edit}}$ interact, and
+choosing them on test results would inflate every number that follows. We select them
+once, on D1 validation drafts only, over four class weightings, four values of $\alpha$
+and six of $\theta$ (96 settings, three seeds each), by lowest mean gated Correction Cost.
+The chosen setting (no class weighting, $\alpha = 0.5$, $\theta = 0.8$) is applied
+unchanged to every draft source and both corpora. The landscape is flat: every class
+weighting comes within 0.2 points of the best, and 84 of the 96 settings improve on
+copy-input on every seed. Models are trained with AdamW (learning rate $3 \times 10^{-4}$,
+batch 32) for up to 40 epochs, with early stopping on validation loss. Runs are not
+bit-reproducible on GPU; two complete re-runs differ by at most 0.36 points in any cell
+mean.
+
+## Figure 2 (placed in §7)
 
 `figures/figure1.pdf`, from `scripts/figure1.py` (also writes the panels separately as
 `figure1a` and `figure1b`). Full text width, placed at the §7 paragraph "The better the
@@ -392,3 +468,9 @@ draft.
   Table I). The §7.x pointer in its opening paragraph carries a red TODO, like the
   introduction's, until the listening-test subsection has a label. Local build: 9.67
   pages.*
+- *§5: the method diagram becomes Figure 1 and the results figure Figure 2 (still made by
+  `scripts/figure1.py`; the `fig:main` label is unchanged). The gate threshold is renamed
+  $\theta$ everywhere (§5, §6, §7, Table IX) so that $\tau$ means only the degradation
+  threshold of §4. `main.tex` gains `tikz` with `arrows.meta`. Local build: 9.78 pages,
+  so the §6–§8 rewrites need to give back about 0.1 page to keep the 0.5 page for the
+  listening study.*
