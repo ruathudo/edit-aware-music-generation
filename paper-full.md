@@ -2,7 +2,7 @@
 
 Rewritten section by section from the Overleaf version (itself drafted from
 `paper-draft.md`; claims and numbers per `paper-core.md`). Sections not yet rewritten
-here are as on Overleaf. Done: abstract, §1, §2, §3, Figure 1 (all applied to Overleaf).
+here are as on Overleaf. Done: abstract, §1, §2, §3, §4, Figure 1 (all applied to Overleaf).
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
@@ -253,6 +253,87 @@ rates; and plausibility under the judge of §4. Results are means over five trai
 seeds for the headline and three for secondary comparisons, under one configuration
 selected on validation data (§5).
 
+## 4. Measuring Plausibility
+
+Edit distance says how far a draft is from its reference, not whether it is worse. This
+section takes up the first question, whether edit distance to a reference measures
+improvement. Answering it needs a second measure, of how plausible a melody is, that does
+not depend on the reference. We use a language model as a judge and calibrate it against
+melodies known to be acceptable. A model's judgement is not a listener's, so §7.x checks
+the two conclusions that rest most on it with listeners.
+
+**The judge.** $J$ is a decoder-only transformer language model over the token sequence
+of §3 (four layers, width 256), trained on the judge's half of Essen with early stopping
+on held-out Essen melodies. It shares no training data with the generator that writes D2
+drafts, which is trained on the other half and has three layers rather than four; a judge
+trained on the generator's data could simply recognize its output. $J$ scores a melody by
+its mean negative log-likelihood (NLL) per token, per token because insertions and
+deletions change length, and scores a draft by how much less plausible it is than its
+reference:
+
+$$\Delta\mathrm{NLL}(M_0) = \mathrm{NLL}_J(M_0) - \mathrm{NLL}_J(M^*). \qquad (1)$$
+
+Positive values mean the draft is less plausible than its reference. Both melodies are
+given barlines from the reference's metre, so neither benefits from annotation the other
+lacks. $J$ fits MTC 0.137 nats per token worse than Essen. Because ΔNLL is a paired
+difference this offset cancels, but the gap may still make $J$ more sensitive to change on
+MTC than on its own corpus; the same-corpus control of §3 removes the gap, and every
+judge-based result from §6 on holds under it. $J$ scores whole melodies; to score
+individual notes, §7 adds a two-sided judge that sees the notes on both sides.
+
+**Calibration on human variants.** A judge that penalized any departure from the
+reference would call every alternative an error, and would be useless for our question.
+We therefore score the D4 pairs, two members of one tune family, each an attested version
+of the tune. Their ΔNLL has mean +0.054 and median +0.031, and 45.0% of pairs score at or
+below zero: the judge is close to indifferent between versions that differ in 92% of their
+notes. It measures degradation, not difference. We set a degradation threshold $\tau$ at
+the 95th percentile of the variants' ΔNLL, $\tau = 0.585$, so a draft above $\tau$ is less
+plausible than 95% of human alternatives are. (Resampling which variant pairs are drawn
+moves $\tau$ by about 0.02.) Because the variant pairs come from the test corpus, $\tau$ is
+used only to group drafts for analysis, never to train or select a model.
+
+**Table III.** Draft sources under the judge (MTC). *Per unit* is the median of ΔNLL
+divided by the fraction of notes changed (Table I); $\rho$ is Spearman's correlation
+between fraction changed and ΔNLL across drafts, with a 95% interval from resampling tune
+families.
+
+| source | ΔNLL mean | per unit | ΔNLL ≤ 0 | ΔNLL > τ | ρ [95% CI] |
+|---|---|---|---|---|---|
+| D4 human variants | +0.054 | +0.04 | 45.0% | 5.0% | +0.14 [+0.04, +0.24] |
+| D1 random | +0.298 | +3.94 | 5.2% | 13.0% | +0.52 [+0.46, +0.59] |
+| D3 rule-based | +0.271 | +3.14 | 4.2% | 9.6% | +0.47 [+0.41, +0.52] |
+| D2 generated | +0.139 | +1.04 | 20.5% | 2.6% | +0.20 [+0.11, +0.30] |
+| all pooled | | | | | −0.06 [−0.11, −0.01] |
+
+**Corruption is damage, but of an unrealistic kind.** A common worry about random
+corruption is that a replaced note may simply produce a valid alternative. Table III does
+not support that worry: 95% of D1 drafts are less plausible than their references. The
+problem is the opposite one. Random and rule-based corruption change 7–9% of a melody at a
+ΔNLL of 3–4 per unit of change, roughly two orders of magnitude more per unit than a human
+variant (whose per-unit median is near zero, so the exact ratio is unstable). Corruption
+moves a melody a short distance *off* the distribution of plausible melodies; human
+variation moves it a long way *along* it. Generated drafts sit between the two, at about
+1 per unit, and 79.5% are less plausible than their reference. Because $\tau$ is
+calibrated on variants that differ in 92% of their notes, it is a conservative bar for
+drafts that change a tenth as much: only 13.0% of D1 drafts clear it, although 95% are
+degraded. We use it to certify degradation, never to declare a draft error-free.
+
+**Edit distance cannot tell an error from an alternative.** Within a single corruption
+process, more change does mean more damage: fraction changed and ΔNLL correlate at
+$\rho \approx 0.5$ for D1 and D3, partly by construction, since the number of injected
+edits drives both. Across sources the relation disappears and slightly reverses
+($\rho = -0.06$ pooled): the melodies furthest from their references, the human variants,
+are the most plausible. The contrast is starkest at matched distance, though the evidence
+is thin: the nine variant pairs that differ in fewer than 20% of their notes have median
+ΔNLL 0.000, against +0.18 for synthetic drafts in the same range.
+
+So the answer to the first question is: only within one draft source. Edit distance to a
+reference can rank methods on one source, but it cannot compare sources, or say whether a
+change was a correction or a valid alternative. We therefore report both Correction Cost,
+for comparability with prior work, and ΔNLL, for whether the music became more plausible.
+ΔNLL has its own bias: it rewards typical notes, so it can favour a refiner that writes
+the most likely note over the reference's (§6). §8 returns to its limits.
+
 ## Figure 1 (placed in §7)
 
 `figures/figure1.pdf`, from `scripts/figure1.py` (also writes the panels separately as
@@ -307,3 +388,7 @@ draft.
 - *§3 adds two `ref.bib` entries, `Wagner1974` (the alignment algorithm) and
   `Mongeau1990` (musical edit distance), and a new Table II (`tab:example`), so the
   later tables are renumbered by one. Local build: 9.64 pages, up from about 9.4.*
+- *§4 on Overleaf: Table III is now single-column (the "fraction changed" column is in
+  Table I). The §7.x pointer in its opening paragraph carries a red TODO, like the
+  introduction's, until the listening-test subsection has a label. Local build: 9.67
+  pages.*
