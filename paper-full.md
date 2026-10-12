@@ -2,8 +2,8 @@
 
 Rewritten section by section from the Overleaf version (itself drafted from
 `paper-draft.md`; claims and numbers per `paper-core.md`). Sections not yet rewritten
-here are as on Overleaf. Done: abstract, §1, §2, §3, §4, §5 with the method figure, and
-the results figure (all applied to Overleaf).
+here are as on Overleaf. Done: abstract and §1–§5 with the method figure (applied to
+Overleaf); §6 and §7 with Figure 2 (built locally, not yet on Overleaf).
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
@@ -410,34 +410,277 @@ batch 32) for up to 40 epochs, with early stopping on validation loss. Runs are 
 bit-reproducible on GPU; two complete re-runs differ by at most 0.36 points in any cell
 mean.
 
-## Figure 2 (placed in §7)
+## 6. Results I: Where Localize-then-Fix Works
 
-`figures/figure1.pdf`, from `scripts/figure1.py` (also writes the panels separately as
-`figure1a` and `figure1b`). Full text width, placed at the §7 paragraph "The better the
-generator, the less it leaves", where D1–D3 are already defined.
+Our main results are cross-corpus (judge and generator trained on Essen, tested on MTC),
+so every experiment is repeated same-corpus, with judge, generator and test melodies all
+from Essen. These are the bracketed values in every table; each conclusion below holds on
+both.
 
-- **(a) Can the changed notes be found?** Dot plot, one row per draft condition, MTC and
-  Essen side by side. Rows: *Corrupted* (random D1, rule-based D3); *Generator:
-  training* (2, 5, 10 epochs, fully trained D2, all at T = 1.0); *Generator:
-  temperature* (T = 1.2, 1.0 = D2, 0.8, fully trained). x: AUROC of the untrained
-  two-sided judge, 0.5 = chance. The shaded band marks the corrupted drafts.
-- **(b) Does gated editing improve the draft?** Bars, MTC, five seeds: D1 +6.1%,
-  D3 +9.8%, D2 0.0%.
+**Table IV** (now single-column; replaces the full-width version). Improvement in mean
+Correction Cost over returning the draft (copy-input), %, mean over five seeds; positive
+is better. MTC (Essen in brackets). Gated editing improves on copy-input on all five seeds
+in every D1 and D3 cell (s.d. 0.27–0.58); on D2 its gate never opens.
 
-Dropped from the earlier version: the implausibility-per-unit x-axis (its numbers stay
-in the judge table of §4, now Table III, and §7), the human-variants line, seed counts and the abstention note on the
-chart, and the 2-epoch generator's gain in (b) (reported in §7).
+| system | D1 random | D3 rule-based | D2 generated |
+|---|---|---|---|
+| B1 imitation, free | −24.9 (−92.2) | +3.9 (−22.3) | −3.6 (−27.1) |
+| B2 (α = 0), free | −18.8 (−90.1) | +5.3 (−21.8) | −5.7 (−26.1) |
+| edit-aware, free | −17.8 (−92.4) | +4.0 (−22.7) | −4.2 (−25.6) |
+| **edit-aware, gated** | **+6.06 (+4.25)** | **+9.81 (+7.38)** | 0.00 (0.00) |
 
-**Caption.** (a) How well an untrained judge, which scores each note given its context,
-finds the notes that differ from the reference (AUROC; 0.5 is chance, 1 is perfect), on
-MTC and, same-corpus, Essen. Drafts are made by random (D1) or rule-based (D3)
-corruption, or by a generator varied in training length (at T = 1.0) and in sampling
-temperature (fully trained); D2 is the fully trained generator at T = 1.0. The shaded
-band marks the corrupted drafts. The better trained the generator, the harder its
-changes are to find. (b) Gated editing's reduction in Correction Cost relative to
-returning the draft unchanged, MTC, mean ± s.d. over five seeds. Every seed improves on
-both corrupted sources; on generated drafts the gate never opens, so the output is the
-draft.
+**Gated editing improves drafts where errors are local.** On random corruption, gated
+decoding reduces Correction Cost by 6.06% relative to the draft on MTC (±0.58) and by
+4.25% same-corpus (±0.46), on every one of five seeds (Table IV). It improves 22.4% of
+melodies and worsens 6.5%, leaving the rest untouched, and changes about 1.5% of notes, a
+third as many as free decoding. Of the events the gate hands to the decoder, 82% were
+genuinely wrong. The setting chosen on D1 validation transfers unchanged to the other
+sources.
+
+**The operating point is not delicate.** Sweeping the threshold on test, as a
+description rather than a selection, gated editing beats copy-input on every seed at
+every threshold from 0.2 to 0.95, on both corruption sources and both corpora (D1: +5.0
+to +6.4% on MTC, +2.7 to +4.6% on Essen; D3: +8.9 to +10.3% and +6.5 to +7.3%). Nor does
+it depend on model size: it beats copy-input on D1 on every seed in all nine
+configurations we tried, from 1.6M to 42.7M parameters (at the earlier θ = 0.9), while
+free decoding is worse than copying in all nine.
+
+**Free decoding is worse than doing nothing.** On random corruption every freely decoded
+model is worse than returning the draft, on every seed: the imitation baseline B1 by 25%
+on MTC and by more than 90% same-corpus. It rewrites notes that were right. The
+edit-aware loss does not rescue it: with the head trained (α = 0.5) or present but
+untrained (B2), free decoding stays within the seed noise of B1 on every cell. The gain of
+gated editing comes from making copying the default; the loss's contribution is a head
+confident enough to gate with. The one cell where free decoding beats copying is MTC D3,
+discussed below.
+
+**How much is left.** An oracle, the same architecture trained and tested with the true
+edit positions as input, removes 49.3% of the draft's Correction Cost on D1 (single run,
+earlier configuration). Gated editing's 6.1% is about an eighth of that headroom, and the
+gap lies mainly in localization.
+
+**Better music, not only closer to the reference.** A Correction Cost gain could come
+from edits the judge finds implausible. It does not. On the melodies it changes, gated
+editing removes 30% of the draft's ΔNLL on D1 and 48% on D3, and makes fewer than 3% of
+them less plausible (seeds 0–2; Table VII). Free decoding removes *more*,
+41% on D1, while being 25% worse than copying on Correction Cost. The two measures
+disagree because free decoding is greedy and drifts toward the model's most typical
+continuation: 14.5% of its D1 outputs score as more plausible than the reference itself
+(against 5.2% of drafts), and a third of the melodies it changes end up both more
+plausible and further from the reference (one seed). This is the dissociation of §4
+again, now in model outputs. An evaluation on plausibility alone would prefer free
+decoding; one on Correction Cost alone would hide that gated editing improves the music.
+On random corruption, gated editing is the only system better than the draft on both.
+
+**D3 is easier, but its in-domain gain overstates it.** Gated editing's largest gains are
+on rule-based degradation, 9.81% on MTC and 7.38% same-corpus, on every seed. Part of this
+is intrinsic: a head trained only on random corruption improves D3 drafts by +7.25%, more
+than it improves the drafts it was trained on. Part is not: a head trained on D3 itself
+reaches +9.98% (seeds 0–2). Transfer loses about a quarter of the in-domain gain in both
+directions (D1 to D3, 27%; D3 to D1, +4.80% against +6.35%, 24%), so rule-based corruption
+is not unusually circular: *every* synthetic benchmark we built rewards learning its own
+corruption process by about a quarter of its in-domain score.
+
+**Generated drafts.** On D2 the gate never opens: the output equals the draft on every
+seed, and gated editing neither helps nor harms, while free decoding loses 3.6% and
+27.1%. No other threshold would have helped: lowering it to 0.2 opens the gate on 3% of
+events at a precision of 0.17 and makes drafts worse on every seed (−1.0% on MTC, −1.1% on
+Essen), and from 0.5 upward the gate barely opens. Abstention is learned, not guaranteed:
+heads trained on D1 or D3 and applied to D2 *do* open the gate, at a precision of 0.27
+and 0.21, and make drafts worse by 1.7% and 2.0% on every seed. §7 shows why no operating
+point exists.
+
+*Removed from §6: the output-quality table (old Table V). Its gated "recovered" values
+are the repair table's last column (§7), and its free-decoding values (41% on D1) are in
+the text above. Moved into §6 from §7: the transfer results ("What training adds"), split
+between the D3 paragraph and the generated-drafts paragraph.*
+
+## 7. Results II: Where It Does Not
+
+On generated drafts the gate never opens. This section asks why. It rules out a weak
+detector, too little damage and contiguous changes as the explanation, shows that
+localizability follows how good the generator is, and then shows that localizing a change
+is not enough to restore the reference.
+
+**Table V** (full width, unchanged). Localization of the notes that differ from the
+reference, MTC (Essen in brackets). Each cell gives AP lift (average precision divided by
+the base rate of edited positions, so 1.0× is chance) and AUROC. The judges are never
+trained on edit labels.
+
+| detector | D1 random (6.0% edited) | D3 rule-based (8.2%) | D2 generated (7.3%) |
+|---|---|---|---|
+| trained head | 5.8× / .724 (5.6× / .727) | 4.6× / .726 (4.3× / .717) | 1.6× / .636 (1.8× / .658) |
+| causal judge, untrained | 4.1× / .775 (4.9× / .774) | 4.7× / .768 (5.1× / .756) | 1.4× / .561 (1.4× / .564) |
+| two-sided judge, untrained | **6.2× / .838** (7.0× / .831) | **5.9× / .812** (6.1× / .790) | **2.7× / .688** (2.7× / .683) |
+
+**A trained generator's drafts leave little local trace.** Corrupted notes are readily
+found: the trained head ranks them at 4.6–5.8× chance (Table V). Generator-written notes
+are not. The head trained on D2 localizes them at 1.6× chance and, at the selected
+setting, never becomes confident enough to open the gate, although D2 drafts contain
+*more* changed positions than D1 drafts (7.3% against 6.0%). The same loss and more
+positive examples, and the head finds nothing worth acting on. Other trained detectors do
+no better: a span-level detector trained to find the rewritten span directly reaches 1.6×
+chance at top-1 even when told the span's length range, and heads trained on D1 or D3
+localize D2's changes at 1.3–1.4×.
+
+**It is not for want of a detector.** The strongest localizer we built was not trained on
+edits at all. A two-sided judge, a masked language model of the same size and training
+data as $J$ that scores each note given every other note in the melody, outperforms the
+trained head on every source and both corpora. The comparison favours the head:
+standardizing its scores within each melody, as the judge's are, lowers its AUROC. Even
+this judge reaches only 2.7× chance on D2, against 6–7× on corruption. Nor is capacity
+the limit where localization works: on random corruption, localization precision is flat
+across a 26-fold range of model sizes (at the earlier θ = 0.9; we did not repeat this on
+D2). And the changes are correctable once found: given the true positions, the oracle
+removes 21.5% of a generated draft's Correction Cost (single run). Finding them is the
+first problem.
+
+**Not less damage, but diffuse damage.** One explanation would make the result
+uninteresting: generated drafts may simply carry less damage than corrupted ones (mean
+ΔNLL 0.14 against 0.30), and damage of any kind may be findable once there is enough of
+it. Banding D2 alone cannot test this, since any surprisal-based localizer finds
+high-ΔNLL drafts easier almost by construction. Table VI therefore bands *every* source
+at the same absolute ΔNLL cut-points, on fresh sets of about 5,300 MTC drafts per source
+and on the Essen test drafts, so that corrupted and generated drafts are compared at
+matched degradation.
+
+**Table VI** (one column, unchanged). Localization at matched degradation: AUROC of the
+untrained two-sided judge for the notes that differ from the reference, with drafts
+banded by the causal judge's ΔNLL at the same cut-points for every source. MTC (Essen in
+brackets); τ is the threshold of §4 (0.585 for MTC, 0.503 for the same-corpus judge).
+
+| ΔNLL band | D1 random | D3 rule-based | D2 generated |
+|---|---|---|---|
+| ≤ 0 | .753 (.722) | .638 (.618) | .606 (.579) |
+| 0 – 0.1 | .830 (.826) | .774 (.740) | .684 (.670) |
+| 0.1 – 0.2 | .844 (.834) | .807 (.801) | .727 (.728) |
+| 0.2 – 0.4 | .855 (.837) | .825 (.816) | .730 (.724) |
+| 0.4 – τ | .845 (.831) | .838 (.831) | .748 (.738) |
+| > τ | .861 (.855) | .850 (.838) | .775 (.779) |
+
+The explanation fails. In every band and on both corpora, generated changes are localized
+worse than corrupted ones, by 0.08–0.16 AUROC against D1, although D2 drafts change
+*more* notes than D1 drafts in the same band (8.8–13.1% against 3.9–9.4% on MTC). Even
+D2's most degraded band is localized below the least degraded positive band of random
+corruption. For random corruption, localization is nearly flat once a draft is worse at
+all (0.83–0.86); for generated drafts it climbs slowly with damage and never reaches that
+level. The same damage, written by a generator, leaves less trace on the notes that were
+changed. (The trained D2 head varies little across bands, 0.62–0.67; the gradient is the
+judge's.)
+
+Where the trace goes is visible in how generated damage is distributed. After a rewritten
+span, the *unchanged* notes that follow also become less plausible under the causal judge
+(+0.07 per token, against +0.22 within the span). The span's own notes are individually
+plausible; what is implausible is how the span meets its context, and the cost of that
+falls partly on notes the reference-derived labels call correct. A causal model charges
+it to the wrong notes. A two-sided judge, which sees both sides of the seam, doubles D2
+localization, from 1.4× to 2.7×, but cannot recover what was spread beyond the changed
+notes.
+
+**Contiguity costs localization, but does not explain D2.** Generated changes come in
+runs of 2–6 notes, while random corruption mostly alters single notes, and contiguous
+errors are harder to rank: within D3, the judge's AUROC falls from 0.94 for isolated
+changes to 0.75 for runs of three or more (Essen: 0.92 to 0.72). At matched run length,
+however, generated changes are still localized worse. For runs of three or more the judge
+reaches 0.68 on D2 against 0.75 on D3 (Essen: 0.68 against 0.72), and the trained head
+0.64 against 0.71. Where no two changed notes are adjacent, the judge reaches 0.75 on D2
+against 0.84 on D1 and 0.94 on D3 (Essen: 0.73, 0.83, 0.92).
+
+**Figure 2** (one column). `figures/figure2.pdf`, from `scripts/figure2.py`. A dot plot,
+one row per draft condition, MTC and Essen side by side. Rows: *Corrupted* (random D1,
+rule-based D3); *Generator: training* (2, 5, 10 epochs, fully trained D2, all at
+T = 1.0); *Generator: temperature* (T = 1.2, 1.0 = D2, 0.8, fully trained). x: AUROC of
+the untrained two-sided judge, 0.5 = chance; the shaded band marks the corrupted drafts.
+The former panel (b), gated gain per source, repeated Table IV and was dropped.
+
+![Figure 2](figures/figure2.png)
+
+**Caption.** How well an untrained judge, which scores each note given its context, finds
+the notes that differ from the reference (AUROC; 0.5 is chance, 1 is perfect), on MTC
+and, same-corpus, Essen. Drafts are made by random (D1) or rule-based (D3) corruption, or
+by a generator varied in training length (at T = 1.0) and sampling temperature (fully
+trained); D2 is the fully trained generator at T = 1.0. The shaded band marks the
+corrupted drafts. The better trained the generator, the harder its changes are to find.
+
+**The better the generator, the less it leaves.** Everything so far compares one
+generator with corruption. Fig. 2 varies the generator itself: three sampling
+temperatures, and three checkpoints saved early in its training, each scored by the
+untrained judge exactly as D2 is. Localizability rises steadily as the generator gets
+worse: AUROC 0.65 at temperature 0.8, 0.69 for D2 and 0.72 at temperature 1.2, then
+0.77, 0.83 and 0.87 for the checkpoints after 10, 5 and 2 epochs (Essen: 0.65 to 0.86, in
+the same order). This ordering is the generator's quality by its own measure: held-out
+NLL falls from 1.84 after 2 epochs to 1.70, 1.50 and 1.23 for the trained model
+(same-corpus generator: 1.91 to 1.32). Two cautions apply. The judge shares training data
+with $J$, so part of its agreement with $J$'s measure of how implausible the changes are
+is built in. A detector independent of both, the head trained on random corruption's edit
+labels and applied zero-shot, shows the same direction (0.57 at temperature 0.8 rising to
+0.64 for the 2-epoch generator; Essen 0.61 to 0.68), but a much shallower slope: for it,
+even the weakest generator's drafts stay well below random corruption (0.73). By the
+judge, the 2-epoch generator's drafts are localized *better* than random corruption
+(0.87 against 0.84). What makes D2 hard to localize is therefore not that a generator
+wrote it, but that a good one did; how close a weak generator comes to corruption depends
+on the detector. Across all eight conditions, localizability rises steeply with how
+implausible the changes are per unit of change, up to about 2 per unit, and then levels
+off at 0.81–0.87, where both corruption sources and the undertrained generator sit.
+
+**Table VII** (now one column; was full width). What the decoder writes where the gate
+opens. *Exact*: share of gate-opened true substitutions where the output equals the
+reference's note. *≥ ref.*: share of the remaining, mismatched repairs that the two-sided
+judge rates at least as plausible as the reference's note. *Recovered*: share of the
+changed melodies' ΔNLL removed. Seeds 0–2, MTC (Essen in brackets).
+
+| drafts | exact | ≥ ref. | recovered |
+|---|---|---|---|
+| D1 random | **59%** (58%) | 49% (49%) | 30% (31%) |
+| D3 rule-based | **44%** (41%) | 39% (40%) | 48% (53%) |
+| D2, 2-epoch generator | **11%** (13%) | **64%** (68%) | 28% (36%) |
+
+**Repaired, but not to the reference.** If localizability were the whole story, gated
+editing should work on the 2-epoch generator's drafts. By edit distance it barely does.
+Refiners trained on those drafts under the same setting gain −0.13% ± 0.24 on copy-input
+on MTC (one seed of three positive) and +0.38% ± 0.30 same-corpus (three of three), a
+tenth of what the same method gains on random corruption, while free decoding loses 11%
+and 28%. Two things fall short. The trained head localizes these drafts less well than
+the judge does (AUROC 0.67–0.81 across seeds and corpora, against 0.86–0.87), so the gate
+opens at a precision of 0.59–0.72, against 0.82 on D1. And where the gate does find a
+changed note, the decoder rarely writes the reference's note (Table VII): 11–13% of the
+time, against 58–59% on random corruption and 41–44% on rule-based. That is not the same
+as failing. By the judge, gated editing removes 28% (MTC) and 36% (Essen) of these drafts'
+implausibility, and makes 85–88% of the melodies it changes more plausible. At the
+repairs that miss the reference, the two-sided judge finds the decoder's note far more
+plausible than the draft's (median surprisal 2.3–2.4 against 10.7–11.1) and at least as
+plausible as the reference's own note in 64–68% of cases (median 3.3–3.9). Inside a
+rewritten span the reference's note is no longer the best fit: its neighbours were
+rewritten too, and the decoder writes a note that fits them. A corrupted note is pinned
+down by the intact notes around it; a rewritten span's original is one plausible
+continuation among many, and the draft does not say which one the reference used. The
+oracle agrees: given the true positions, it removes 49% of D1's Correction Cost but only
+21.5% of D2's. Edit distance to the reference, the measure §4 showed cannot tell an error
+from an alternative, scores these repairs as no improvement. The judge rewards typical
+notes, and may prefer them for that reason alone; whether listeners hear them as wrong
+is tested below.
+
+**Listening study.** *TODO (red on Overleaf): design and results, about 0.5 page and one
+table.*
+
+**Using the judge.** The untrained two-sided judge localizes better than any trained head
+(Table V), and how it is used matters. Fed to the refiner's encoder as a per-note input,
+it improves localization (AUROC 0.73 to 0.82 on MTC D1) yet makes gated editing worse
+(+6.35% to +5.14%, every seed): the loss is in what the decoder writes, not in where it
+looks. Alone at the gate it is worse than the head (+2.81% on MTC D1), because its scores
+are standardized within each melody and it cannot decline to edit a melody with nothing
+wrong. Combined with the head in a two-feature gate fitted on D1 validation data, it adds
+1.4 to 2.1 points on every D1 and D3 cell on every seed (+7.91% on MTC D1, +11.80% on D3),
+at a cost of 0.4–0.5% on generated drafts, where the judge opens a gate the head keeps
+shut. We therefore keep the head alone as the method, because its abstention on generated
+drafts is part of the evidence, and offer the combination for drafts known to contain
+local errors.
+
+*Removed from §7: the gate-variants table (old Table IX; its numbers are in "Using the
+judge"), the transfer paragraph "What training adds" (moved to §6), and Figure 2's
+panel (b). The §8 paragraph "Where the judge belongs" repeated "Using the judge" and was
+folded into it. Table numbers after §5: IV headline, V localization, VI matched
+degradation, VII repair.*
 
 ---
 
@@ -445,7 +688,8 @@ draft.
 
 - *Listening test (TODO until results are in).* The introduction sentence above holds
   whatever the outcome, because it states only what is tested. Where the results go:
-  - *§7.x, a short subsection after "Repaired, but not to the reference".* Design (two
+  - *§7, the "Listening study" paragraph after "Repaired, but not to the reference"
+    (now a red TODO on Overleaf).* Design (two
     tasks: wrong-note spotting with naturalness ratings across D1, D3, D2, the 2-epoch
     generator and untouched references; paired preference between a mismatched repair
     and the reference's note, with a repair-vs-draft attention check), then results.
@@ -468,9 +712,10 @@ draft.
   Table I). The §7.x pointer in its opening paragraph carries a red TODO, like the
   introduction's, until the listening-test subsection has a label. Local build: 9.67
   pages.*
-- *§5: the method diagram becomes Figure 1 and the results figure Figure 2 (still made by
-  `scripts/figure1.py`; the `fig:main` label is unchanged). The gate threshold is renamed
-  $\theta$ everywhere (§5, §6, §7, Table IX) so that $\tau$ means only the degradation
-  threshold of §4. `main.tex` gains `tikz` with `arrows.meta`. Local build: 9.78 pages,
-  so the §6–§8 rewrites need to give back about 0.1 page to keep the 0.5 page for the
-  listening study.*
+- *§5: the method diagram becomes Figure 1 and the results figure Figure 2 (made by
+  `scripts/figure2.py`; the `fig:main` label is unchanged). The gate threshold is renamed
+  $\theta$ everywhere (§5, §6, §7 and the former gate table) so that $\tau$ means only the degradation
+  threshold of §4. `main.tex` gains `tikz` with `arrows.meta`. Local build: 9.78 pages.*
+- *§6–§7: the results tables were consolidated (old Tables V and IX dropped, headline and
+  repair tables made one column, Figure 2 reduced to one panel). Local build: 8.82 pages,
+  which leaves room for the listening-study paragraph and its table.*
