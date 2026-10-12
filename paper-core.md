@@ -5,7 +5,8 @@ Draft sections are written from this file. `paper-framing.md` is the revision lo
 got here — consult it for *why* a claim changed, not for what to claim.
 
 Written 2026-09-25, after revision-plan steps 1–7 and 5b. Target: an 8-page venue (not
-ISMIR; venue not yet named).
+ISMIR; venue not yet named). *Since then:* drafted for AIMG 2026 (10 pages including
+references); the listening study is analysed in C15 (2026-10-12).
 
 **How to use the tiers.** Every claim carries one:
 
@@ -105,7 +106,9 @@ positive: a coin flip. So the judge measures degradation, not novelty. The degra
 threshold τ is the variants' 95th percentile (0.585).
 *Source:* `results/judge/validator_report.json`.
 *Caveat:* ΔNLL is statistical implausibility under a small LM, not a musician's verdict
-(§6 L1).
+(§6 L1). *Listening study (C15):* the judge tracks listeners in direction, not closely:
+excerpt naturalness correlates with ΔNLL at ρ = −0.40 over all 100 excerpts, −0.26
+among drafts.
 
 **C2. Correction Cost cannot tell an error from a valid alternative.** (§4)
 Human variants sit 92% normalized edit distance from each other at +0.038 ΔNLL per unit
@@ -232,7 +235,10 @@ revised 2026-09-28: the original title "localizable is not repairable" was wrong
 (85–88% of changed melodies more plausible); at mismatched repairs the output note's
 two-sided surprisal is 2.36 / 2.27 vs reference 3.25 / 3.90 vs draft 11.05 / 10.73, and
 output ≤ reference in 64% / 68%. The decoder repairs toward the rewritten context; CC and
-exact repair cannot see it. Caveat: the judge rewards typical notes (listening study).
+exact repair cannot see it. Caveat: the judge rewards typical notes. *Listening study
+(C15):* listeners have no preference between the decoder's note and the reference's
+(42 vs 40, 54 no preference), so they hear the repairs as different, not wrong, and
+not as better. They always prefer the repair to the draft's note (30 vs 0).
 Original evidence, still valid:
 Refiners trained on the 2-epoch generator's drafts (headline setting, 3 seeds) gain
 −0.13% ± 0.24 over copy-input on MTC (1/3 seeds) and +0.38% ± 0.30 on Essen (3/3) — a
@@ -244,7 +250,8 @@ many; a corrupted note is pinned by its neighbours. Oracle agrees (49% vs 21.5%)
 (`scripts/repair_accuracy.py`).
 *Do not claim:* "gated editing works wherever errors are localizable", nor "found errors
 in generated drafts are rarely repaired" — they are repaired, differently; nor that the
-repairs are *better* than the reference without the listening study.
+repairs are *better* than the reference — the judge prefers them (25 of 40 study pairs),
+listeners do not (C15).
 
 **C9. Put the judge at the gate, not in the model.** (§8)
 - At the gate: combining judge surprise with the head's confidence (a two-feature
@@ -303,6 +310,123 @@ D3 0.94 (Essen 0.73 / 0.83 / 0.92). D2 is worse at every matched run length.
   validation].
 - Weighting and threshold: flat landscape (C5).
 
+**C15. Listening study: listeners agree with the judge at the extremes, not on random
+corruption.** (§7 "Listening study", one table; feeds C1, C3, C8c, L1)
+*Added 2026-10-12.* Main text: the paper has reserved space for it.
+
+*Design* (`scripts/make_listening_set.py`). MTC test material, synthesized playback at
+100 bpm (70 bpm slow option). Five balanced rounds, each with 20 excerpts and 10 pairs.
+- **Spot task:** 100 excerpts of at most 20 notes, 20 per source: D3, D1, D2
+  (trained generator), D2-ep2 (2-epoch generator), and untouched references as catch
+  trials. Each excerpt window contains every changed note, and each comes from a
+  different tune. Raters click the notes that sound wrong (or tick "nothing sounds
+  wrong") and rate naturalness from 1 (clearly wrong) to 5 (natural).
+- **Pair task:** two versions of an excerpt that differ at one highlighted note. In the
+  40 main pairs, an ep2 gate repair that missed the reference is set against the
+  reference's note, both in the output's context. The 10 check pairs set the same kind
+  of repair against the draft note it replaced; the judge prefers the repair in all 10.
+
+*Sample.* 17 sessions from 6 raters, most with musical training, all rating blind to
+the key, pooled. Each excerpt was rated 3–4 times: 340 excerpt ratings and 170 pair
+ratings in all. CIs are 95% bootstraps over items; raters are too few to resample.
+*Robustness:* leaving out any one rater moves no conclusion:
+
+| measure | range over the six leave-one-out runs |
+|---|---|
+| changed notes found: D3 / D1 / ep2 / D2 | 75–81 / 23–27 / 23–35 / 18–21% |
+| D2 listener AUROC | 0.53–0.54 |
+| ρ(naturalness, ΔNLL) | −0.35 to −0.45 |
+| repair share, repair vs reference | 49–53% |
+| draft note chosen, repair vs draft | never |
+
+Raters differ mainly in how they use the scale (mean naturalness 3.0–4.0). Each rater's
+naturalness correlates with the other raters' mean on the same excerpts at ρ = 0.43–0.67,
+so none is an outlier.
+*Source:* `results/listening/report.json` (`scripts/listening_report.py`). Ratings are in
+`results/human_test/`, gitignored because they carry raters' names; the report
+anonymises them (R1–R6).
+
+| source | naturalness (1–5) | vs reference | "nothing wrong" | hit | mark precision (× base) | listener AUROC | judge AUROC, same notes |
+|---|---|---|---|---|---|---|---|
+| D3 rule-based | 2.56 | −1.43 [−1.89, −0.92] | 21% | **78%** | 0.81 (6.1×) | **0.77** | 0.89 |
+| D1 random | 3.65 | −0.38 [−0.79, +0.03] | 54% | 25% | 0.45 (4.2×) | 0.59 | 0.78 |
+| D2-ep2 | 3.43 | −0.59 [−1.00, −0.15] | 57% | 28% | 0.63 (3.2×) | 0.62 | 0.83 |
+| D2 generated | 3.66 | −0.38 [−0.79, +0.01] | 62% | **19%** | 0.42 (2.5×) | **0.54** [0.49, 0.60] | 0.73 |
+| reference | 4.06 | — | 82% | — | — | — | — |
+
+"Hit" is the share of ratings with at least one mark on a changed note; widening it to
+within one note adds at most 10 points. On unchanged notes the false-alarm rate is
+1.5–1.9% for every source, references included, so the sources differ in what listeners
+find, not in how freely they click. The listener AUROC treats the share of raters
+marking a note as its score, the same threshold-free statistic as C3.
+
+What it shows:
+
+1. **Listeners cannot locate a good generator's changes (supports C3 and the thesis).**
+   On D2 the hit rate is 19% and the listener AUROC is 0.54, with a CI that touches 0.5.
+   Listeners find 8% of changed pitches, against 68% for D3. The judge ranks D2 lowest
+   on the same notes too. D2-ep2 sits above D2 on every detection measure, as C8b
+   predicts, but the CIs overlap.
+2. **Rule-based errors are the only ones listeners reliably hear.** D3 is the only source
+   with a clear naturalness drop, and listeners mark 78% of D3 excerpts at precision
+   0.81.
+3. **Random corruption is nearly as quiet to listeners as generated changes — a
+   divergence from the judge.** Listeners find D1 at 25% with AUROC 0.59; the judge
+   scores the same notes at 0.78. Their naturalness gap matches D2's, both CIs reaching
+   0. The judge ranks D1 first on the full test set (C8) and listeners rank it with D2.
+   Two reasons, both measured:
+   - **Rhythm changes have no note to click.** Listeners mark 5% of D1's changed
+     durations and insertion points, and 3–15% on the other sources. 59% of D1's
+     changed-note ratings fall on these, against D3's changes, which are mostly
+     pitches, marked at 68%.
+   - **The D1 excerpts are mild.** Each window had to contain every edit, which
+     selected D1 drafts with few edits: mean ΔNLL 0.16, against 0.30 on D1's full test
+     set and 0.23 for the D2 excerpts.
+
+   Even D1's random *pitch* changes are found only 15% of the time; they are drawn from
+   the corpus pitch prior, so they are often in key. Where listeners do mark D1, they
+   are 4.2× above base rate against D2's 2.5×, so the D1 > D2 ordering survives, weakly.
+4. **The judge tracks listeners in direction (bears on C1 and L1).** Mean excerpt
+   naturalness against the judge's ΔNLL gives ρ = −0.40 [−0.55, −0.21] over all 100
+   excerpts and −0.26 [−0.47, −0.05] over the 80 drafts. Mean naturalness by ΔNLL
+   band:
+
+   | judge ΔNLL band | excerpts | mean naturalness |
+   |---|---|---|
+   | > τ | 5 | 1.95 |
+   | 0 to τ | 68 | 3.35 |
+   | ≤ 0 (drafts) | 7 | 4.04 |
+   | references | — | 4.06 |
+
+   The judge is a proxy, not a substitute.
+5. **Repairs sound different, not wrong (supports C8c).**
+   - Main pairs: repair 42, reference 40, no preference 54. The repair takes 51% of
+     decided ratings [38%, 64%], binomial p = 0.91. Item majorities split 16 / 17 with
+     7 ties.
+   - The judge prefers the repair on 25 of 40 pairs. Listeners agree with it 55% of the
+     time, p = 0.44, and their item-level preference barely follows the judge's
+     surprisal gap (ρ = 0.21). The judge's preference for typical notes is not
+     something listeners share.
+   - Check pairs: repair 30, draft **0**, no preference 4, p = 2×10⁻⁹. On ep2 drafts the
+     notes the gate replaces are ones listeners hear as worse.
+   - No rater ever chose a draft note, so all six pass the attention check. One rater
+     chose "no preference" on 2 of 6 checks.
+6. **Agreement between raters is moderate.** Krippendorff's α: naturalness 0.45
+   (interval), note marks 0.38, "nothing wrong" 0.34, pair choice 0.22. The pair figure
+   is low, as expected when most main pairs have no audible winner.
+
+*How to use it in the paper.*
+- State the working assumption only as far as it held. Listeners agree with the judge
+  that D3 is audible and D2 is not, that repairs beat draft notes, and on the direction
+  of naturalness. They part from it on random corruption, and on whether repairs beat
+  the reference.
+- The D1 divergence does not touch C5–C7, which are claims about edit distance and the
+  judge. It does narrow "local trace" to *a trace a detector can find*, which is not the
+  same as one a listener can hear (L8).
+*Caveat:* six raters, 3–4 ratings per item and 20 items per source is a small study. The
+CIs above, not the point estimates, are the result. The task needs no training, so the
+paper need not dwell on rater background.
+
 ### P3 — appendix, first to cut
 
 - **Head-type ablation.** A five-class head (where *and* how) matches a binary one
@@ -338,14 +462,28 @@ D3 0.94 (Essen 0.73 / 0.83 / 0.92). D2 is worse at every matched run length.
    exceedance as evidence that a draft is error-free.
 12. "Generated drafts are hard to localize" (unqualified) → drafts from a *good*
    generator are; an undertrained generator's are as localizable as corruption (C8b).
+13. "A listening study confirms the judge" (unqualified) → listeners agree on D3 vs D2,
+   on draft-vs-repair, and on the direction of naturalness (ρ = −0.40); they do not
+   agree on D1, and do not share the judge's preference for repairs over the reference
+   (C15).
+14. "Listeners prefer the repairs" → to the draft's note, yes (30–0); to the reference's
+   note, no (42–40, 54 no preference) (C15).
+15. "Generated drafts sound as good as their references" → the naturalness gap
+   (−0.38 [−0.79, +0.01]) is not resolved by 20 items per source; it is the same size
+   as D1's. Absence of a significant gap is not evidence of no damage (C4, C15).
+16. "Listeners can hear random corruption" / "D1's gain is audible" → listeners find
+   25% of D1 excerpts' changes and mark 5% of rhythmic ones; C5–C7 are claims in edit
+   distance and the judge, not in perception (C15, L8).
 
 Also avoid: any human-in-the-loop or user-utility claim beyond one motivating sentence;
 "reproduces the published result" (C12 framing note).
 
 ## 6. Limitations to state
 
-- **L1.** ΔNLL is statistical implausibility under a small LM; calibrated against human
-  variants, but not a listening study. It also rewards typical continuations (C7).
+- **L1.** ΔNLL is statistical implausibility under a small LM, calibrated against human
+  variants and checked against listeners (C15): it tracks their naturalness ratings in
+  direction (ρ = −0.40), but loosely. It also rewards typical continuations (C7), which
+  listeners do not share (C15, point 5).
 - **L2.** Two folk corpora (MTC-ANN, Essen); monophonic; the style claim is narrow.
 - **L3.** The negative result is bounded by the detectors tried — including the
   strongest we could build without labels.
@@ -357,6 +495,11 @@ Also avoid: any human-in-the-loop or user-utility claim beyond one motivating se
   for why filtering would not change the localizability conclusion.
 - **L7.** The generator-quality gradient weakens one generator; that stronger generators
   leave still less trace is an extrapolation (C8b).
+- **L8.** The listening study is small: six raters with 3–4 ratings per item and 20
+  items per source. Its click-a-note interface finds pitch errors more
+  easily than rhythmic ones, and its excerpt selection made the D1 items mild. "Local
+  trace" in this paper means a trace a detector can find; listeners hear less of it on
+  random corruption (C15).
 
 ## 7. Anticipated objections (short form)
 
@@ -368,7 +511,8 @@ Also avoid: any human-in-the-loop or user-utility claim beyond one motivating se
 | D2 drafts just carry less damage. | At matched ΔNLL they are still far less localizable than D1, on both corpora (C4). |
 | +6% is small. | It is over copy-input, which the imitation baseline loses to by 25% (C5, C12). |
 | CC tracks plausibility in your own table. | Within a source; not across (C2). |
-| ΔNLL isn't musical correctness. | Conceded; calibrated on human variants (C1, L1). |
+| ΔNLL isn't musical correctness. | Conceded; calibrated on human variants and checked against listeners, who agree in direction (ρ = −0.40) but not on everything (C1, C15, L1). |
+| Do listeners hear any of this? | They hear rule-based errors (78%) and not a good generator's changes (19%, AUROC 0.54). They prefer repairs to draft notes 30–0 and are indifferent between repairs and the reference. They also miss most random corruption, so the D1 result is a detector-level claim (C15, L8). |
 | D3 is circular. | Partly; transfer measures how much (C8). |
 
 ## 8. Dropped from the original spec (state in §3 or appendix)
@@ -402,6 +546,13 @@ MTC, 3 seeds, validation-selected setting, unless noted. Essen in brackets.
 | Plausibility recovered on edited melodies, D1 / D3 | 30.1% / 47.5% | quality |
 | Oracle lift D1 / D2 | 49.3% / 21.5% (single run) | diagnostics |
 | Run-to-run variation | ≤ 1.17 pp per seed, ≤ 0.36 pp per cell | headline vs headline_r2 |
+| Listening study: raters / sessions / ratings per excerpt | 6 / 17 / 3–4 | listening/report |
+| Listener naturalness: D3 / D1 / ep2 / D2 / reference | 2.56 / 3.65 / 3.43 / 3.66 / 4.06 | listening/report |
+| Listener hit rate: D3 / D1 / ep2 / D2 | 78 / 25 / 28 / 19% | listening/report |
+| Listener AUROC: D3 / D1 / ep2 / D2; judge on same notes | .77 / .59 / .62 / .54; .89 / .78 / .83 / .73 | listening/report |
+| Naturalness vs ΔNLL: ρ all / drafts | −.40 / −.26 | listening/report |
+| Pairs, repair vs reference: repair / reference / none | 42 / 40 / 54 (51% of decided, p = .91) | listening/report |
+| Pairs, repair vs draft: repair / draft / none | 30 / 0 / 4 | listening/report |
 
 ## 10. Open items before and during drafting
 
@@ -415,3 +566,12 @@ MTC, 3 seeds, validation-selected setting, unless noted. Essen in brackets.
   y-series — two-sided-judge AUROC and gated gain over copy-input — with D2 at the floor.
   It is the thesis in one picture.
 - **Determinism** — set `torch.use_deterministic_algorithms` for any new runs.
+- **Listening study (C15), in the paper since 2026-10-12** (§7 with Table VIII; abstract,
+  §1, §4 and §8 aligned):
+  - The abstract clause reads "In a blinded listening study, listeners locate rule-based
+    errors but not a generator's changes, and hear those repairs as different, not
+    wrong." Never "and a small listening study agrees", which overstates the result.
+  - The paper's working assumption, that listeners agree with the judge, fails on D1;
+    the paper says so in §7 and §8.
+  - Rerun `scripts/listening_report.py` if more rounds arrive. It reads every file in
+    `results/human_test/` and fails on conflicting duplicates.

@@ -3,7 +3,9 @@
 Rewritten section by section from the Overleaf version (itself drafted from
 `paper-draft.md`; claims and numbers per `paper-core.md`). Sections not yet rewritten
 here are as on Overleaf. Done: abstract and §1–§5 with the method figure (applied to
-Overleaf); §6 and §7 with Figure 2 (applied to Overleaf).
+Overleaf); §6 and §7 with Figure 2 (applied to Overleaf); the §7 listening study with
+Table VIII and its follow-ups in the abstract, §1, §4 and §8 (applied to Overleaf
+2026-10-12; §8 otherwise not yet reviewed).
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
@@ -23,7 +25,9 @@ and by a trained generator. Localize-then-fix works where changes leave a local 
 and how much trace a generator leaves depends on how good it is: the better the
 generator, the harder its changes are to find. Where a weak generator's changes are
 found, the repairs make the music more plausible but rarely restore the original, so
-edit distance scores them as no gain. Finally, we propose a precision-gated refiner that
+edit distance scores them as no gain. In a blinded listening study, listeners locate
+rule-based errors but not a generator's changes, and hear those repairs as different, not
+wrong. Finally, we propose a precision-gated refiner that
 copies each note unless it is confident the note is wrong. It improves corrupted drafts
 by about 6% on every seed, and it declines to edit generated drafts, where a standard
 sequence-to-sequence refiner does harm.
@@ -72,10 +76,11 @@ rewritten by a trained generator) under one model, one training recipe and one s
 chosen on validation data. We further vary how well-trained the generator is, which
 lets us ask whether localizability depends on generation as such or on the generator's
 quality. Plausibility is measured by a language model rather than by listeners, and a
-model's judgement is not a musician's. We therefore test the two conclusions that rest
-most on it in a blinded listening study with three musically trained raters (§7.x): that
-corrupted notes are easier to hear than a generator's, and that repairs which miss the
-reference are not heard as wrong.
+model's judgement is not a musician's. We therefore check the two conclusions that rest
+most on it in a blinded listening study (§7, Table VIII). Listeners hear rule-based
+errors but rarely a trained generator's changes. They hear repairs that miss the
+reference as no worse than the reference's own note. They also rarely hear random
+corruption, so what we report about it rests on edit distance and the judge.
 
 Our contributions are:
 
@@ -260,8 +265,9 @@ Edit distance says how far a draft is from its reference, not whether it is wors
 section takes up the first question, whether edit distance to a reference measures
 improvement. Answering it needs a second measure, of how plausible a melody is, that does
 not depend on the reference. We use a language model as a judge and calibrate it against
-melodies known to be acceptable. A model's judgement is not a listener's, so §7.x checks
-the two conclusions that rest most on it with listeners.
+melodies known to be acceptable. A model's judgement is not a listener's. §7 (Table VIII)
+checks the two conclusions that rest most on it with listeners, whose naturalness ratings
+follow the judge in direction but loosely.
 
 **The judge.** $J$ is a decoder-only transformer language model over the token sequence
 of §3 (four layers, width 256), trained on the judge's half of Essen with early stopping
@@ -500,7 +506,8 @@ between the D3 paragraph and the generated-drafts paragraph.*
 On generated drafts the gate never opens. This section asks why. It rules out a weak
 detector, too little damage and contiguous changes as the explanation, shows that
 localizability follows how good the generator is, and then shows that localizing a change
-is not enough to restore the reference.
+is not enough to restore the reference. A listening study checks these conclusions
+against listeners.
 
 **Table V** (full width, unchanged). Localization of the notes that differ from the
 reference, MTC (Essen in brackets). Each cell gives AP lift (average precision divided by
@@ -658,10 +665,88 @@ oracle agrees: given the true positions, it removes 49% of D1's Correction Cost 
 21.5% of D2's. Edit distance to the reference, the measure §4 showed cannot tell an error
 from an alternative, scores these repairs as no improvement. The judge rewards typical
 notes, and may prefer them for that reason alone; whether listeners hear them as wrong
-is tested below.
+is tested next.
 
-**Listening study.** *TODO (red on Overleaf): design and results, about 0.5 page and one
-table.*
+**Listening study.** Two of this section's conclusions rest on the judge: that a
+generator's changes leave less trace than corruption, and that repairs which miss the
+reference are not wrong. We checked both with listeners. Six raters took a blinded
+listening test on MTC test material: 17 sessions over five balanced rounds, so each item
+was rated three or four times.
+
+The test had two tasks:
+- **Excerpts.** Raters heard 100 excerpts of at most 20 notes: 20 each from D3, D1, D2,
+  the 2-epoch generator, and untouched references. Each excerpt contains all of its
+  draft's changes and comes from a different tune. Raters clicked the notes that
+  sounded wrong, or none, and rated naturalness from 1 (clearly wrong) to 5 (natural).
+- **Pairs.** Raters heard two versions of an excerpt that differ at one highlighted note
+  and chose the better one or no preference. In 40 pairs, a gated repair on a 2-epoch
+  draft that missed the reference was set against the reference's note in the same
+  context. In 10 check pairs, the repair was set against the draft's note it replaced.
+
+**Table VIII** (one column, new; `tab:listening`). Listening study, excerpt task. *Nat.*:
+mean naturalness, 1 (clearly wrong) to 5 (natural). *None*: share of ratings that marked
+nothing. *Found*: share of ratings that marked at least one changed note. *AUROC*: the
+share of raters marking each note, used as a score for the changed notes, beside the
+untrained two-sided judge on the same notes. 68 ratings per row, 20 excerpts.
+
+| excerpts | nat. | none | found | AUROC listeners / judge |
+|---|---|---|---|---|
+| D3 rule-based | 2.56 | 21% | **78%** | .77 / .89 |
+| D1 random | 3.65 | 54% | 25% | .59 / .78 |
+| D2, 2-epoch generator | 3.43 | 57% | 28% | .62 / .83 |
+| D2 generated | 3.66 | 62% | **19%** | .54 / .73 |
+| reference | 4.06 | 82% | — | — |
+
+**Caption.** Listening study, excerpt task (6 raters, 3–4 ratings per excerpt). The judge
+column scores the same notes the listeners heard.
+
+Listeners agree with the judge at both ends of the range (Table VIII):
+- **Rule-based errors are heard.** Listeners find D3's errors in 78% of ratings,
+  including 68% of its changed pitches, and rate those excerpts 1.4 points less natural
+  than the references.
+- **A trained generator's changes are not.** Listeners find them in 19% of ratings and
+  mark 8% of its changed pitches. Their AUROC of 0.54 [0.49, 0.60] is barely above
+  chance, and the judge also ranks these notes lowest.
+- **The 2-epoch generator falls between,** as Fig. 2 predicts, though the intervals
+  overlap.
+- **The differences are in what listeners find, not how freely they click.** Marks on
+  unchanged notes run at 1.5–1.9% for every row, references included.
+
+Across all 100 excerpts, naturalness falls as the judge's ΔNLL rises (Spearman
+ρ = −0.40 [−0.55, −0.21]; −0.26 among drafts alone):
+- the five excerpts above τ average 1.95;
+- the seven drafts the judge scores no worse than their reference average 4.04;
+- the references average 4.06.
+
+The judge is a coarse stand-in for listeners, but it points the same way.
+
+**Random corruption is quiet to the ear.** Here listeners and the judge part. Listeners
+find D1's changes in only 25% of ratings, at AUROC 0.59 against the judge's 0.78, and
+rate D1 excerpts as natural as D2's. Two things contribute:
+- **Rhythmic changes have no note to click.** Most of D1's changes alter durations or
+  drop a note. Listeners attribute these to a note in about 5% of cases, against 68% for
+  D3's pitch changes.
+- **The D1 excerpts are mild.** Requiring an excerpt to contain all its changes selected
+  D1 drafts with few edits (mean ΔNLL 0.16, against 0.30 over the test set).
+
+Even D1's changed pitches are found only 15% of the time; they are drawn from the
+corpus's own pitch distribution and are often in key. The trace that makes random
+corruption easy for a detector is therefore not one listeners readily hear. Our claims
+about random corruption concern edit distance and the judge, not perception.
+
+**Repairs are heard as different, not wrong.** Between a repair that missed the
+reference and the reference's own note, listeners had no preference:
+- **Repair against reference.** 42 ratings chose the repair, 40 the reference, and 54
+  neither. That is 51% of decided ratings for the repair [38%, 64%], binomial p = 0.91.
+- **They do not share the judge's preference.** The judge prefers the repair in 25 of
+  the 40 pairs; listeners agree with it 55% of the time.
+- **Against the draft's note, the repair always wins:** 30 ratings to 0, with 4 no
+  preference. So the notes the gate replaces are heard as worse, and what it writes is
+  heard as no worse than the reference: different, not wrong, and not better.
+
+Leaving out any one rater moves the found rates by at most 7 points and keeps D2's
+AUROC at 0.53–0.54. It also keeps the repair-against-reference split between 49% and 53%.
+Agreement between raters is moderate (Krippendorff's α = 0.45 for naturalness).
 
 **Using the judge.** The untrained two-sided judge localizes better than any trained head
 (Table V), and how it is used matters. Fed to the refiner's encoder as a per-note input,
@@ -678,29 +763,102 @@ local errors.
 
 *Removed from §7: the gate-variants table (old Table IX; its numbers are in "Using the
 judge"), the transfer paragraph "What training adds" (moved to §6), and Figure 2's
-panel (b). The §8 paragraph "Where the judge belongs" repeated "Using the judge" and was
+panel (b). Added: the listening study and Table VIII. The §8 paragraph "Where the judge belongs" repeated "Using the judge" and was
 folded into it. Table numbers after §5: IV headline, V localization, VI matched
-degradation, VII repair.*
+degradation, VII repair, VIII listening.*
+
+## 8. Discussion and Limitations
+
+*As on Overleaf, except for the listening study: the repair sentence in the first
+paragraph and the limitation "Plausibility is a model's judgement" are rewritten, and
+the red TODO is gone. The transfer pointer is corrected from §7 to §6, where the
+transfer test moved. The section's full review is still to come.*
+
+**What this means for refinement research.** Four recommendations follow:
+- *Report copy-input and fidelity.* A refiner measured only against another learned
+  baseline can look successful while copying its input (§6).
+- *Report plausibility alongside edit distance.* The two disagree across draft sources
+  (§4) and across systems (§6).
+- *Test synthetic benchmarks by transfer.* A detector trained on synthetic errors partly
+  learns the process that made them, here about a quarter of its in-domain gain (§6).
+- *Expect localize-then-fix to weaken as generators improve.* A good generator's drafts
+  are worse than their references, but not at the notes that differ from them, even at
+  matched degradation (Table VI). Results on a weak generator will not transfer to a
+  stronger one, so the generator's quality should be reported.
+
+Repairs that miss the reference are mostly as plausible as it by the judge (Table VII),
+and listeners hear them as no worse (Table VIII). Exact-match scores should therefore not
+be used for them. Refining the output of good generators likely needs a formulation that
+does not start from per-note error labels: holistic revision scored by plausibility, for
+example, or error locations annotated by people. The same hazard applies wherever edit
+supervision is derived from a reference.
+
+**Limitations.**
+
+*Plausibility is a model's judgement.* ΔNLL is statistical implausibility under a small
+language model. It is calibrated against human variants and checked against six
+listeners (Table VIII). Listeners follow it in direction (ρ = −0.40 between naturalness
+and ΔNLL) and at the extremes: they hear rule-based errors and not a trained generator's
+changes. But they follow it loosely, and part from it in two places:
+- *Random corruption.* Listeners rarely hear it, in part because much of it alters
+  rhythm. Our results on random corruption are claims about edit distance and the
+  judge, not about what listeners hear.
+- *Repairs.* The judge rewards typical continuations, as free decoding's outputs show
+  (§6), and prefers the decoder's repairs to the reference's note. Listeners find the
+  repairs no worse, not better.
+
+The judge remains the primary measure: a study of six raters and 20 excerpts per source
+supports it but cannot replace it.
+
+*The judge and the refiners share training data.* The judge is kept independent of the
+generator, but the refiners are trained on drafts of the judge's half of Essen, so the
+judge is predisposed to find their output plausible. This mostly flatters free decoding,
+which rewrites many notes toward what both models learned. Gated editing changes few
+notes and is less exposed, but its plausibility gains may be inflated too, to a smaller
+degree.
+
+*One generator, degraded.* The generator-quality gradient is measured by weakening one
+generator (earlier checkpoints, other temperatures), not by comparing independently built
+generators of increasing strength. That generators stronger than ours leave still less
+trace is an extrapolation along the curve, not a measurement.
+
+*Two corpora, one texture.* Both collections are monophonic European folk song. Whether
+the boundary falls in the same place for polyphony, other styles, or larger generators is
+open.
+
+*The negative result is bounded by the detectors tried.* We tested trained per-note and
+per-span detectors, transfer from other sources, and two untrained judges, the strongest
+of which we could build without labels. A stronger detector may exist. Table VI bounds
+what it could gain from damage alone: at matched degradation the same judge localizes
+corruption far better, so the shortfall is in where the damage lies, not how much of it
+there is.
+
+*The gate only substitutes.* Gated decoding replaces events but never inserts or deletes
+them, although 30% of random-corruption operations are insertions or deletions. It also
+repairs pitch far more than rhythm: metric misalignment in D1 drafts is essentially
+unchanged by gating, while free decoding reduces it. Both bound what the method can
+recover.
+
+*Generated drafts are unfiltered.* We did not restrict D2 to drafts the judge certifies
+as degraded. Table VI suggests filtering would not change the conclusion, since D2's most
+degraded band is still localized below every positive band of random corruption. It
+would, however, change D2's error distribution.
+
+*Runs are not bit-reproducible* on GPU. We report five seeds for the headline and a full
+second run of the main experiment, which differs by at most 0.36 points per cell.
 
 ---
 
 *Notes for the next pass:*
 
-- *Listening test (TODO until results are in).* The introduction sentence above holds
-  whatever the outcome, because it states only what is tested. Where the results go:
-  - *§7, the "Listening study" paragraph after "Repaired, but not to the reference"
-    (now a red TODO on Overleaf).* Design (two
-    tasks: wrong-note spotting with naturalness ratings across D1, D3, D2, the 2-epoch
-    generator and untouched references; paired preference between a mismatched repair
-    and the reference's note, with a repair-vs-draft attention check), then results.
-  - *§8 limitation "Plausibility is a model's judgement".* Rewrite as: the judge is
-    supported by a small listening study but remains the primary measure; three raters
-    is too few to replace it.
-  - *Working assumption for drafting: listeners agree with the judge.* They spot
-    corrupted notes more often than generated ones, and do not reliably prefer the
-    reference's note over a mismatched repair. If so, the abstract can add one clause:
-    "and a small listening study agrees". If not, that clause is dropped, §7.x reports
-    the disagreement, and the §8 limitation is strengthened rather than softened.
+- *Listening study: §7 written from the results (2026-10-12; `paper-core.md` C15,
+  `results/listening/report.json`). The working assumption held except on random
+  corruption, which listeners rarely hear.*
+  - *Done: the introduction, §4 and §8 are aligned with the study, and their red TODOs
+    and §7.x pointers now point to Table VIII (`tab:listening`).*
+  - *Abstract: one clause added after the repair sentence ("In a blinded listening
+    study, listeners locate rule-based errors but not a generator's changes, and hear
+    those repairs as different, not wrong."). Not "and a small listening study agrees".*
 - *Removed from the introduction, and still reported in later sections: 92% vs 7%
   distance, two orders of magnitude, 6–7× vs 2.7× chance, the 25% loss of free decoding,
   −0.1%/+0.4%, and 11–13% vs 58–59% exact repair.*

@@ -1,0 +1,701 @@
+{
+ "files": 17,
+ "duplicate_files_ignored": 0,
+ "sessions": 17,
+ "coverage_by_round": {
+  "1": [
+   "R1",
+   "R4",
+   "R5"
+  ],
+  "2": [
+   "R1",
+   "R3",
+   "R5"
+  ],
+  "3": [
+   "R1",
+   "R3",
+   "R5",
+   "R6"
+  ],
+  "4": [
+   "R1",
+   "R2",
+   "R3",
+   "R5"
+  ],
+  "5": [
+   "R1",
+   "R2",
+   "R5"
+  ]
+ },
+ "per_rater": {
+  "R1": {
+   "rounds": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "check_repair_preferred": "9/10",
+   "reference_any_mark": "0/20",
+   "draft_hit": "24/80",
+   "mean_naturalness": 3.54,
+   "naturalness_rho_vs_others": 0.5220787989438831,
+   "naturalness_mean_abs_diff_vs_others": 0.705,
+   "median_seconds_per_excerpt": 12.7845,
+   "mean_plays_per_excerpt": 1.15
+  },
+  "R2": {
+   "rounds": [
+    4,
+    5
+   ],
+   "check_repair_preferred": "4/4",
+   "reference_any_mark": "2/8",
+   "draft_hit": "14/32",
+   "mean_naturalness": 3.275,
+   "naturalness_rho_vs_others": 0.672786207216607,
+   "naturalness_mean_abs_diff_vs_others": 0.5166666666666666,
+   "median_seconds_per_excerpt": 23.1515,
+   "mean_plays_per_excerpt": 2.725
+  },
+  "R3": {
+   "rounds": [
+    2,
+    3,
+    4
+   ],
+   "check_repair_preferred": "4/6",
+   "reference_any_mark": "3/12",
+   "draft_hit": "22/48",
+   "mean_naturalness": 4.016666666666667,
+   "naturalness_rho_vs_others": 0.6220411927084293,
+   "naturalness_mean_abs_diff_vs_others": 0.9055555555555553,
+   "median_seconds_per_excerpt": 18.894,
+   "mean_plays_per_excerpt": 1.95
+  },
+  "R4": {
+   "rounds": [
+    1
+   ],
+   "check_repair_preferred": "2/2",
+   "reference_any_mark": "2/4",
+   "draft_hit": "8/16",
+   "mean_naturalness": 3.0,
+   "naturalness_rho_vs_others": 0.42543969196532255,
+   "naturalness_mean_abs_diff_vs_others": 0.9,
+   "median_seconds_per_excerpt": 24.056,
+   "mean_plays_per_excerpt": 2.3
+  },
+  "R5": {
+   "rounds": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "check_repair_preferred": "9/10",
+   "reference_any_mark": "5/20",
+   "draft_hit": "27/80",
+   "mean_naturalness": 3.14,
+   "naturalness_rho_vs_others": 0.6065044895445253,
+   "naturalness_mean_abs_diff_vs_others": 0.915,
+   "median_seconds_per_excerpt": 20.9315,
+   "mean_plays_per_excerpt": 1.86
+  },
+  "R6": {
+   "rounds": [
+    3
+   ],
+   "check_repair_preferred": "2/2",
+   "reference_any_mark": "0/4",
+   "draft_hit": "7/16",
+   "mean_naturalness": 4.0,
+   "naturalness_rho_vs_others": 0.5652918660132275,
+   "naturalness_mean_abs_diff_vs_others": 0.7166666666666666,
+   "median_seconds_per_excerpt": 23.8135,
+   "mean_plays_per_excerpt": 2.15
+  }
+ },
+ "all": {
+  "raters": [
+   "R1",
+   "R2",
+   "R3",
+   "R4",
+   "R5",
+   "R6"
+  ],
+  "sessions": 17,
+  "spot": {
+   "D3": {
+    "items": 20,
+    "ratings": 68,
+    "naturalness": 2.5588235294117645,
+    "naturalness_ci": [
+     2.2,
+     2.926470588235294
+    ],
+    "nothing_wrong": 0.20588235294117646,
+    "nothing_wrong_ci": [
+     0.07352941176470588,
+     0.35294117647058826
+    ],
+    "marks_per_rating": 1.4558823529411764,
+    "false_alarm_rate": 0.016115351993214587,
+    "hit": 0.7794117647058824,
+    "hit_ci": [
+     0.6176470588235294,
+     0.9219341856060603
+    ],
+    "hit_within_1": 0.7794117647058824,
+    "recall": 0.4419889502762431,
+    "mark_precision": 0.8080808080808081,
+    "mark_precision_ci": [
+     0.7108433734939759,
+     0.8953609496124031
+    ],
+    "base_rate": 0.13308823529411765,
+    "human_auroc": 0.7693980751454516,
+    "human_ap_lift": 4.973628592265774,
+    "human_auroc_ci": [
+     0.6962668801687418,
+     0.8516722993918676
+    ],
+    "judge_auroc": 0.8857593388070252,
+    "judge_ap_lift": 4.887660199680444,
+    "judge_auroc_ci": [
+     0.8200415573563056,
+     0.9421390354194467
+    ],
+    "recall_by_label": {
+     "duration": {
+      "marked": 9,
+      "of": 77,
+      "rate": 0.11688311688311688
+     },
+     "pitch": {
+      "marked": 71,
+      "of": 104,
+      "rate": 0.6826923076923077
+     }
+    },
+    "naturalness_minus_reference": -1.4291666666666667,
+    "naturalness_minus_reference_ci": [
+     -1.8874999999999997,
+     -0.9248958333333333
+    ],
+    "naturalness_z": -0.895019767482533
+   },
+   "D1": {
+    "items": 20,
+    "ratings": 68,
+    "naturalness": 3.6470588235294117,
+    "naturalness_ci": [
+     3.367513853367434,
+     3.9016344334664694
+    ],
+    "nothing_wrong": 0.5441176470588235,
+    "nothing_wrong_ci": [
+     0.4090749039692702,
+     0.676056338028169
+    ],
+    "marks_per_rating": 0.5882352941176471,
+    "false_alarm_rate": 0.018121911037891267,
+    "hit": 0.25,
+    "hit_ci": [
+     0.11764705882352941,
+     0.4063050176056335
+    ],
+    "hit_within_1": 0.35294117647058826,
+    "recall": 0.1232876712328767,
+    "mark_precision": 0.45,
+    "mark_precision_ci": [
+     0.24390243902439024,
+     0.6363636363636364
+    ],
+    "base_rate": 0.10735294117647058,
+    "human_auroc": 0.5931209693179598,
+    "human_ap_lift": 2.487269289067051,
+    "human_auroc_ci": [
+     0.5360559668567763,
+     0.6428579741952647
+    ],
+    "judge_auroc": 0.7802749006579376,
+    "judge_ap_lift": 3.3635840140936226,
+    "judge_auroc_ci": [
+     0.6970127062816819,
+     0.8678432999902639
+    ],
+    "recall_by_label": {
+     "delete": {
+      "marked": 8,
+      "of": 21,
+      "rate": 0.38095238095238093
+     },
+     "duration": {
+      "marked": 2,
+      "of": 43,
+      "rate": 0.046511627906976744
+     },
+     "insert before": {
+      "marked": 2,
+      "of": 43,
+      "rate": 0.046511627906976744
+     },
+     "pitch": {
+      "marked": 6,
+      "of": 39,
+      "rate": 0.15384615384615385
+     }
+    },
+    "naturalness_minus_reference": -0.379166666666666,
+    "naturalness_minus_reference_ci": [
+     -0.7916666666666656,
+     0.03354166666666498
+    ],
+    "naturalness_z": 0.18908113622748735
+   },
+   "D2-ep2": {
+    "items": 20,
+    "ratings": 68,
+    "naturalness": 3.426470588235294,
+    "naturalness_ci": [
+     3.0854945054945055,
+     3.732394366197183
+    ],
+    "nothing_wrong": 0.5735294117647058,
+    "nothing_wrong_ci": [
+     0.4307142857142857,
+     0.7143390191897652
+    ],
+    "marks_per_rating": 0.7941176470588235,
+    "false_alarm_rate": 0.018281535648994516,
+    "hit": 0.27941176470588236,
+    "hit_ci": [
+     0.14919885864793678,
+     0.42470286059629303
+    ],
+    "hit_within_1": 0.3235294117647059,
+    "recall": 0.12781954887218044,
+    "mark_precision": 0.6296296296296297,
+    "mark_precision_ci": [
+     0.4,
+     0.8181818181818182
+    ],
+    "base_rate": 0.19558823529411765,
+    "human_auroc": 0.6180721452460582,
+    "human_ap_lift": 1.9735507593742327,
+    "human_auroc_ci": [
+     0.5465337141761193,
+     0.6920844936369465
+    ],
+    "judge_auroc": 0.8274804905239688,
+    "judge_ap_lift": 3.246754762361844,
+    "judge_auroc_ci": [
+     0.7574407217842524,
+     0.8848721137379543
+    ],
+    "recall_by_label": {
+     "delete": {
+      "marked": 9,
+      "of": 30,
+      "rate": 0.3
+     },
+     "duration": {
+      "marked": 1,
+      "of": 36,
+      "rate": 0.027777777777777776
+     },
+     "insert before": {
+      "marked": 4,
+      "of": 27,
+      "rate": 0.14814814814814814
+     },
+     "pitch": {
+      "marked": 20,
+      "of": 173,
+      "rate": 0.11560693641618497
+     }
+    },
+    "naturalness_minus_reference": -0.5916666666666672,
+    "naturalness_minus_reference_ci": [
+     -1.004270833333334,
+     -0.1541666666666672
+    ],
+    "naturalness_z": -0.052817492865627994
+   },
+   "D2": {
+    "items": 20,
+    "ratings": 68,
+    "naturalness": 3.661764705882353,
+    "naturalness_ci": [
+     3.367610811930406,
+     3.9254005706760315
+    ],
+    "nothing_wrong": 0.6176470588235294,
+    "nothing_wrong_ci": [
+     0.47220238095238093,
+     0.7465669014084503
+    ],
+    "marks_per_rating": 0.5294117647058824,
+    "false_alarm_rate": 0.018502202643171806,
+    "hit": 0.19117647058823528,
+    "hit_ci": [
+     0.058823529411764705,
+     0.3384615384615385
+    ],
+    "hit_within_1": 0.25,
+    "recall": 0.06666666666666667,
+    "mark_precision": 0.4166666666666667,
+    "mark_precision_ci": [
+     0.17238916256157638,
+     0.6410256410256411
+    ],
+    "base_rate": 0.16544117647058823,
+    "human_auroc": 0.5403284340410089,
+    "human_ap_lift": 1.4555284942387308,
+    "human_auroc_ci": [
+     0.4900736645330419,
+     0.5991487196115522
+    ],
+    "judge_auroc": 0.7285882779894756,
+    "judge_ap_lift": 2.5893907215643117,
+    "judge_auroc_ci": [
+     0.6561621528926581,
+     0.8094128892849508
+    ],
+    "recall_by_label": {
+     "delete": {
+      "marked": 1,
+      "of": 28,
+      "rate": 0.03571428571428571
+     },
+     "duration": {
+      "marked": 2,
+      "of": 28,
+      "rate": 0.07142857142857142
+     },
+     "insert before": {
+      "marked": 1,
+      "of": 28,
+      "rate": 0.03571428571428571
+     },
+     "pitch": {
+      "marked": 11,
+      "of": 141,
+      "rate": 0.07801418439716312
+     }
+    },
+    "naturalness_minus_reference": -0.379166666666666,
+    "naturalness_minus_reference_ci": [
+     -0.7876041666666672,
+     0.012499999999999756
+    ],
+    "naturalness_z": 0.21610052826203863
+   },
+   "reference": {
+    "items": 20,
+    "ratings": 68,
+    "naturalness": 4.0588235294117645,
+    "naturalness_ci": [
+     3.769230769230769,
+     4.309859154929577
+    ],
+    "nothing_wrong": 0.8235294117647058,
+    "nothing_wrong_ci": [
+     0.7272068511198946,
+     0.9130434782608695
+    ],
+    "marks_per_rating": 0.3088235294117647,
+    "false_alarm_rate": 0.015441176470588236,
+    "naturalness_z": 0.542655595858635
+   }
+  },
+  "pair": {
+   "main": {
+    "items": 40,
+    "ratings": 136,
+    "prefer_repair": 42,
+    "prefer_reference": 40,
+    "no_preference": 54,
+    "share_repair_of_decided": 0.5121951219512195,
+    "share_repair_ci": [
+     0.3835405039742939,
+     0.6395348837209303
+    ],
+    "binomial_p": 0.9121566075526039,
+    "item_majority": {
+     "reference": 17,
+     "repair": 16,
+     "tie": 7
+    },
+    "judge_prefers_repair_items": 25,
+    "agree_with_judge": 0.5487804878048781,
+    "agree_with_judge_p": 0.4397054291858219,
+    "share_repair_when_judge_prefers_repair": [
+     0.5490196078431373,
+     51
+    ],
+    "share_repair_when_judge_prefers_reference": [
+     0.45161290322580644,
+     31
+    ],
+    "spearman_item_share_vs_surprisal_gap": 0.21054420055179618
+   },
+   "check": {
+    "items": 10,
+    "ratings": 34,
+    "prefer_repair": 30,
+    "prefer_draft": 0,
+    "no_preference": 4,
+    "share_repair_of_decided": 1.0,
+    "share_repair_ci": [
+     1.0,
+     1.0
+    ],
+    "binomial_p": 1.862645149230957e-09,
+    "item_majority": {
+     "repair": 10
+    },
+    "judge_prefers_repair_items": 10,
+    "agree_with_judge": 1.0,
+    "agree_with_judge_p": 1.862645149230957e-09,
+    "share_repair_when_judge_prefers_repair": [
+     1.0,
+     30
+    ],
+    "share_repair_when_judge_prefers_draft": null,
+    "spearman_item_share_vs_surprisal_gap": NaN
+   }
+  },
+  "judge_vs_listeners": {
+   "spearman_naturalness_dnll_all": -0.402403752362576,
+   "spearman_ci_all": [
+    -0.5533249453751687,
+    -0.21067082740123555
+   ],
+   "spearman_naturalness_dnll_drafts": -0.2627733339729737,
+   "spearman_ci_drafts": [
+    -0.4677053110340031,
+    -0.05190884557074383
+   ],
+   "naturalness_dnll_above_tau": 1.9499999999999997,
+   "naturalness_dnll_0_to_tau": 3.349264705882353,
+   "naturalness_dnll_le_0_drafts": 4.035714285714286,
+   "n_above_tau": 5,
+   "n_0_to_tau": 68,
+   "n_le_0_drafts": 7,
+   "mean_dnll_by_source": {
+    "D3": 0.29757178425788877,
+    "D1": 0.1552683413028717,
+    "D2-ep2": 0.2327345609664917,
+    "D2": 0.23036807775497437,
+    "reference": 0.0
+   }
+  },
+  "agreement": {
+   "naturalness_alpha_interval": 0.44516015734756953,
+   "nothing_wrong_alpha_nominal": 0.33962066069428887,
+   "note_marks_alpha_nominal": 0.37995888040712467,
+   "pair_choice_alpha_nominal": 0.22193188282138798,
+   "ratings_per_spot_item": {
+    "3": 60,
+    "4": 40
+   }
+  }
+ },
+ "leave_one_rater_out": {
+  "R1": {
+   "D3": {
+    "naturalness_minus_reference": -1.6749999999999998,
+    "hit": 0.8125,
+    "human_auroc": 0.7689630797672775
+   },
+   "D1": {
+    "naturalness_minus_reference": -0.49166666666666625,
+    "hit": 0.25,
+    "human_auroc": 0.5809393524851801
+   },
+   "D2-ep2": {
+    "naturalness_minus_reference": -0.7416666666666667,
+    "hit": 0.3541666666666667,
+    "human_auroc": 0.6190277114190158
+   },
+   "D2": {
+    "naturalness_minus_reference": -0.5166666666666666,
+    "hit": 0.20833333333333334,
+    "human_auroc": 0.5337506804572673
+   },
+   "rho_all": -0.3640886391304053,
+   "rho_drafts": -0.21745839306736342,
+   "main_share_repair": 0.5102040816326531,
+   "main_p": 1.0,
+   "check": [
+    21,
+    0,
+    3
+   ]
+  },
+  "R2": {
+   "D3": {
+    "naturalness_minus_reference": -1.4874999999999994,
+    "hit": 0.7833333333333333,
+    "human_auroc": 0.7538469903757272
+   },
+   "D1": {
+    "naturalness_minus_reference": -0.4041666666666659,
+    "hit": 0.23333333333333334,
+    "human_auroc": 0.5736434108527132
+   },
+   "D2-ep2": {
+    "naturalness_minus_reference": -0.6291666666666655,
+    "hit": 0.26666666666666666,
+    "human_auroc": 0.6259953814301641
+   },
+   "D2": {
+    "naturalness_minus_reference": -0.4791666666666665,
+    "hit": 0.18333333333333332,
+    "human_auroc": 0.5359054618036654
+   },
+   "rho_all": -0.4127331786468286,
+   "rho_drafts": -0.26517560341820595,
+   "main_share_repair": 0.5070422535211268,
+   "main_p": 1.0,
+   "check": [
+    26,
+    0,
+    4
+   ]
+  },
+  "R3": {
+   "D3": {
+    "naturalness_minus_reference": -1.4000000000000004,
+    "hit": 0.75,
+    "human_auroc": 0.7695611984122669
+   },
+   "D1": {
+    "naturalness_minus_reference": -0.4500000000000002,
+    "hit": 0.26785714285714285,
+    "human_auroc": 0.5993420624063579
+   },
+   "D2-ep2": {
+    "naturalness_minus_reference": -0.6583333333333337,
+    "hit": 0.23214285714285715,
+    "human_auroc": 0.5806458034718904
+   },
+   "D2": {
+    "naturalness_minus_reference": -0.375,
+    "hit": 0.17857142857142858,
+    "human_auroc": 0.5418481219379423
+   },
+   "rho_all": -0.4504078865417947,
+   "rho_drafts": -0.32617034877746703,
+   "main_share_repair": 0.4925373134328358,
+   "main_p": 1.0,
+   "check": [
+    26,
+    0,
+    2
+   ]
+  },
+  "R4": {
+   "D3": {
+    "naturalness_minus_reference": -1.4291666666666667,
+    "hit": 0.78125,
+    "human_auroc": 0.7557500951552389
+   },
+   "D1": {
+    "naturalness_minus_reference": -0.3541666666666661,
+    "hit": 0.234375,
+    "human_auroc": 0.5748811152367924
+   },
+   "D2-ep2": {
+    "naturalness_minus_reference": -0.5500000000000003,
+    "hit": 0.265625,
+    "human_auroc": 0.5952380952380952
+   },
+   "D2": {
+    "naturalness_minus_reference": -0.37083333333333224,
+    "hit": 0.1875,
+    "human_auroc": 0.5380148793322446
+   },
+   "rho_all": -0.38430146013414296,
+   "rho_drafts": -0.23100180855176844,
+   "main_share_repair": 0.5131578947368421,
+   "main_p": 0.9087769252754921,
+   "check": [
+    28,
+    0,
+    4
+   ]
+  },
+  "R5": {
+   "D3": {
+    "naturalness_minus_reference": -1.1333333333333337,
+    "hit": 0.7916666666666666,
+    "human_auroc": 0.7692077646675004
+   },
+   "D1": {
+    "naturalness_minus_reference": -0.17500000000000027,
+    "hit": 0.2708333333333333,
+    "human_auroc": 0.5970946518142141
+   },
+   "D2-ep2": {
+    "naturalness_minus_reference": -0.43333333333333357,
+    "hit": 0.3125,
+    "human_auroc": 0.6243828635132983
+   },
+   "D2": {
+    "naturalness_minus_reference": -0.15833333333333366,
+    "hit": 0.1875,
+    "human_auroc": 0.5391036109598983
+   },
+   "rho_all": -0.3479693457302883,
+   "rho_drafts": -0.25733321164212725,
+   "main_share_repair": 0.5217391304347826,
+   "main_p": 0.8099490529189247,
+   "check": [
+    21,
+    0,
+    3
+   ]
+  },
+  "R6": {
+   "D3": {
+    "naturalness_minus_reference": -1.4499999999999997,
+    "hit": 0.765625,
+    "human_auroc": 0.7593659942363112
+   },
+   "D1": {
+    "naturalness_minus_reference": -0.399999999999999,
+    "hit": 0.25,
+    "human_auroc": 0.5925021171259202
+   },
+   "D2-ep2": {
+    "naturalness_minus_reference": -0.5374999999999996,
+    "hit": 0.265625,
+    "human_auroc": 0.5949195731804428
+   },
+   "D2": {
+    "naturalness_minus_reference": -0.3749999999999991,
+    "hit": 0.203125,
+    "human_auroc": 0.5398747958628198
+   },
+   "rho_all": -0.40732998194965137,
+   "rho_drafts": -0.2722867363679517,
+   "main_share_repair": 0.5256410256410257,
+   "main_p": 0.7343420330298468,
+   "check": [
+    28,
+    0,
+    4
+   ]
+  }
+ }
+}
