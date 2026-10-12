@@ -5,7 +5,7 @@ Rewritten section by section from the Overleaf version (itself drafted from
 here are as on Overleaf. Done: abstract and §1–§5 with the method figure (applied to
 Overleaf); §6 and §7 with Figure 2 (applied to Overleaf); the §7 listening study with
 Table VIII and its follow-ups in the abstract, §1, §4 and §8 (applied to Overleaf
-2026-10-12; §8 otherwise not yet reviewed).
+2026-10-12). Not yet on Overleaf: §8's full review (2026-10-12).
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
@@ -769,29 +769,62 @@ degradation, VII repair, VIII listening.*
 
 ## 8. Discussion and Limitations
 
-*As on Overleaf, except for the listening study: the repair sentence in the first
-paragraph and the limitation "Plausibility is a model's judgement" are rewritten, and
-the red TODO is gone. The transfer pointer is corrected from §7 to §6, where the
-transfer test moved. The section's full review is still to come.*
+*Reviewed 2026-10-12. Changes from Overleaf:*
+- *Recommendations.* There are now five. The repair sentence becomes "Score repairs by
+  plausibility". The generator recommendation now says generated damage is diffuse,
+  instead of "not at the notes that differ", which read as the retired "not locally
+  wrong". "Will not transfer" is softened to "should not be assumed to hold". The
+  transfer item now names a refiner's gain rather than a detector's.
+- *Beyond localize-then-fix.* A new paragraph adds that a refiner should be able to
+  decline, but only in-distribution, and says which hazard is meant.
+- *What a local trace is.* A new paragraph separates what a detector finds from what
+  listeners hear.
+- *Limitations.*
+  - "The listening study is small" is new: it covers L8 and must-not-claim #15.
+  - The detector-bound limitation no longer says Table VI "bounds" the gain.
+  - Limitations are reordered with perception first.
 
-**What this means for refinement research.** Four recommendations follow:
-- *Report copy-input and fidelity.* A refiner measured only against another learned
-  baseline can look successful while copying its input (§6).
+**What this means for refinement research.** Five recommendations follow:
+- *Compare against copying the draft, and report fidelity.* A refiner measured only
+  against another learned baseline can look successful while doing worse than leaving
+  the draft alone: our imitation baseline is 25% worse than copy-input (§6).
 - *Report plausibility alongside edit distance.* The two disagree across draft sources
   (§4) and across systems (§6).
-- *Test synthetic benchmarks by transfer.* A detector trained on synthetic errors partly
-  learns the process that made them, here about a quarter of its in-domain gain (§6).
-- *Expect localize-then-fix to weaken as generators improve.* A good generator's drafts
-  are worse than their references, but not at the notes that differ from them, even at
-  matched degradation (Table VI). Results on a weak generator will not transfer to a
-  stronger one, so the generator's quality should be reported.
+- *Score repairs by plausibility, not exact match.* Repairs that miss the reference are
+  mostly as plausible as it by the judge (Table VII), and listeners hear them as no worse
+  (Table VIII). Edit distance scores them as no gain.
+- *Test synthetic benchmarks by transfer.* A refiner trained on random corruption and
+  tested on rule-based degradation, or the reverse, loses about a quarter of its
+  in-domain gain (§6). That share comes from learning the process that made the errors,
+  not from refining.
+- *Report the generator's quality.* A good generator's drafts are worse than their
+  references, but the damage is diffuse rather than concentrated at the notes that
+  differ, even at matched degradation (Table VI). The weaker the generator, the more
+  trace it leaves (Fig. 2). Results on a weak generator's drafts should not be assumed
+  to hold for a stronger one.
 
-Repairs that miss the reference are mostly as plausible as it by the judge (Table VII),
-and listeners hear them as no worse (Table VIII). Exact-match scores should therefore not
-be used for them. Refining the output of good generators likely needs a formulation that
-does not start from per-note error labels: holistic revision scored by plausibility, for
-example, or error locations annotated by people. The same hazard applies wherever edit
-supervision is derived from a reference.
+**Beyond localize-then-fix.** Refining the output of good generators likely needs a
+formulation that does not start from per-note error labels: holistic revision scored by
+plausibility, for example, or error locations annotated by people. The hazard is general.
+Wherever edit supervision is derived from a reference that the draft does not determine,
+the labels mark differences, not errors. Where per-note editing is used, the refiner
+should be able to decline. Gated editing abstains on generated drafts, where free
+decoding does harm. But abstention is learned, not guaranteed: heads trained on
+corruption open the gate on generated drafts and make them worse (§6).
+
+**What a local trace is.** In this paper a local trace is one a detector can find.
+Listeners find a narrower set (Table VIII):
+- they hear most of the rule-based pitch errors (68%), which break the key or the contour;
+- they hear few changed durations from any source (3–12%);
+- they hear few of random corruption's new pitches (15%), which are drawn from the
+  corpus's own distribution and are often in key.
+
+Over the full test sets, a detector finds random corruption at least as readily as
+rule-based errors (Table V).
+On the contrast the thesis rests on, the two agree: the judge and listeners both locate a
+trained generator's changes worst of all sources. Whether a trace that a detector finds
+but listeners miss is worth repairing depends on what refinement is for, and edit
+distance cannot settle that either.
 
 **Limitations.**
 
@@ -800,15 +833,24 @@ language model. It is calibrated against human variants and checked against six
 listeners (Table VIII). Listeners follow it in direction (ρ = −0.40 between naturalness
 and ΔNLL) and at the extremes: they hear rule-based errors and not a trained generator's
 changes. But they follow it loosely, and part from it in two places:
-- *Random corruption.* Listeners rarely hear it, in part because much of it alters
-  rhythm. Our results on random corruption are claims about edit distance and the
-  judge, not about what listeners hear.
+- *Random corruption.* Listeners rarely hear it. Our results on random corruption are
+  claims about edit distance and the judge, not about what listeners hear.
 - *Repairs.* The judge rewards typical continuations, as free decoding's outputs show
   (§6), and prefers the decoder's repairs to the reference's note. Listeners find the
   repairs no worse, not better.
 
 The judge remains the primary measure: a study of six raters and 20 excerpts per source
 supports it but cannot replace it.
+
+*The listening study is small.* Each excerpt received three or four ratings. That
+separates rule-based errors from a generator's changes, and repairs from the draft's
+notes. It does not resolve every comparison:
+- A generated draft's naturalness gap to the references (−0.38 points [−0.79, +0.01]) is
+  as large as random corruption's. It is no evidence that generated drafts sound as good
+  as their references.
+- Clicking a note favours pitch errors over rhythmic ones.
+- Requiring each excerpt to contain all of its draft's changes made the
+  random-corruption excerpts mild (§7).
 
 *The judge and the refiners share training data.* The judge is kept independent of the
 generator, but the refiners are trained on drafts of the judge's half of Essen, so the
@@ -822,16 +864,20 @@ generator (earlier checkpoints, other temperatures), not by comparing independen
 generators of increasing strength. That generators stronger than ours leave still less
 trace is an extrapolation along the curve, not a measurement.
 
-*Two corpora, one texture.* Both collections are monophonic European folk song. Whether
-the boundary falls in the same place for polyphony, other styles, or larger generators is
-open.
+*The negative result is bounded by the detectors tried.* We tested:
+- trained per-note and per-span detectors;
+- transfer from other sources;
+- two untrained judges, the stronger of which is the best localizer we could build
+  without labels.
 
-*The negative result is bounded by the detectors tried.* We tested trained per-note and
-per-span detectors, transfer from other sources, and two untrained judges, the strongest
-of which we could build without labels. A stronger detector may exist. Table VI bounds
-what it could gain from damage alone: at matched degradation the same judge localizes
-corruption far better, so the shortfall is in where the damage lies, not how much of it
-there is.
+A stronger detector may exist. Table VI shows what it would have to overcome: at matched
+degradation the same judge localizes corruption far better. So the shortfall lies in
+where the damage is, not in how much of it there is.
+
+*Generated drafts are unfiltered.* We did not restrict D2 to drafts the judge certifies
+as degraded. Table VI suggests filtering would not change the conclusion, since D2's most
+degraded band is still localized below every positive band of random corruption. It
+would, however, change D2's error distribution.
 
 *The gate only substitutes.* Gated decoding replaces events but never inserts or deletes
 them, although 30% of random-corruption operations are insertions or deletions. It also
@@ -839,10 +885,9 @@ repairs pitch far more than rhythm: metric misalignment in D1 drafts is essentia
 unchanged by gating, while free decoding reduces it. Both bound what the method can
 recover.
 
-*Generated drafts are unfiltered.* We did not restrict D2 to drafts the judge certifies
-as degraded. Table VI suggests filtering would not change the conclusion, since D2's most
-degraded band is still localized below every positive band of random corruption. It
-would, however, change D2's error distribution.
+*Two corpora, one texture.* Both collections are monophonic European folk song. Whether
+the boundary falls in the same place for polyphony, other styles, or larger generators is
+open.
 
 *Runs are not bit-reproducible* on GPU. We report five seeds for the headline and a full
 second run of the main experiment, which differs by at most 0.36 points per cell.
@@ -859,6 +904,8 @@ second run of the main experiment, which differs by at most 0.36 points per cell
   - *Abstract: one clause added after the repair sentence ("In a blinded listening
     study, listeners locate rule-based errors but not a generator's changes, and hear
     those repairs as different, not wrong."). Not "and a small listening study agrees".*
+- *§8 reviewed (2026-10-12), not yet on Overleaf. The judge's domain gap (L4) stays in
+  §4 only, since the same-corpus control answers it there. Next: §9 Conclusion.*
 - *Removed from the introduction, and still reported in later sections: 92% vs 7%
   distance, two orders of magnitude, 6–7× vs 2.7× chance, the 25% loss of free decoding,
   −0.1%/+0.4%, and 11–13% vs 58–59% exact repair.*
