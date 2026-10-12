@@ -2,7 +2,7 @@
 
 Rewritten section by section from the Overleaf version (itself drafted from
 `paper-draft.md`; claims and numbers per `paper-core.md`). Sections not yet rewritten
-here are as on Overleaf. Done: abstract, §1, §2, Figure 1 (all applied to Overleaf).
+here are as on Overleaf. Done: abstract, §1, §2, §3, Figure 1 (all applied to Overleaf).
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
@@ -148,6 +148,111 @@ text [Holtzman2020], a behaviour we also observe in free decoding (§6). Since e
 symbolic generation beyond likelihood remains open [Yang2020], we report edit distance
 and plausibility side by side, and check the judge against listeners (§7).
 
+## 3. Task, Drafts and Representation
+
+**Task.** A *draft* $M_0$ is a monophonic melody that differs from a *reference* $M^*$ in
+some notes. A refiner receives $M_0$ alone and outputs a melody $\hat M$. It should change
+the notes that are wrong and keep the rest. The standard score is how much closer
+$\hat M$ is to $M^*$ than $M_0$ was; §4 asks whether that score measures improvement,
+which is why we report it alongside plausibility.
+
+**Corpora and splits.** References come from two collections of monophonic folk song.
+The Essen Folksong Collection [Essen] (8,469 melodies, 54.5 notes on average) supplies all
+training data. It is split at random into two halves, one for the plausibility judge of
+§4 and one for the generator that writes D2 drafts, so that the judge never scores
+material the generator could have memorized. Refiners are trained on drafts of the
+judge's half (3,812 melodies, with 423 more for validation). The test set is MTC-ANN, the
+annotated corpus of the Meertens Tune Collections [MTC]: 360 melodies (49.0 notes on
+average) in 26 *tune families*, groups of melodies believed to descend from a common
+ancestor through oral transmission. No model sees MTC-ANN in training, so every main
+result is cross-corpus. A same-corpus control (20% of Essen held out as test, judge and
+generator retrained on the rest) is reported alongside every result from §6 on.
+
+**Draft sources.** Drafts are made in four ways (Table I). Each test reference yields
+three drafts per source.
+
+- **D1, random corruption.** One to five operations, drawn as pitch replacement (40%),
+  duration change (30%), deletion (15%) and insertion (15%). New pitches and durations
+  are drawn from the corpus's own distributions, so each edit uses material typical of
+  the corpus even though where it lands is random. This is the random corruption used to
+  build training data in prior work [McLeod2020], and our main control.
+- **D2, generated.** A span of 2–6 consecutive notes is rewritten by a generator, a
+  three-layer transformer language model trained on the other half of Essen. It samples
+  at temperature 1.0 from the notes before the span only, and the reference resumes after
+  it. The splice is not smoothed: a passage that fails to rejoin its continuation is a
+  realistic draft flaw. Rewriting a short span changes 10.6% of a melody on average.
+  Letting the generator continue freely from a prefix instead rewrites 89%, as far apart
+  as two variants of a tune, which leaves no draft to refine. To vary how good the
+  generator is, §7 also draws D2 drafts at temperatures 0.8 and 1.2, and from the same
+  generator's checkpoints after 2, 5 and 10 epochs of training (at temperature 1.0).
+  Unqualified, "D2" means the fully trained generator at temperature 1.0.
+- **D3, rule-based musical degradation.** One to five applications of six rules, each a
+  violation music theory names: an out-of-scale pitch given the annotated key, a leap
+  beyond 14 semitones, a structurally strong note moved off the beat, a disrupted final
+  cadence, a varied rhythm flattened to uniform durations, and a figure collapsed to a
+  repeated pitch.
+- **D4, human variants.** Pairs of melodies from the same tune family (1,012 pairs, at
+  most 40 per family). Both members are attested versions of the tune, so neither is an
+  error. They are used only to calibrate the judge (§4). Family members differ in metre
+  and length, so they are variants of a tune, not a draft and its revision, and we do not
+  refine them.
+
+**Table I.** Draft sources on the MTC test set (three drafts per reference; D4 is the
+1,012 variant pairs). Changed is Correction Cost divided by reference length, roughly the
+share of notes changed.
+
+| source | how the draft is made | mean CC | changed |
+|---|---|---|---|
+| D1 random | 1–5 random edits | 2.98 | 6.6% |
+| D2 generated | 2–6 notes regenerated | 4.71 | 10.6% |
+| D3 rule-based | 1–5 rule violations | 4.11 | 9.1% |
+| D4 human variants | another version of the tune | 45.7 | 92.3% |
+
+**Representation.** A melody is a sequence of events, each a pitch (or an explicit rest)
+and a duration in integer ticks at 24 per quarter note, which represents every duration
+in both corpora exactly. Each event becomes two tokens, a pitch or rest token and a
+duration token, and a bar token is inserted where the annotated metre begins a new bar
+(Table II), which bounds how far a duration error can shift later notes. The vocabulary
+has 121 tokens: 76 pitches, 40 durations, rest, bar and three special tokens. Bars are
+structure, not events: an edit never inserts or deletes a barline, and a shifted onset is
+a duration change.
+
+**Table II.** The opening of an MTC melody (4/4, starting on an upbeat) as tokens, and a
+draft of it with two edits (bold). Durations are in ticks, 24 to the quarter note; `BOS`
+and `EOS` are not shown. The draft's Correction Cost is 2.
+
+| note | G4 | | G4 | A4 | B4 | B4 | | B4 | rest | D5 | D5 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| reference | P67 | BAR | P67 | P69 | P71 | P71 | BAR | P71 | REST | P74 | P74 |
+| | D24 | | D24 | D24 | D36 | D12 | | D48 | D24 | D18 | D6 |
+| draft | P67 | BAR | P67 | **P72** | P71 | P71 | BAR | P71 | REST | P74 | P74 |
+| | D24 | | D24 | D24 | D36 | D12 | | **D24** | D24 | D18 | D6 |
+| label | keep | | keep | edit | keep | keep | | edit | keep | keep | keep |
+
+*(Reference is MTC-ANN `NLB070535_01`, tokenized by the paper's tokenizer. The draft is
+illustrative: one pitch substitution, A4 → C5, and one duration substitution, a half note
+shortened to a quarter. LaTeX label `tab:example`.)*
+
+**Alignment and Correction Cost.** Two melodies are aligned with the Wagner–Fischer
+algorithm [Wagner1974] over events, a simplified form of the musical edit distance of
+Mongeau and Sankoff [Mongeau1990] without its fragmentation and consolidation operations.
+Insertion, deletion, pitch substitution and duration substitution each cost 1, so an
+event differing in both pitch and duration costs 2. *Correction Cost* (CC) is the minimal
+total cost. The same alignment supplies the refiner's training labels: each draft event
+is labelled *keep* or *edit* (Table II), collapsed from five types that §5 shows add
+nothing, and an extra end-of-sequence slot receives labels for notes missing after the
+last draft event.
+
+**Evaluation.** Our primary measure is the relative reduction in mean CC over returning
+the draft unchanged (*copy-input*, B3):
+$(\overline{\mathrm{CC}}(M_0, M^*) - \overline{\mathrm{CC}}(\hat M, M^*)) \,/\,
+\overline{\mathrm{CC}}(M_0, M^*)$, so that positive values mean the refiner improved on
+doing nothing. We also report *fidelity*, the CC between output and draft, which
+distinguishes a refiner that edits from one that regenerates; per-melody win and loss
+rates; and plausibility under the judge of §4. Results are means over five training
+seeds for the headline and three for secondary comparisons, under one configuration
+selected on validation data (§5).
+
 ## Figure 1 (placed in §7)
 
 `figures/figure1.pdf`, from `scripts/figure1.py` (also writes the panels separately as
@@ -163,7 +268,7 @@ generator, the less it leaves", where D1–D3 are already defined.
   D3 +9.8%, D2 0.0%.
 
 Dropped from the earlier version: the implausibility-per-unit x-axis (its numbers stay
-in Table 2 and §7), the human-variants line, seed counts and the abstention note on the
+in the judge table of §4, now Table III, and §7), the human-variants line, seed counts and the abstention note on the
 chart, and the 2-epoch generator's gain in (b) (reported in §7).
 
 **Caption.** (a) How well an untrained judge, which scores each note given its context,
@@ -199,3 +304,6 @@ draft.
   distance, two orders of magnitude, 6–7× vs 2.7× chance, the 25% loss of free decoding,
   −0.1%/+0.4%, and 11–13% vs 58–59% exact repair.*
 - *The abstract keeps one number (≈6%). It can be dropped if you want none.*
+- *§3 adds two `ref.bib` entries, `Wagner1974` (the alignment algorithm) and
+  `Mongeau1990` (musical edit distance), and a new Table II (`tab:example`), so the
+  later tables are renumbered by one. Local build: 9.64 pages, up from about 9.4.*
