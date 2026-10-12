@@ -5,7 +5,7 @@ Rewritten section by section from the Overleaf version (itself drafted from
 here are as on Overleaf. Done: abstract and §1–§5 with the method figure (applied to
 Overleaf); §6 and §7 with Figure 2 (applied to Overleaf); the §7 listening study with
 Table VIII and its follow-ups in the abstract, §1, §4 and §8 (applied to Overleaf
-2026-10-12). Not yet on Overleaf: §8's full review (2026-10-12).
+2026-10-12). Not yet on Overleaf: the full reviews of §8 and §9 (2026-10-12).
 
 **Title:** The Better the Generator, the Less the Trace: When Does Localize-then-Fix Work
 for Symbolic Music Refinement?
@@ -892,6 +892,63 @@ open.
 *Runs are not bit-reproducible* on GPU. We report five seeds for the headline and a full
 second run of the main experiment, which differs by at most 0.36 points per cell.
 
+## 9. Conclusion
+
+*Reviewed 2026-10-12. Changes from Overleaf:*
+- *"Because the implausibility lies in how a rewritten passage meets its context rather
+  than in any note of it"* contradicted D2's 2.7× localization and C4's own evidence.
+  It now reads: much of the implausibility lies at the seam, partly on notes that were
+  never changed.
+- *"How much trace remains is a measure of how good the generator is"* overstated a
+  trend measured by weakening one generator. It is replaced by the title's claim, "the
+  better the generator, the less the trace". "Far clearer traces" becomes "clearer".
+- *Listeners* are added to the repair sentence. They prefer the repairs to the draft's
+  notes and hear them as no worse than the reference's. A third measurement lesson is
+  added: a trace a detector finds need not be audible.
+- *"A gated refiner does"* now says "trained on such drafts", since abstention is
+  learned, not guaranteed (§6).
+- *"One variant needs no edit labels in training"* is cut. That variant left the paper
+  with the gate-variants table. "It too does harm" now says by how little.
+
+Localize-then-fix is the natural way to refine a draft, and on the drafts it is usually
+tested on, it works. We have argued that this is largely a property of those drafts.
+Synthetic corruption, random or rule-based, damages a melody in a way that is unusual
+enough to be found note by note. A refiner that copies by default and edits only where it
+is confident improves such drafts on every seed, and makes the music more plausible, not
+less.
+
+Drafts written by a good generator are different in kind. They are worse than their
+references, but their damage is diffuse. At the same level of degradation, the notes
+such a generator changed are far harder to find than the notes corruption changed. Much
+of the implausibility lies where a rewritten passage meets its context, partly on notes
+that were never changed. The same generator early in training leaves clearer traces:
+the better the generator, the less the trace.
+
+Where a weak generator's changes are found, the refiner repairs them toward the
+rewritten context rather than back to the reference. Listeners prefer these repairs to
+the draft's notes and hear them as no worse than the reference's own, yet edit distance
+scores them as no gain. On a good generator's drafts the safe behaviour for a
+localize-then-fix system is to decline to act, and a gated refiner trained on such
+drafts does.
+
+Three measurement lessons carry beyond this setting:
+- **Edit distance needs company.** Edit distance to a reference ranks methods on one
+  kind of draft but cannot compare kinds, or say whether a change was a correction.
+  Report it beside a plausibility measure and the score of returning the draft.
+- **Synthetic benchmarks teach their own construction.** A benchmark built from
+  synthetic errors rewards learning how they were made; a transfer test measures by how
+  much.
+- **What a detector finds need not be heard.** Random corruption is easy to find and
+  hard to hear, so results on it are claims about edit distance and the judge, not about
+  perception.
+
+Refining the output of good generators will likely need a different starting point: a
+formulation that does not assume the damage lies at the notes that differ from a
+reference. Revision scored by plausibility over whole passages is one option. Error
+locations marked by musicians are another. Combining the judge with the head at the gate
+(§7) is not that step: it improves corrupted drafts further, but on generated drafts it
+makes them slightly worse.
+
 ---
 
 *Notes for the next pass:*
@@ -904,8 +961,10 @@ second run of the main experiment, which differs by at most 0.36 points per cell
   - *Abstract: one clause added after the repair sentence ("In a blinded listening
     study, listeners locate rule-based errors but not a generator's changes, and hear
     those repairs as different, not wrong."). Not "and a small listening study agrees".*
-- *§8 reviewed (2026-10-12), not yet on Overleaf. The judge's domain gap (L4) stays in
-  §4 only, since the same-corpus control answers it there. Next: §9 Conclusion.*
+- *§8 and §9 reviewed (2026-10-12), not yet on Overleaf. The judge's domain gap (L4)
+  stays in §4 only, since the same-corpus control answers it there. Every section has
+  now had one pass; next is applying §8–§9 to Overleaf and a whole-paper read for
+  length and repetition (§8's recommendations and §9's lessons overlap by design).*
 - *Removed from the introduction, and still reported in later sections: 92% vs 7%
   distance, two orders of magnitude, 6–7× vs 2.7× chance, the 25% loss of free decoding,
   −0.1%/+0.4%, and 11–13% vs 58–59% exact repair.*
