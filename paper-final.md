@@ -213,42 +213,42 @@ The distribution of the damage shows where the trace goes. Once a span has been 
 
 **The repair fits the context, not the reference.** Were localizability the entire explanation, gated editing ought to succeed on drafts from the 2-epoch generator. Measured by edit distance, it almost entirely fails to. Trained on those drafts with the setting held fixed, refiners gain −0.13% ± 0.24 over copy-input on MTC, with only one of three seeds positive, and +0.38% ± 0.30 same-corpus, with all three positive. That is a tenth of the gain the same method records on random corruption. Free decoding, meanwhile, loses 11% and 28%. The shortfall has two parts. First, the trained head ranks these drafts below the judge, with AUROC 0.67–0.81 across seeds and corpora against the judge's 0.86–0.87, so the gate opens at a precision of 0.59–0.72 rather than the 0.82 seen on D1. Second, even at a changed note the gate has correctly found, the decoder seldom reproduces the reference's note (Table VII): it does so 11–13% of the time, against 58–59% under random corruption and 41–44% under rule-based degradation. This should not be read as simple failure. According to the judge, gated editing eliminates 28% of these drafts' implausibility on MTC and 36% on Essen, and 85–88% of the melodies it alters become more plausible. Where a repair misses the reference, the two-sided judge rates the decoder's note far above the draft's, with median surprisal 2.3–2.4 against 10.7–11.1, and rates it at least as plausible as the reference's own note in 64–68% of cases (median 3.3–3.9). Within a rewritten span, the reference's note is no longer the best-fitting choice: the notes around it were rewritten as well, and the decoder produces a note consistent with those new neighbours. A corrupted note is constrained by the untouched notes on either side of it. The original of a rewritten span, by contrast, is only one of many plausible continuations, and nothing in the draft indicates which of them the reference chose. The oracle points the same way. Supplied with the true positions, it removes 49% of D1's Correction Cost but only 21.5% of D2's. Edit distance registers none of this as an improvement. Because the judge favours typical notes, it may prefer these repairs for that reason alone.
 
-**Listening study.** Two claims in this section depend on the judge: that changes written by a generator leave less of a trace than corruption does, and that a repair which fails to recover the reference is not thereby an error. Both were put to listeners. Six raters completed a blinded listening test on MTC test material, in 17 sessions spread over five balanced rounds, giving each item three or four ratings. There were two tasks:
+**Listening study.** Two claims in this section depend on the judge: that changes written by a generator leave less of a trace than corruption does, and that a repair which fails to recover the reference is not thereby an error. Both were put to listeners. Seven raters completed a blinded listening test on MTC test material, in 20 sessions spread over five balanced rounds, giving each item three to five ratings. There were two tasks:
 - **Excerpts.** Raters heard 100 excerpts, each of 20 notes at most, with 20 drawn from each of D3, D1, D2, the 2-epoch generator, and unaltered references. Every excerpt includes the whole of its draft's changes, and each comes from a different tune. Raters marked whichever notes sounded wrong, or marked none, and gave a naturalness rating from 1, clearly wrong, to 5, natural.
 - **Pairs.** Raters heard two renderings of one excerpt, differing at a single highlighted note, and picked the better rendering or declared no preference. Forty of the pairs opposed a gated repair of a 2-epoch draft, one that had missed the reference, to the reference's own note in identical context. Ten further pairs served as a check, opposing the repair to the draft note it had replaced.
 
-**Table VIII** (one column, new; `tab:listening`). The excerpt task of the listening study. *Nat.* is mean naturalness (1–5). *None* is the share of ratings marking nothing. *Found* is the share of ratings marking at least one changed note. *AUROC* treats the share of raters marking each note as a score for the changed notes, shown next to the untrained two-sided judge on those same notes. Each row rests on 68 ratings of 20 excerpts.
+**Table VIII** (one column, new; `tab:listening`). The excerpt task of the listening study. *Nat.* is mean naturalness (1–5). *None* is the share of ratings marking nothing. *Found* is the share of ratings marking at least one changed note. *AUROC* treats the share of raters marking each note as a score for the changed notes, shown next to the untrained two-sided judge on those same notes. Each row rests on 80 ratings of 20 excerpts.
 
 | excerpts | nat. | none | found | AUROC listeners / judge |
 |---|---|---|---|---|
-| D3 rule-based | 2.56 | 21% | **78%** | .77 / .89 |
-| D1 random | 3.65 | 54% | 25% | .59 / .78 |
-| D2, 2-epoch generator | 3.43 | 57% | 28% | .62 / .83 |
-| D2 generated | 3.66 | 62% | **19%** | .54 / .73 |
-| reference | 4.06 | 82% | — | — |
+| D3 rule-based | 2.48 | 20% | **79%** | .77 / .89 |
+| D1 random | 3.71 | 56% | 25% | .60 / .78 |
+| D2, 2-epoch generator | 3.56 | 60% | 28% | .62 / .83 |
+| D2 generated | 3.79 | 63% | **18%** | .54 / .73 |
+| reference | 4.18 | 85% | — | — |
 
-**Caption.** Excerpt task of the listening study: 6 raters, with 3–4 ratings per excerpt. The judge column is computed on the same notes the listeners heard.
+**Caption.** Excerpt task of the listening study: 7 raters, with 3–5 ratings per excerpt. The judge column is computed on the same notes the listeners heard.
 
 At the two extremes, listeners and the judge concur (Table VIII).
-- **Rule-based errors are audible.** D3's errors are found in 78% of ratings, and 68% of its changed pitches are among them. Those excerpts are rated 1.4 points below the references in naturalness.
-- **Changes from a trained generator are not.** They are found in 19% of ratings, and only 8% of the changed pitches are marked. The resulting AUROC, 0.54 [0.49, 0.60], sits barely above chance, and these are also the notes the judge ranks lowest.
+- **Rule-based errors are audible.** D3's errors are found in 79% of ratings, and 68% of its changed pitches are among them. Those excerpts are rated 1.6 points below the references in naturalness.
+- **Changes from a trained generator are not.** They are found in 18% of ratings, and only 7% of the changed pitches are marked. The resulting AUROC, 0.54 [0.48, 0.59], sits barely above chance, and these are also the notes the judge ranks lowest.
 - **The 2-epoch generator lies between the two,** which is what Fig. 2 leads one to expect, although the intervals overlap.
-- **What differs is what listeners locate, not how readily they mark notes.** Marks falling on unchanged notes stay between 1.5% and 1.9% in every row, the reference row included.
+- **What differs is what listeners locate, not how readily they mark notes.** Marks falling on unchanged notes stay between 1.3% and 1.8% in every row, the reference row included.
 
-Over the full set of 100 excerpts, naturalness declines as the judge's ΔNLL increases, with Spearman ρ = −0.40 [−0.55, −0.21], or −0.26 when only drafts are included. The five excerpts above τ average 1.95, the seven drafts that the judge scores no worse than their reference average 4.04, and the references average 4.06. As a proxy for listeners the judge is a coarse one, but the direction it indicates is the same.
+Over the full set of 100 excerpts, naturalness declines as the judge's ΔNLL increases, with Spearman ρ = −0.44 [−0.59, −0.26], or −0.31 when only drafts are included. The five excerpts above τ average 1.85, the seven drafts that the judge scores no worse than their reference average 4.16, and the references average 4.18. As a proxy for listeners the judge is a coarse one, but the direction it indicates is the same.
 
-**Random corruption is hard to hear.** This is where listeners and the judge separate. D1's changes are found in only 25% of ratings, at an AUROC of 0.59 against the judge's 0.78, and D1 excerpts are rated as natural as D2's. Two factors are involved.
-- **A rhythmic change offers no note to mark.** Most of what D1 changes is a duration, or a note that has been removed. Listeners assign such a change to some note in about 5% of cases, against 68% for the pitch changes in D3.
+**Random corruption is hard to hear.** This is where listeners and the judge separate. D1's changes are found in only 25% of ratings, at an AUROC of 0.60 against the judge's 0.78, and D1 excerpts are rated as natural as D2's. Two factors are involved.
+- **A rhythmic change offers no note to mark.** Most of what D1 changes is a duration, or a note that has been removed. Listeners assign such a change to some note in about 4% of cases, against 68% for the pitch changes in D3.
 - **The D1 excerpts are mild ones.** Because an excerpt had to contain every one of its draft's changes, the D1 drafts that were selected carry few edits: mean ΔNLL 0.16, against 0.30 across the test set.
 
-Changed pitches within D1 are themselves found only 15% of the time. They are sampled from the corpus's own pitch distribution, and they frequently remain in key. Claims made here about random corruption rest on edit distance and on the judge, not on what is heard.
+Changed pitches within D1 are themselves found only 14% of the time. They are sampled from the corpus's own pitch distribution, and they frequently remain in key. Claims made here about random corruption rest on edit distance and on the judge, not on what is heard.
 
 **Repairs are heard as different rather than wrong.**
-- **Repair against reference.** The repair was chosen in 42 ratings, the reference in 40, and neither in 54. Among ratings that did decide, 51% favoured the repair, with interval [38%, 64%] and binomial p = 0.91.
-- **The judge's preference is not shared.** The judge favours the repair in 25 of the 40 pairs, and listeners side with the judge only 55% of the time.
-- **Set against the draft's own note, the repair wins in every decided rating:** 30 to 0, with 4 ratings of no preference.
+- **Repair against reference.** The repair was chosen in 47 ratings, the reference in 50, and neither in 63. Among ratings that did decide, 48% favoured the repair, with interval [37%, 60%] and binomial p = 0.84.
+- **The judge's preference is not shared.** The judge favours the repair in 25 of the 40 pairs, and listeners side with the judge only 53% of the time.
+- **Set against the draft's own note, the repair wins in 34 of 36 decided ratings,** with 4 ratings of no preference.
 
-Dropping any single rater shifts the found rates by 7 points at most, leaves D2's AUROC between 0.53 and 0.54, and keeps the repair-against-reference split between 49% and 53%. Agreement among raters is moderate, with Krippendorff's α = 0.45 on naturalness.
+Dropping any single rater shifts the found rates by 6 points at most, leaves D2's AUROC between 0.53 and 0.54, and keeps the repair-against-reference split between 46% and 51%. Agreement among raters is moderate, with Krippendorff's α = 0.46 on naturalness.
 
 **How the judge is used.** The way the two-sided judge is put to use matters as much as its accuracy. Supplied to the refiner's encoder as an additional per-note input, it raises localization from AUROC 0.73 to 0.82 on MTC D1, yet gated editing gets worse, from +6.35% to +5.14%, on every seed. The damage is in the notes the decoder writes, not in the positions it attends to. Placed alone at the gate, the judge underperforms the head, at +2.81% on MTC D1, because it has no way to refuse a melody in which nothing is wrong. Joined with the head in a two-feature gate whose weights are fit on D1 validation data, it contributes a further 1.4 to 2.1 points on every D1 and D3 cell and on every seed — +7.91% on MTC D1 and +11.80% on D3. The price is 0.4–0.5% on generated drafts, where the judge opens a gate that the head would have left closed. The reported method therefore uses the head on its own: its refusal to edit generated drafts is itself part of the evidence. The combined gate is offered for the case in which the drafts are already known to contain local errors.
 
@@ -280,9 +280,9 @@ Dropping any single rater shifts the found rates by 7 points at most, leaves D2'
 
 **Limitations.**
 
-*Plausibility here is a model's verdict.* ΔNLL measures statistical implausibility under a small language model, calibrated on human variants and then compared with listeners (Table VIII). Listeners move with it in direction (ρ = −0.40) and at the extremes, but only loosely. The judge is nevertheless kept as the primary measure.
+*Plausibility here is a model's verdict.* ΔNLL measures statistical implausibility under a small language model, calibrated on human variants and then compared with listeners (Table VIII). Listeners move with it in direction (ρ = −0.44) and at the extremes, but only loosely. The judge is nevertheless kept as the primary measure.
 
-*The listening study is small.* Each excerpt received three or four ratings, and each source contributed 20 excerpts. The study distinguishes rule-based errors from a generator's changes, and repairs from the notes of the draft, but it does not distinguish generated drafts from their references. The naturalness gap between those two, −0.38 [−0.79, +0.01], is unresolved, and it is as large as the gap for random corruption, so the study supplies no evidence that generated drafts sound equally good.
+*The listening study is small.* Each excerpt received three to five ratings, and each source contributed 20 excerpts. The study distinguishes rule-based errors from a generator's changes, and repairs from the notes of the draft, but it does not distinguish generated drafts from their references. The naturalness gap between those two, −0.37 [−0.77, +0.03], is unresolved, and it is as large as the gap for random corruption, so the study supplies no evidence that generated drafts sound equally good.
 
 *The judge and the refiners were trained on the same data.* The judge is held independent of the generator, but the refiners train on drafts drawn from the judge's half of Essen, which predisposes the judge to rate their output as plausible. The effect falls mostly on free decoding, which rewrites many notes toward material both models have learned. Gated editing alters few notes and is therefore less exposed, though its gains in plausibility may be overstated as well.
 
